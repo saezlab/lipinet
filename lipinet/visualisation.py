@@ -68,6 +68,62 @@ def create_node_labels(g: gt.Graph, property_map: gt.PropertyMap) -> gt.Property
     return vertex_labels
 
 
+def color_nodes(g, prop_name, categorical=True):
+    """
+    Assign colors to nodes in a graph based on a specified property, either categorical or continuous.
+    
+    Parameters:
+    -------
+    - g (Graph): The graph object where nodes are colored.
+    - prop_name (str): The name of the vertex property used to determine colors.
+      This property can be either categorical or continuous.
+    - categorical (bool): If True, assigns distinct colors for each unique category in the property.
+      If False, assigns colors on a gradient scale based on the continuous values in the property.
+
+    Returns:
+    -------
+    - v_color (PropertyMap): A vertex property map with RGBA color values (as a 4-element tuple),
+      with each color assigned based on the specified property.
+    
+    Example usage:
+    -------
+    # 1. Color by 'level' (categorical)
+    v_color_by_level = color_nodes(g, 'level', categorical=True)
+
+    # 2. Color by 'reaction_count' (continuous)
+    v_color_by_reactions = color_nodes(g, 'reaction_count', categorical=False)
+    """
+    # Initialize a new vertex property for color, storing RGBA as a vector of doubles
+    v_color = g.new_vertex_property("vector<double>")
+    
+    if categorical:
+        # Handle categorical properties: assign distinct colors for each category
+        categories = set(g.vp[prop_name])
+        # Use a predefined color map (e.g., tab10) for distinct color assignment to each category
+        color_map = {cat: cm.tab10(i % 10) for i, cat in enumerate(categories)}
+        
+        for v in g.vertices():
+            category = g.vp[prop_name][v]
+            # Assign the RGB color with added alpha of 1.0 for full opacity
+            v_color[v] = color_map[category][:3] + (1.0,)
+    
+    else:
+        # Handle continuous properties: assign colors on a gradient scale
+        values = [float(g.vp[prop_name][v]) for v in g.vertices()]
+        min_val, max_val = min(values), max(values)
+        
+        # Normalize values for color mapping on a continuous scale using Viridis colormap
+        norm = plt.Normalize(vmin=min_val, vmax=max_val)
+        scalar_map = cm.ScalarMappable(norm=norm, cmap=cm.viridis)
+        
+        for v in g.vertices():
+            value = float(g.vp[prop_name][v])
+            # Map value to an RGBA color, extracting RGB and adding alpha of 1.0 for opacity
+            v_color[v] = scalar_map.to_rgba(value)[:3] + (1.0,)
+    
+    return v_color
+
+
 def draw_weight_propagation_graph(
     g: gt.Graph,
     measured_node: gt.Vertex,
