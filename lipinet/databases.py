@@ -88,8 +88,22 @@ def get_prior_knowledge(name_of_resource):
         data_url = resources[name_of_resource]['data_url']
         if name_of_resource=='swisslipids':
             fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', compressed=True, sep='\t', encoding='latin-1')
+            fetched_data = clean(fetched_data, name_of_resource=name_of_resource)
         else:
             fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t')
         return fetched_data
     except KeyError as e:
         raise e(f"KeyError encountered, probably because the resource you requested is not yet supported.")
+    
+
+def clean(df, name_of_resource):
+    """
+    Some of the data sources need specialised cleaning to make them nicer to work with.
+    """
+
+    if name_of_resource=='swisslipids':
+        # Note the swisslipids 'Lipid class*' column has some strings ending with an empty space, which can really screw with the hierarchy...
+        print(f'Before cleaning, number of values in lipid class column with trailing space: {df['Lipid class*'].str.endswith(' ').value_counts()}')
+        df['Lipid class*'] = df['Lipid class*'].str.strip(' ')
+        print(f'After cleaning, number of values in lipid class column with trailing space: {df['Lipid class*'].str.endswith(' ').value_counts()}')
+        return df
