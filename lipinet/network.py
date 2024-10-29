@@ -225,3 +225,44 @@ class MultilayerNetwork:
         Return a subgraph view of a specific layer.
         """
         return GraphView(self.graph, vfilt=lambda v: self.layers[v] == layer_name)
+    
+
+    def filter_view_by_property(self, prop_name, target_value, comparison="=="):
+        """
+        Creates a filtered graph view including only nodes where the specified property
+        meets the specified comparison with the target value.
+
+        :param prop_name: The name of the property to filter by.
+        :param target_value: The value to filter for.
+        :param comparison: The comparison operator as a string (e.g., "==", "!=", "<", ">").
+        :return: A GraphView filtered to include only nodes where `prop_name comparison target_value`.
+        """
+        import operator
+
+        # Define available operators
+        comparison_operators = {
+            "==": operator.eq,
+            "!=": operator.ne,
+            "<": operator.lt,
+            ">": operator.gt,
+            "<=": operator.le,
+            ">=": operator.ge
+        }
+        
+        # Check if the property exists in vertex properties
+        if prop_name not in self.graph.vp:
+            raise ValueError(f"Property '{prop_name}' does not exist in the graph.")
+
+        # Check if the comparison operator is valid
+        if comparison not in comparison_operators:
+            raise ValueError(f"Invalid comparison operator '{comparison}'. Choose from {list(comparison_operators.keys())}.")
+
+        # Get the appropriate comparison function
+        compare_func = comparison_operators[comparison]
+
+        # Create a filter mask based on the property and comparison
+        def filter_func(v):
+            return compare_func(self.graph.vp[prop_name][v], target_value)
+
+        # Create and return a filtered GraphView
+        return GraphView(self.graph, vfilt=filter_func)
