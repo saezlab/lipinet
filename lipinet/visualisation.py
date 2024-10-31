@@ -9,6 +9,7 @@ from typing import Dict, List
 import numpy as np
 
 import matplotlib.cm as cm  # To use color maps
+from matplotlib.patches import Patch
 
 
 def flatten_properties(nested_properties: List[Any]) -> List[str]:
@@ -552,3 +553,30 @@ def set_node_sizes_and_text_by_depth(g, root, max_size=20, min_size=5, max_text_
         v_text_size[v] = max_text_size - ((max_text_size - min_text_size) * (depth / max_depth))
     
     return v_size, v_text_size
+
+
+def get_legend(gv, prop, ordered_cats=None, verbose=False):
+    """
+    This function will create a legend with colours corresponding to those used in the plot.
+    Property should correspond to the property category used for colouring the graph.
+    The order of the items in the legend will be determined by the category order provided, if any.
+    """
+    categories = set(gv.vp[prop])
+    # Use a predefined color map (e.g., tab10) for distinct color assignment to each category
+    color_map = {cat: cm.tab10(i % 10) for i, cat in enumerate(categories)} # this should reflect the internal colour property function in lipinet
+    if verbose==True:
+        print(color_map)
+
+    # Create legend elements in the specified order
+    if ordered_cats != None:
+        ordered_categories = ordered_cats # e.g. ['Category', 'Class', 'Species', 'Molecular subspecies', 'Structural subspecies', 'Isomeric subspecies']
+        legend_elements = [Patch(facecolor=color_map[cat][:3], label=cat) for cat in ordered_categories]
+    else:
+        legend_elements = [Patch(facecolor=color[:3], label=category)  # Use RGB only
+                            for category, color in color_map.items()]
+
+    # Plot the legend
+    plt.figure(figsize=(5, 3))
+    plt.legend(handles=legend_elements, title=prop.capitalize(), loc="center", frameon=False)
+    plt.axis("off")  # Hide axes for a clean legend display
+    plt.show()

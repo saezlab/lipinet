@@ -338,9 +338,10 @@ class MultilayerNetwork:
         return nodes_in_paths, edges_in_paths
     
 
-    def inspect_properties(self, vertex):
+    def inspect_properties(self, vertex, verbose=True):
         node_properties = {prop_name: prop[vertex] for prop_name, prop in self.graph.vertex_properties.items()}
-        print(node_properties)
+        if verbose:
+            print(node_properties)
         return node_properties
 
 
