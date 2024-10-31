@@ -178,6 +178,6 @@ def add_count_property(graph, property_name, new_property_name, delimiter=','):
     graph.vp[new_property_name] = item_count_property
     return item_count_property
 
-    # Example of how to use the functions
+    # Example of how to use the functionsq
     # Assume `g` is an existing graph with a vertex property 'items' that contains delimited strings
     # v_item_count = add_count_property(g, 'reactions', 'item_count')

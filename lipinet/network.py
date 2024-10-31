@@ -1,4 +1,6 @@
-from graph_tool.all import Graph, GraphView
+from graph_tool.all import Graph, GraphView, bfs_search, BFSVisitor, bfs_iterator
+from collections import deque
+
 
 class MultilayerNetwork:
     def __init__(self):
@@ -7,13 +9,13 @@ class MultilayerNetwork:
         self.node_map = {}  # A dictionary to map node IDs to graph vertices
         
         # Add node properties
-        self.layers = self.graph.new_vertex_property("string")  # Layer property (string, like 'layer1', 'layer2')
+        self.layer = self.graph.new_vertex_property("string")  # Layer property (string, like 'layer1', 'layer2')
         self.authority = self.graph.new_vertex_property("string")  # Source of information (ChEBI, Rhea)
         self.node_type = self.graph.new_vertex_property("string")  # Generalized node type (ChEBI, Rhea ID, etc.)
         self.node_id = self.graph.new_vertex_property("string")  # Individual node ID
 
         # Add properties to the graph
-        self.graph.vp['layers'] = self.layers
+        self.graph.vp['layer'] = self.layer
         self.graph.vp['authority'] = self.authority
         self.graph.vp['node_type'] = self.node_type
         self.graph.vp['node_id'] = self.node_id
@@ -27,7 +29,7 @@ class MultilayerNetwork:
         self.graph.edge_properties["interlayer"] = self.edge_layertype
 
 
-    def add_node(self, layer, authority, node_type, node_id, **extra_properties):
+    def add_node(self, layer, authority, node_type, node_id, verbose=True, **extra_properties):
         """
         Add a node to the graph with the given properties and additional custom properties.
         
@@ -48,13 +50,14 @@ class MultilayerNetwork:
             node = self.node_map[node_key]  # Retrieve existing node
 
         # Set core properties using _set_node_property
-        self._set_node_property(node, "layer", layer) # previously adjusted like this: self.layers[node] = layer
+        self._set_node_property(node, "layer", layer) # previously adjusted like this: self.layer[node] = layer
         self._set_node_property(node, "authority", authority)
         self._set_node_property(node, "node_type", node_type)
         self._set_node_property(node, "node_id", node_id)
 
-        # Debugging output to check property setting
-        print(f"Node {node_id}: layer={layer}, authority={authority}, node_type={node_type}, extra props={extra_properties.items()}")
+        if verbose:
+            # Debugging output to check property setting
+            print(f"Node {node_id}: layer={layer}, authority={authority}, node_type={node_type}, extra props={extra_properties.items()}")
 
         # Set additional custom properties
         for prop_name, prop_value in extra_properties.items():
@@ -119,7 +122,7 @@ class MultilayerNetwork:
                 node = self.graph.add_vertex()
                 self.node_map[node_key] = node
                 # Set default properties if needed (e.g., layer and node_id)
-                self.layers[node] = layer
+                self.layer[node] = layer
                 self.node_id[node] = node_id
                 
             return node
@@ -205,7 +208,7 @@ class MultilayerNetwork:
         # Set the property value for the node
         self.graph.vp[prop_name][node] = value
 
-    def build_layer(self, layer_data, layer_name, authority, custom_properties={}):
+    def build_layer(self, layer_data, layer_name, authority, custom_properties={}, verbose=True):
         """
         Build a network layer from a dataset.
         
@@ -213,24 +216,29 @@ class MultilayerNetwork:
         :param layer_name: Name of the layer
         :param authority: Source of the data (e.g., ChEBI, Rhea)
         :param custom_properties: Dictionary of extra properties for each node {node_id: {property_name: value}}
+        :param verbose: Whether to print every node update.
         """
         custom_properties = custom_properties or {}
         for node_id, node_type in layer_data:
             # Get extra properties for this node if they exist
             node_properties = custom_properties.get(node_id, {})
-            self.add_node(layer=layer_name, authority=authority, node_type=node_type, node_id=node_id, **node_properties)
+            self.add_node(layer=layer_name, authority=authority, node_type=node_type, node_id=node_id, verbose=verbose, **node_properties)
     
     def view_layer(self, layer_name):
         """
         Return a subgraph view of a specific layer.
         """
-        return GraphView(self.graph, vfilt=lambda v: self.layers[v] == layer_name)
+        return GraphView(self.graph, vfilt=lambda v: self.layer[v] == layer_name)
     
 
     def filter_view_by_property(self, prop_name, target_value, comparison="=="):
         """
         Creates a filtered graph view including only nodes where the specified property
         meets the specified comparison with the target value.
+
+        Note, the other way to do something similar to graph tool is using the graph_tool.util.find_vertex()
+        In some cases you may want to use that instead. e.g:
+            graph_tool.util.find_vertex(g=multinet.graph, prop=multinet.graph.vertex_properties['layer'], match='swisslipids')
 
         :param prop_name: The name of the property to filter by.
         :param target_value: The value to filter for.
@@ -266,3 +274,80 @@ class MultilayerNetwork:
 
         # Create and return a filtered GraphView
         return GraphView(self.graph, vfilt=filter_func)
+    
+
+    def extract_subgraph_with_paths(self, root, nodes_of_interest):
+        """
+        Extracts a subgraph that includes the nodes of interest, the root,
+        and any intermediate nodes along the shortest paths from each node of interest to the root.
+
+        :param root: The root node from which paths are calculated.
+        :param nodes_of_interest: A set of nodes of interest to include in the subgraph.
+        :return: A GraphView of the subgraph containing nodes of interest and intermediate nodes.
+        """
+        # Ensure `root` is a Vertex object
+        if isinstance(root, int):
+            root = self.graph.vertex(root)
+
+        # Ensure `nodes_of_interest` are Vertex objects
+        nodes_of_interest_vertices = {self.graph.vertex(idx) for idx in nodes_of_interest}
+
+        # Use the function-based BFS to collect nodes and edges
+        nodes_in_paths, edges_in_paths = self.collect_paths_with_bfs(root, nodes_of_interest_vertices)
+
+        # Create vertex and edge filters based on collected nodes and edges
+        vfilt = self.graph.new_vertex_property("bool")
+        efilt = self.graph.new_edge_property("bool")
+        
+        for v in nodes_in_paths:
+            vfilt[v] = True
+        for e in edges_in_paths:
+            efilt[e] = True
+
+        # Return a filtered GraphView containing only relevant nodes and edges
+        return GraphView(self.graph, vfilt=vfilt, efilt=efilt)
+    
+
+    def collect_paths_with_bfs(graph, root, target_nodes):
+        """
+        Collects nodes and edges along directed BFS paths from target nodes to the root, traversing only incoming edges.
+        """
+        nodes_in_paths = set()
+        edges_in_paths = set()
+        target_nodes = set(target_nodes)
+        queue = deque(target_nodes)  # Start BFS from target nodes
+
+        while queue:
+            v = queue.popleft()
+            
+            # Add this vertex to nodes_in_paths if it leads to the root path
+            nodes_in_paths.add(v)
+
+            # Traverse each incoming edge and enqueue source vertices
+            for e in v.in_edges():  # Use in_edges() to go "upwards" toward the root
+                source = e.source()
+                edges_in_paths.add(e)  # Add the edge to the path
+                if source not in nodes_in_paths:
+                    queue.append(source)  # Enqueue unvisited source vertices
+                    nodes_in_paths.add(source)
+
+        # Ensure the root itself is included
+        if root in nodes_in_paths:
+            nodes_in_paths.add(root)
+
+        return nodes_in_paths, edges_in_paths
+    
+
+    def inspect_properties(self, vertex):
+        node_properties = {prop_name: prop[vertex] for prop_name, prop in self.graph.vertex_properties.items()}
+        print(node_properties)
+        return node_properties
+
+
+def get_root_nodes(graph):
+    """
+    Speculative root nodes. Should refactor later to allow for different conditions or graph conventions.
+    """
+    root_nodes = [v for v in graph.vertices() if v.in_degree() == 0]
+    return root_nodes
+
