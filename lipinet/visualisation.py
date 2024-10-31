@@ -1,11 +1,12 @@
 import graph_tool.all as gt
+import graph_tool
 import matplotlib.pyplot as plt
 from typing import Dict, List, Any
 
 import matplotlib.pyplot as plt
-import graph_tool.all as gt
 from collections import defaultdict
 from typing import Dict, List
+import numpy as np
 
 import matplotlib.cm as cm  # To use color maps
 
@@ -68,7 +69,7 @@ def create_node_labels(g: gt.Graph, property_map: gt.PropertyMap) -> gt.Property
     return vertex_labels
 
 
-def color_nodes(g, prop_name, categorical=True):
+def color_nodes(g, prop_name, method="categorical"):
     """
     Assign colors to nodes in a graph based on a specified property, either categorical or continuous.
     
@@ -76,8 +77,10 @@ def color_nodes(g, prop_name, categorical=True):
     -------
     - g (Graph): The graph object where nodes are colored.
     - prop_name (str): The name of the vertex property used to determine colors.
-      This property can be either categorical or continuous.
-    - categorical (bool): If True, assigns distinct colors for each unique category in the property.
+    - method (str): 
+        'categorical': assigns distinct colors for each unique category in the property.
+        'continuous' : uses a colour scale.
+        'boolean'    : uses red if the property is True or present, and grey if False or absent.
       If False, assigns colors on a gradient scale based on the continuous values in the property.
 
     Returns:
@@ -88,15 +91,15 @@ def color_nodes(g, prop_name, categorical=True):
     Example usage:
     -------
     # 1. Color by 'level' (categorical)
-    v_color_by_level = color_nodes(g, 'level', categorical=True)
+    v_color_by_level = color_nodes(g, 'level', method='categorical')
 
     # 2. Color by 'reaction_count' (continuous)
-    v_color_by_reactions = color_nodes(g, 'reaction_count', categorical=False)
+    v_color_by_reactions = color_nodes(g, 'reaction_count', method='continuous')
     """
     # Initialize a new vertex property for color, storing RGBA as a vector of doubles
     v_color = g.new_vertex_property("vector<double>")
     
-    if categorical:
+    if method=='categorical':
         # Handle categorical properties: assign distinct colors for each category
         categories = set(g.vp[prop_name])
         # Use a predefined color map (e.g., tab10) for distinct color assignment to each category
@@ -107,7 +110,7 @@ def color_nodes(g, prop_name, categorical=True):
             # Assign the RGB color with added alpha of 1.0 for full opacity
             v_color[v] = color_map[category][:3] + (1.0,)
     
-    else:
+    elif method=='continuous':
         # Handle continuous properties: assign colors on a gradient scale
         values = [float(g.vp[prop_name][v]) for v in g.vertices()]
         min_val, max_val = min(values), max(values)
@@ -120,7 +123,19 @@ def color_nodes(g, prop_name, categorical=True):
             value = float(g.vp[prop_name][v])
             # Map value to an RGBA color, extracting RGB and adding alpha of 1.0 for opacity
             v_color[v] = scalar_map.to_rgba(value)[:3] + (1.0,)
+
+    elif method == 'boolean':
+        # Handle boolean properties: red for True or present, grey for False or absent
+        for v in g.vertices():
+            value = g.vp[prop_name][v]
+            if bool(value):  # True or present
+                v_color[v] = (1.0, 0.0, 0.0, 1.0)  # Red with full opacity
+            else:  # False or absent
+                v_color[v] = (0.5, 0.5, 0.5, 1.0)  # Grey with full opacity
     
+    else:
+        raise('Intended method not supported. Please choose from: categorical, continuous, boolean.')
+
     return v_color
 
 
@@ -499,3 +514,41 @@ def draw_category_propagation_subplots(
     #     plt.savefig(output)
     # else:
     #     plt.show()
+
+
+def set_node_sizes_and_text_by_depth(g, root, max_size=20, min_size=5, max_text_size=15, min_text_size=8):
+    """
+    Set node sizes and text sizes based on their depth in the tree.
+    
+    Parameters:
+    - g (Graph): The graph object.
+    - root (Vertex): The root vertex from which to calculate depths.
+    - max_size (int): Maximum size for inner nodes (closer to the root).
+    - min_size (int): Minimum size for outer nodes (further from the root).
+    - max_text_size (int): Maximum text size for inner nodes.
+    - min_text_size (int): Minimum text size for outer nodes.
+    
+    Returns:
+    - v_size (PropertyMap): A vertex property map with sizes based on depth.
+    - v_text_size (PropertyMap): A vertex property map for text sizes based on depth.
+    """
+    # TODO - text_size seems currently buggy in cairo, might need to fix or go back to just node size
+
+    # Create property maps for storing node sizes and text sizes
+    v_size = g.new_vertex_property("double")
+    v_text_size = g.new_vertex_property("double")
+    
+    # Calculate depths of each node from the root
+    depths = graph_tool.topology.shortest_distance(g, source=root, directed=False, weights=None)
+    max_depth = np.max(depths)
+    
+    for v in g.vertices():
+        depth = depths[v]
+        
+        # Scale node size based on depth
+        v_size[v] = max_size - ((max_size - min_size) * (depth / max_depth))
+        
+        # Scale text size based on depth
+        v_text_size[v] = max_text_size - ((max_text_size - min_text_size) * (depth / max_depth))
+    
+    return v_size, v_text_size
