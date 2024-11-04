@@ -1,4 +1,5 @@
-from graph_tool.all import Graph, GraphView, bfs_search, BFSVisitor, bfs_iterator
+from graph_tool.all import Graph, GraphView, bfs_search, BFSVisitor, bfs_iterator, shortest_distance, graph_draw
+from graph_tool.topology import label_out_component
 from collections import deque
 
 
@@ -208,6 +209,7 @@ class MultilayerNetwork:
         # Set the property value for the node
         self.graph.vp[prop_name][node] = value
 
+
     def build_layer(self, layer_data, layer_name, authority, custom_properties={}, verbose=True):
         """
         Build a network layer from a dataset.
@@ -223,6 +225,7 @@ class MultilayerNetwork:
             # Get extra properties for this node if they exist
             node_properties = custom_properties.get(node_id, {})
             self.add_node(layer=layer_name, authority=authority, node_type=node_type, node_id=node_id, verbose=verbose, **node_properties)
+    
     
     def view_layer(self, layer_name):
         """
@@ -276,14 +279,16 @@ class MultilayerNetwork:
         return GraphView(self.graph, vfilt=filter_func)
     
 
-    def extract_subgraph_with_paths(self, root, nodes_of_interest):
+    def extract_subgraph_with_paths(self, root, nodes_of_interest, direction='upstream'):
         """
         Extracts a subgraph that includes the nodes of interest, the root,
-        and any intermediate nodes along the shortest paths from each node of interest to the root.
+        and any intermediate nodes along the paths from each node of interest according to the specified direction.
+        Direction can be 'upstream', 'downstream', or 'both'.
 
         :param root: The root node from which paths are calculated.
         :param nodes_of_interest: A set of nodes of interest to include in the subgraph.
-        :return: A GraphView of the subgraph containing nodes of interest and intermediate nodes.
+        :param direction: The direction of traversal: 'upstream', 'downstream', or 'both'.
+        :return: A GraphView of the subgraph containing relevant nodes and edges.
         """
         # Ensure `root` is a Vertex object
         if isinstance(root, int):
@@ -292,51 +297,165 @@ class MultilayerNetwork:
         # Ensure `nodes_of_interest` are Vertex objects
         nodes_of_interest_vertices = {self.graph.vertex(idx) for idx in nodes_of_interest}
 
-        # Use the function-based BFS to collect nodes and edges
-        nodes_in_paths, edges_in_paths = self.collect_paths_with_bfs(root, nodes_of_interest_vertices)
+        # Initialize global vertex and edge filters
+        vfilt = self.graph.new_vertex_property('bool', val=False)
+        efilt = self.graph.new_edge_property('bool', val=False)
 
-        # Create vertex and edge filters based on collected nodes and edges
-        vfilt = self.graph.new_vertex_property("bool")
-        efilt = self.graph.new_edge_property("bool")
-        
-        for v in nodes_in_paths:
-            vfilt[v] = True
-        for e in edges_in_paths:
-            efilt[e] = True
+        if direction in ['upstream', 'both']:
+            # Upstream traversal (towards ancestors)
+            self._bfs_traversal(nodes_of_interest_vertices, vfilt, efilt, mode='upstream')
+            # Include the root node in upstream traversal
+            vfilt[root] = True
 
-        # Return a filtered GraphView containing only relevant nodes and edges
-        return GraphView(self.graph, vfilt=vfilt, efilt=efilt)
-    
+        if direction in ['downstream', 'both']:
+            # Downstream traversal (towards descendants)
+            self._bfs_traversal(nodes_of_interest_vertices, vfilt, efilt, mode='downstream')
 
-    def collect_paths_with_bfs(graph, root, target_nodes):
+        # Create a GraphView with the combined filters
+        subgraph = GraphView(self.graph, vfilt=vfilt, efilt=efilt)
+        return subgraph
+
+    def _bfs_traversal(self, seed_vertices, vfilt, efilt, mode='downstream'):
         """
-        Collects nodes and edges along directed BFS paths from target nodes to the root, traversing only incoming edges.
+        Performs BFS traversal from seed vertices in the specified mode ('upstream' or 'downstream').
+        Updates the provided vertex and edge filters.
+
+        :param seed_vertices: Set of seed Vertex objects.
+        :param vfilt: Vertex property map to update.
+        :param efilt: Edge property map to update.
+        :param mode: 'upstream' for ancestors, 'downstream' for descendants.
         """
-        nodes_in_paths = set()
-        edges_in_paths = set()
-        target_nodes = set(target_nodes)
-        queue = deque(target_nodes)  # Start BFS from target nodes
+        visited = set()
+        queue = deque(seed_vertices)
 
         while queue:
             v = queue.popleft()
-            
-            # Add this vertex to nodes_in_paths if it leads to the root path
-            nodes_in_paths.add(v)
+            if v in visited:
+                continue
+            visited.add(v)
+            vfilt[v] = True
 
-            # Traverse each incoming edge and enqueue source vertices
-            for e in v.in_edges():  # Use in_edges() to go "upwards" toward the root
-                source = e.source()
-                edges_in_paths.add(e)  # Add the edge to the path
-                if source not in nodes_in_paths:
-                    queue.append(source)  # Enqueue unvisited source vertices
-                    nodes_in_paths.add(source)
-
-        # Ensure the root itself is included
-        if root in nodes_in_paths:
-            nodes_in_paths.add(root)
-
-        return nodes_in_paths, edges_in_paths
+            if mode == 'downstream':
+                # Traverse outgoing edges
+                for e in v.out_edges():
+                    target = e.target()
+                    efilt[e] = True
+                    if target not in visited:
+                        queue.append(target)
+            elif mode == 'upstream':
+                # Traverse incoming edges
+                for e in v.in_edges():
+                    source = e.source()
+                    efilt[e] = True
+                    if source not in visited:
+                        queue.append(source)
+            else:
+                raise ValueError("Mode must be 'upstream' or 'downstream'.")
     
+
+    
+
+    def search(self, start_node_idx, max_dist=5, direction='downstream', node_text='ids', show_plot=True, **kwargs):
+        """
+        Generalized function to perform upstream, downstream, or both-directional search on a directed graph.
+        
+        Parameters:
+        - start_node_idx: The index of the node to start the search from.
+        - max_dist: Maximum distance (in number of hops) to search.
+        - direction: 'downstream', 'upstream', or 'both' to search in both directions.
+        - node_text: Attribute to display on nodes ('ids' or 'node_id').
+        - show_plot: Boolean to show plot or not.
+        
+        Returns:
+        - A filtered subgraph containing the nodes within the given distance in the specified direction.
+        """
+        g = self.graph
+        MAX_DIST = max_dist
+
+        # Step 1: Select the starting node
+        start_node = g.vertex(start_node_idx)
+
+        # Step 2: Handle direction (upstream, downstream, or both)
+        if direction == 'upstream':
+            # Reverse the graph for upstream search
+            g_search = g.copy()
+            g_search.set_reversed(True)
+            distances = shortest_distance(g_search, source=start_node, max_dist=MAX_DIST)
+
+        elif direction == 'downstream':
+            # Use the graph as is for downstream search
+            distances = shortest_distance(g, source=start_node, max_dist=MAX_DIST)
+
+        elif direction == 'both':
+            # Perform both upstream and downstream searches separately
+            # Upstream search with reversed graph
+            g_upstream = g.copy()
+            g_upstream.set_reversed(True)
+            distances_upstream = shortest_distance(g_upstream, source=start_node, max_dist=MAX_DIST)
+            
+            # Downstream search
+            distances_downstream = shortest_distance(g, source=start_node, max_dist=MAX_DIST)
+            
+            # Merge distances (take minimum distance if reachable in both directions)
+            distances = {v: min(distances_upstream[v], distances_downstream[v]) 
+                        for v in g.vertices() 
+                        if distances_upstream[v] < float('inf') or distances_downstream[v] < float('inf')}
+
+        else:
+            raise ValueError("Invalid direction. Choose 'upstream', 'downstream', or 'both'.")
+
+        # Step 3: Filter the graph to only include nodes within the specified distance
+        result_filter = GraphView(g, vfilt=lambda v: distances[v] <= MAX_DIST and distances[v] < float('inf'))
+
+        # Output details
+        print(f"{direction.capitalize()} graph from node {start_node} contains {result_filter.num_vertices()} vertices and {result_filter.num_edges()} edges.")
+
+        # Optionally draw the filtered graph
+        if show_plot:
+            vertex_text_prop = result_filter.vertex_properties['node_id'] if node_text == 'node_id' else result_filter.vertex_index
+            graph_draw(result_filter, vertex_text=vertex_text_prop, **kwargs)
+
+        return result_filter
+    
+
+    def extract_subgraph_with_label_component(self, root, nodes_of_interest, direction='downstream'):
+        """
+        Extracts a subgraph including all nodes reachable from nodes of interest 
+        in the specified direction ('upstream', 'downstream', or 'both').
+
+        Parameters:
+        - root: The root node from which paths are calculated.
+        - nodes_of_interest: A set of node indices of interest to include in the subgraph.
+        - direction: The direction of traversal ('upstream', 'downstream', or 'both').
+
+        Returns:
+        - A GraphView of the subgraph containing relevant nodes and edges.
+        """
+        # Initialize an empty vertex filter property map with False values
+        vfilt = self.graph.new_vertex_property('bool', val=False)
+        
+        # Downstream component
+        if direction in ['downstream', 'both']:
+            for node_idx in nodes_of_interest:
+                node = self.graph.vertex(node_idx)
+                component = label_out_component(self.graph, node)
+                vfilt.a = vfilt.a | component.a  # Logical OR to combine component labels
+
+        # Upstream component by using a reversed graph view
+        if direction in ['upstream', 'both']:
+            reversed_graph = GraphView(self.graph, reversed=True)
+            for node_idx in nodes_of_interest:
+                node = reversed_graph.vertex(node_idx)
+                component = label_out_component(reversed_graph, node)
+                vfilt.a = vfilt.a | component.a  # Logical OR to combine component labels
+
+        # Include the root node explicitly
+        vfilt[root] = True
+
+        # Create the filtered subgraph with the combined vertex filter
+        subgraph = GraphView(self.graph, vfilt=vfilt)
+        return subgraph
+        
 
     def inspect_properties(self, vertex, verbose=True):
         node_properties = {prop_name: prop[vertex] for prop_name, prop in self.graph.vertex_properties.items()}
