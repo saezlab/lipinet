@@ -64,118 +64,93 @@ class MultilayerNetwork:
         for prop_name, prop_value in extra_properties.items():
             self._set_node_property(node, prop_name, prop_value)
 
-
-
-    def add_edge_directly(self, node1, node2):
+    
+    def add_edges_from_pairs(self, node_pairs, split_char='|', create_missing=False, edge_properties=None):
         """
-        Add a directed edge between two nodes (keep in mind they should be an actual node object already, else will be created).
-        """
-        self.graph.add_edge(node1, node2)
-
-
-    def add_edge_via_nodemap(self, node_pairs=None, from_nodes=None, to_nodes=None, 
-                            from_layer=None, to_layer=None, split_char='|', create_missing=False):
-        """
-        Add directed edges between pairs of nodes, using the node map.
-
+        Add directed edges between pairs of nodes using node_pairs and an optional edge property map.
+        
         Args:
-        - node_pairs: A list of tuples (node1_id, node2_id), where each node is identified
-                    by (layer, node_id). node_id can include multiple IDs separated by `split_char`.
-        - from_nodes: A list, series, or array of node IDs for the 'from' nodes.
-        - to_nodes: A list, series, or array of node IDs for the 'to' nodes.
-        - from_layer: Layer name to use for all nodes in from_nodes (required if using from_nodes/to_nodes).
-        - to_layer: Layer name to use for all nodes in to_nodes (required if using from_nodes/to_nodes).
-        - split_char: Optional; the character used to split multiple node IDs (default is '|').
-        - create_missing: Optional; if True, creates missing nodes if they are not found in node_map.
-
-        Examples:
-
-        Using node_pairs:
-            network.add_edge_via_nodemap(
-                node_pairs=[
-                    (('layer1', 'CHEBI:15377'), ('layer2', 'RHEA:15421 | CHEBI:15378')),
-                    (('layer1', 'CHEBI:15379'), ('layer2', 'CHEBI:15380 | CHEBI:15381')),
-                    (('layer1', 'CHEBI:15382'), ('layer2', 'RHEA:15422'))
-                ],
-                split_char='|',
-                create_missing=True
-            )
-
-        Using from_nodes and to_nodes:
-            network.add_edge_via_nodemap(
-                from_nodes=['CHEBI:15377', 'CHEBI:15378'],
-                to_nodes=['RHEA:15421 | CHEBI:15379', 'RHEA:15420'],
-                from_layer='layer1',
-                to_layer='layer2',
-                split_char='|',
-                create_missing=True
-            )
+        - node_pairs: A list of tuples (node1_id, node2_id), where each node is identified by (layer, node_id).
+        - split_char: Character to split multiple node IDs.
+        - create_missing: If True, creates missing nodes if they are not found in node_map.
+        - edge_properties: Optional; dictionary of edge properties to apply to each created edge.
         """
-        def get_or_create_node(layer, node_id):
-            """
-            Helper function to get a node from node_map or create it if missing.
-            """
-            node_key = (layer, node_id)
-            node = self.node_map.get(node_key)
+        for node1_id, node2_id in node_pairs:
+            if node1_id is None or node2_id is None:
+                continue
             
-            if node is None and create_missing:
-                print(f"Node {node_key} not found. Creating node.")
-                node = self.graph.add_vertex()
-                self.node_map[node_key] = node
-                # Set default properties if needed (e.g., layer and node_id)
-                self.layer[node] = layer
-                self.node_id[node] = node_id
-                
-            return node
+            # Split IDs if necessary
+            node1_ids = [id_.strip() for id_ in node1_id[1].split(split_char)] if split_char in node1_id[1] else [node1_id[1]]
+            node2_ids = [id_.strip() for id_ in node2_id[1].split(split_char)] if split_char in node2_id[1] else [node2_id[1]]
 
-        if node_pairs is not None:
-            # Process node_pairs as before
-            for node1_id, node2_id in node_pairs:
-                if node1_id is None or node2_id is None:
-                    continue  # Skip null entries
-                
-                # Check if node IDs contain the split character, and split & strip spaces if they do
-                node1_ids = [id_.strip() for id_ in node1_id[1].split(split_char)] if isinstance(node1_id[1], str) and split_char in node1_id[1] else [node1_id[1]]
-                node2_ids = [id_.strip() for id_ in node2_id[1].split(split_char)] if isinstance(node2_id[1], str) and split_char in node2_id[1] else [node2_id[1]]
+            for id1 in node1_ids:
+                for id2 in node2_ids:
+                    node1 = self.get_or_create_node(node1_id[0], id1, create_missing)
+                    node2 = self.get_or_create_node(node2_id[0], id2, create_missing)
 
-                # Iterate through all combinations of node1_ids and node2_ids
-                for id1 in node1_ids:
-                    for id2 in node2_ids:
-                        node1 = get_or_create_node(node1_id[0], id1)
-                        node2 = get_or_create_node(node2_id[0], id2)
-
-                        # Skip if nodes couldn't be created or retrieved
-                        if node1 is None or node2 is None:
-                            continue
-                        self.graph.add_edge(node1, node2)
-        elif from_nodes is not None and to_nodes is not None:
-            # Ensure from_layer and to_layer are provided
-            if from_layer is None or to_layer is None:
-                raise ValueError("Both from_layer and to_layer must be specified when using from_nodes and to_nodes.")
-
-            # Process from_nodes and to_nodes with specified layers
-            for from_node_id, to_node_id in zip(from_nodes, to_nodes):
-                # Skip null entries and non-string types
-                if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
-                    print(f"Skipping null or non-string entry: from_node_id={from_node_id}, to_node_id={to_node_id}")
-                    continue
-                
-                from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
-                to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
-
-                for id1 in from_node_ids:
-                    for id2 in to_node_ids:
-                        node1 = get_or_create_node(from_layer, id1)
-                        node2 = get_or_create_node(to_layer, id2)
-
-                        # Skip if nodes couldn't be created or retrieved
-                        if node1 is None or node2 is None:
-                            continue
-                        self.graph.add_edge(node1, node2)
-        else:
-            raise ValueError("Either node_pairs or both from_nodes and to_nodes must be provided.")
+                    if node1 is None or node2 is None:
+                        continue
+                    
+                    # Add edge with optional properties
+                    edge = self.graph.add_edge(node1, node2)
+                    if edge_properties:
+                        for prop_name, prop_value in edge_properties.items():
+                            self.graph.edge_properties[prop_name][edge] = prop_value
 
 
+    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, edge_properties=None):
+        """
+        Add directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional edge properties.
+        
+        Args:
+        - from_nodes: List of node IDs for 'from' nodes.
+        - to_nodes: List of node IDs for 'to' nodes.
+        - from_layer: Layer name for all 'from' nodes.
+        - to_layer: Layer name for all 'to' nodes.
+        - split_char: Character to split multiple node IDs.
+        - create_missing: If True, creates missing nodes if they are not found in node_map.
+        - edge_properties: Optional; dictionary of edge properties to apply to each created edge.
+        """
+        if len(from_nodes) != len(to_nodes):
+            raise ValueError("from_nodes and to_nodes must have the same length.")
+        
+        for from_node_id, to_node_id in zip(from_nodes, to_nodes):
+            if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
+                continue
+            
+            from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
+            to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
+
+            for id1 in from_node_ids:
+                for id2 in to_node_ids:
+                    node1 = self.get_or_create_node(from_layer, id1, create_missing)
+                    node2 = self.get_or_create_node(to_layer, id2, create_missing)
+
+                    if node1 is None or node2 is None:
+                        continue
+
+                    # Add edge with optional properties
+                    edge = self.graph.add_edge(node1, node2)
+                    if edge_properties:
+                        for prop_name, prop_value in edge_properties.items():
+                            self.graph.edge_properties[prop_name][edge] = prop_value
+
+
+    def get_or_create_node(self, layer, node_id, create_missing=False):
+        """
+        Helper function to get a node from node_map or create it if missing.
+        """
+        node_key = (layer, node_id)
+        node = self.node_map.get(node_key)
+        
+        if node is None and create_missing:
+            print(f"Node {node_key} not found. Creating node.")
+            node = self.graph.add_vertex()
+            self.node_map[node_key] = node
+            self.layer[node] = layer
+            self.node_id[node] = node_id
+            
+        return node
 
 
     def _set_node_property(self, node, prop_name, value, nan_replacement=None):
@@ -351,8 +326,6 @@ class MultilayerNetwork:
                         queue.append(source)
             else:
                 raise ValueError("Mode must be 'upstream' or 'downstream'.")
-    
-
     
 
     def search(self, start_node_idx, max_dist=5, direction='downstream', node_text='ids', show_plot=True, **kwargs):
