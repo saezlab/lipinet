@@ -27,7 +27,7 @@ class MultilayerNetwork:
 
         # Add edge properties to the graph
         self.graph.edge_properties["weight"] = self.edge_weight
-        self.graph.edge_properties["interlayer"] = self.edge_layertype
+        self.graph.edge_properties["edge_layertype"] = self.edge_layertype
 
 
     def add_node(self, layer, authority, node_type, node_id, verbose=True, **extra_properties):
@@ -64,22 +64,56 @@ class MultilayerNetwork:
         for prop_name, prop_value in extra_properties.items():
             self._set_node_property(node, prop_name, prop_value)
 
-    
-    def add_edges_from_pairs(self, node_pairs, split_char='|', create_missing=False, edge_properties=None):
+
+    def add_edge(self, from_node, to_node, verbose=True, **edge_properties):
         """
-        Add directed edges between pairs of nodes using node_pairs and an optional edge property map.
+        Add a directed edge between two nodes with specified properties.
         
+        :param from_node: The source node (vertex) of the edge.
+        :param to_node: The target node (vertex) of the edge.
+        :param edge_properties: Additional properties to apply to the edge.
+        :param verbose: If True, prints debugging information.
+        :return: The created edge object.
+        """
+        # Create the edge between nodes
+        edge = self.graph.add_edge(from_node, to_node)
+
+        # Set edge properties using _set_edge_property
+        for prop_name, prop_value in edge_properties.items():
+            self._set_edge_property(edge, prop_name, prop_value)
+
+        if verbose:
+            print(f"Edge added from {from_node} to {to_node} with properties: {edge_properties}")
+
+        return edge
+
+    
+    def add_edges_from_pairs(self, node_pairs, split_char='|', create_missing=False, **edge_properties):
+        """
+        Add directed edges between pairs of nodes using node_pairs, with optional per-edge properties.
+
         Args:
         - node_pairs: A list of tuples (node1_id, node2_id), where each node is identified by (layer, node_id).
         - split_char: Character to split multiple node IDs.
         - create_missing: If True, creates missing nodes if they are not found in node_map.
-        - edge_properties: Optional; dictionary of edge properties to apply to each created edge.
+        - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
         """
+        # Calculate expected number of edges
+        expected_num_edges = sum(
+            len([id_.strip() for id_ in node1_id[1].split(split_char)]) *
+            len([id_.strip() for id_ in node2_id[1].split(split_char)])
+            for node1_id, node2_id in node_pairs if node1_id and node2_id
+        )
+
+        # Validate list lengths
+        self.validate_edge_properties_length(edge_properties, expected_num_edges)
+
+        edge_count = 0  # Counter for each edge added, used as index for property lists
+
         for node1_id, node2_id in node_pairs:
             if node1_id is None or node2_id is None:
                 continue
             
-            # Split IDs if necessary
             node1_ids = [id_.strip() for id_ in node1_id[1].split(split_char)] if split_char in node1_id[1] else [node1_id[1]]
             node2_ids = [id_.strip() for id_ in node2_id[1].split(split_char)] if split_char in node2_id[1] else [node2_id[1]]
 
@@ -91,17 +125,19 @@ class MultilayerNetwork:
                     if node1 is None or node2 is None:
                         continue
                     
-                    # Add edge with optional properties
-                    edge = self.graph.add_edge(node1, node2)
-                    if edge_properties:
-                        for prop_name, prop_value in edge_properties.items():
-                            self.graph.edge_properties[prop_name][edge] = prop_value
+                    # Resolve edge-specific properties using helper function
+                    edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
+                    
+                    # Use add_edge to create a single edge with resolved properties
+                    self.add_edge(node1, node2, **edge_specific_properties)
+                    edge_count += 1
 
 
-    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, edge_properties=None):
+    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, **edge_properties):
         """
-        Add directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional edge properties.
-        
+        Adds directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional per-edge properties.
+        Validates that any list properties match the expected number of edges.
+
         Args:
         - from_nodes: List of node IDs for 'from' nodes.
         - to_nodes: List of node IDs for 'to' nodes.
@@ -109,11 +145,26 @@ class MultilayerNetwork:
         - to_layer: Layer name for all 'to' nodes.
         - split_char: Character to split multiple node IDs.
         - create_missing: If True, creates missing nodes if they are not found in node_map.
-        - edge_properties: Optional; dictionary of edge properties to apply to each created edge.
+        - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
+        
+        Raises:
+        - ValueError: If any list property in edge_properties does not match the expected number of edges.
         """
         if len(from_nodes) != len(to_nodes):
             raise ValueError("from_nodes and to_nodes must have the same length.")
         
+        # Calculate the expected number of edges
+        expected_num_edges = sum(
+            len([id_.strip() for id_ in from_node_id.split(split_char)]) *
+            len([id_.strip() for id_ in to_node_id.split(split_char)])
+            for from_node_id, to_node_id in zip(from_nodes, to_nodes) if from_node_id and to_node_id
+        )
+
+        # Validate list lengths in edge_properties
+        self.validate_edge_properties_length(edge_properties, expected_num_edges)
+
+        edge_count = 0  # Counter for each edge added, used as index for property lists
+
         for from_node_id, to_node_id in zip(from_nodes, to_nodes):
             if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
                 continue
@@ -129,11 +180,87 @@ class MultilayerNetwork:
                     if node1 is None or node2 is None:
                         continue
 
-                    # Add edge with optional properties
-                    edge = self.graph.add_edge(node1, node2)
-                    if edge_properties:
-                        for prop_name, prop_value in edge_properties.items():
-                            self.graph.edge_properties[prop_name][edge] = prop_value
+                    # Resolve edge-specific properties using helper function
+                    edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
+                    
+                    # Add a single edge with resolved properties
+                    self.add_edge(node1, node2, **edge_specific_properties)
+                    edge_count += 1
+
+
+    def add_edges_from_dataframe(self, df, from_col, to_col, from_layer=None, to_layer=None, **edge_properties):
+        """
+        Adds directed edges from a DataFrame, using specified columns for node IDs and optional layers.
+        Validates that any list properties match the number of edges.
+
+        Args:
+        - df: DataFrame containing edge information.
+        - from_col: Column name in df for source node IDs.
+        - to_col: Column name in df for target node IDs.
+        - from_layer: Optional; specifies the layer for all 'from' nodes.
+        - to_layer: Optional; specifies the layer for all 'to' nodes.
+        - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
+
+        Raises:
+        - ValueError: If any list property in edge_properties does not match the number of edges in df.
+        """
+        num_edges = len(df)  # Number of edges to be created
+
+        # Validate list lengths in edge_properties
+        self.validate_edge_properties_length(edge_properties, num_edges)
+
+        for edge_index, row in df.iterrows():
+            from_node_id = row[from_col]
+            to_node_id = row[to_col]
+            
+            # Resolve optional layers
+            resolved_from_layer = from_layer if from_layer is not None else row.get('from_layer')
+            resolved_to_layer = to_layer if to_layer is not None else row.get('to_layer')
+
+            # Ensure both source and target layers are defined
+            if resolved_from_layer is None or resolved_to_layer is None:
+                raise ValueError("Source and target layers must be specified either as arguments or in the DataFrame.")
+
+            # Get or create nodes based on IDs and layers
+            from_node = self.get_or_create_node(resolved_from_layer, from_node_id, create_missing=True)
+            to_node = self.get_or_create_node(resolved_to_layer, to_node_id, create_missing=True)
+
+            # Resolve edge-specific properties for the current row
+            edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_index)
+
+            # Add the edge with resolved properties
+            self.add_edge(from_node, to_node, **edge_specific_properties)
+
+
+    def resolve_edge_properties(self, edge_properties, edge_index):
+        """
+        Resolve edge properties for a specific edge, handling both single values and lists.
+
+        :param edge_properties: Dictionary of edge properties, where values can be lists or single values.
+        :param edge_index: The index of the current edge being processed.
+        :return: A dictionary of properties specific to the current edge.
+        """
+        resolved_properties = {}
+        for prop_name, prop_value in edge_properties.items():
+            if isinstance(prop_value, list):
+                resolved_properties[prop_name] = prop_value[edge_index]
+            else:
+                resolved_properties[prop_name] = prop_value
+        return resolved_properties
+
+
+    def validate_edge_properties_length(self, edge_properties, num_edges):
+        """
+        Validates that all lists in edge_properties match the number of edges.
+        Raises an error if there is a mismatch.
+
+        :param edge_properties: Dictionary of edge properties.
+        :param num_edges: Expected number of edges.
+        """
+        for prop_name, prop_value in edge_properties.items():
+            if isinstance(prop_value, list) and len(prop_value) != num_edges:
+                raise ValueError(f"Length of property list '{prop_name}' ({len(prop_value)}) does not match "
+                                f"the expected number of edges ({num_edges}).")
 
 
     def get_or_create_node(self, layer, node_id, create_missing=False):
@@ -183,6 +310,38 @@ class MultilayerNetwork:
         
         # Set the property value for the node
         self.graph.vp[prop_name][node] = value
+
+
+    def _set_edge_property(self, edge, prop_name, value, nan_replacement=None):
+        """
+        Set or create an edge property for a given edge.
+        
+        :param edge: The edge to assign the property.
+        :param prop_name: The name of the property.
+        :param value: The value of the property, which determines the property type.
+        :param nan_replacement: Optional; the value to replace NaN with (default is None).
+        """
+        import math
+        # Replace NaN with the specified replacement, if value is NaN
+        if isinstance(value, float) and math.isnan(value):
+            value = nan_replacement
+
+        # Check if the property map exists, create it if not
+        if prop_name not in self.graph.ep:
+            # Determine type based on the value type
+            if isinstance(value, str):
+                prop_type = "string"
+            elif isinstance(value, float):
+                prop_type = "float"
+            elif isinstance(value, int):
+                prop_type = "int"
+            else:
+                prop_type = "object"  # For more complex data types
+
+            self.graph.ep[prop_name] = self.graph.new_edge_property(prop_type)
+        
+        # Set the property value for the edge
+        self.graph.ep[prop_name][edge] = value
 
 
     def build_layer(self, layer_data, layer_name, authority, custom_properties={}, verbose=True):
@@ -443,4 +602,3 @@ def get_root_nodes(graph):
     """
     root_nodes = [v for v in graph.vertices() if v.in_degree() == 0]
     return root_nodes
-
