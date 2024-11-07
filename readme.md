@@ -6,7 +6,7 @@
 [![Lifecycle:
 maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 [![GitHub
-issues](https://img.shields.io/github/issues/saezlab/MetaProViz)](https://github.com/saezlab/lipinet/issues)
+issues](https://img.shields.io/github/issues/saezlab/lipinet)](https://github.com/saezlab/lipinet/issues)
 <!-- badges: end -->
 
 ## Context
