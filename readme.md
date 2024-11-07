@@ -1,6 +1,14 @@
 # LipiNet (Lipids PKN)*
 *_(The LipiNet name is a placeholder for now, might be changed down the line)_
 
+<!-- badges: start -->
+
+[![Lifecycle:
+maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![GitHub
+issues](https://img.shields.io/github/issues/saezlab/MetaProViz)](https://github.com/saezlab/lipinet/issues)
+<!-- badges: end -->
+
 ## Context
 
 The lipidomics field faces unique challenges in standardizing its nomenclature and measurement precision, unlike genomics, transcriptomics, and proteomics, which have relatively consistent units of measurement (genes, transcripts, proteins). In lipidomics, measurement limitations frequently prevent analysts from identifying lipids at precise structural or isomeric subspecies levels. Consequently, lipid identification often relies on generalized representations, such as abstract class or species names aligned with established ontologies. This, along with variations in database standards, creates a particularly fragmented and complex landscape for prior knowledge in lipidomics.
@@ -72,3 +80,10 @@ For a more nuanced example, we have to consider that it is very possible and eve
 This approach to node property propagation allows LipiNet to estimate the likelihood that various biological properties (e.g., reactions, pathways) are relevant to experimentally measured lipids, even when precise structural data isn’t available. By leveraging hierarchical relationships and conditional probability, we can infer the functional roles of more generalized lipid classes and better contextualize experimental findings within a lipid network.
 
 The downstream inference methodology, as demonstrated, provides a probabilistic framework for propagating properties across hierarchical lipid ontologies. This can aid in identifying potential lipid functions, interactions, and biological roles in the context of broader lipidomics research, and it ultimately contributes to a more integrated and nuanced understanding of lipid metabolism, signaling, and regulatory processes.
+
+## Liscence
+
+GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
+
+## Citation
+We can add a manual citation here, when we change it to public.
