@@ -65,16 +65,56 @@ class MultilayerNetwork:
             self._set_node_property(node, prop_name, prop_value)
 
 
-    def add_edge(self, from_node, to_node, verbose=True, **edge_properties):
+    def add_edge(self, from_node, to_node, from_node_id, to_node_id, from_layer, to_layer, create_missing=True, skip_if_duplicate=None, verbose=True, **edge_properties):
         """
-        Add a directed edge between two nodes with specified properties.
-        
+        Add a directed edge between two nodes with specified properties, with optional duplicate handling.
+
         :param from_node: The source node (vertex) of the edge.
         :param to_node: The target node (vertex) of the edge.
+        :param from_node_id: The ID of the source node.
+        :param to_node_id: The ID of the target node.
+        :param from_layer: The layer of the source node.
+        :param to_layer: The layer of the target node.
+        :param create_missing: If False, raises an error if either node does not exist.
+        :param skip_if_duplicate: If None, allows duplicate edges; if 'any', skips if any edge exists;
+                                if 'exact', skips only if an edge with identical properties exists.
         :param edge_properties: Additional properties to apply to the edge.
         :param verbose: If True, prints debugging information.
-        :return: The created edge object.
+        :return: The created edge object, or None if the edge was skipped.
+
+        Raises:
+        - RuntimeError: If `create_missing` is False and a node does not exist in the node map.
         """
+        # Check node existence if create_missing is False
+        if not create_missing:
+            if from_node is None:
+                raise RuntimeError(f"Node '{from_node_id}' in layer '{from_layer}' does not exist. "
+                                f"Set `create_missing=True` to create missing nodes.")
+            if to_node is None:
+                raise RuntimeError(f"Node '{to_node_id}' in layer '{to_layer}' does not exist. "
+                                f"Set `create_missing=True` to create missing nodes.")
+
+        # Handle duplicate edge behavior based on skip_if_duplicate
+        existing_edges = self.graph.edge(from_node, to_node, all_edges=True)
+        if existing_edges:
+            if skip_if_duplicate == "any":
+                # Skip if any edge exists between the nodes
+                if verbose:
+                    print(f"Edge from {from_node_id} ({from_layer}) to {to_node_id} ({to_layer}) already exists. Skipping due to 'any' duplicate policy.")
+                return None
+
+            elif skip_if_duplicate == "exact":
+                # Check if an exact edge with identical properties exists
+                for edge in existing_edges:
+                    identical = all(
+                        (prop in self.graph.edge_properties and self.graph.edge_properties[prop][edge] == value)
+                        for prop, value in edge_properties.items()
+                    )
+                    if identical:
+                        if verbose:
+                            print(f"Identical edge from {from_node_id} ({from_layer}) to {to_node_id} ({to_layer}) exists. Skipping due to 'exact' duplicate policy.")
+                        return None
+
         # Create the edge between nodes
         edge = self.graph.add_edge(from_node, to_node)
 
@@ -83,12 +123,12 @@ class MultilayerNetwork:
             self._set_edge_property(edge, prop_name, prop_value)
 
         if verbose:
-            print(f"Edge added from {from_node} to {to_node} with properties: {edge_properties}")
+            print(f"Edge added from {from_node_id} ({from_layer}) to {to_node_id} ({to_layer}) with properties: {edge_properties}")
 
         return edge
 
     
-    def add_edges_from_pairs(self, node_pairs, split_char='|', create_missing=False, **edge_properties):
+    def add_edges_from_pairs(self, node_pairs, split_char='|', create_missing=False, skip_if_duplicate='exact', **edge_properties):
         """
         Add directed edges between pairs of nodes using node_pairs, with optional per-edge properties.
 
@@ -119,8 +159,10 @@ class MultilayerNetwork:
 
             for id1 in node1_ids:
                 for id2 in node2_ids:
-                    node1 = self.get_or_create_node(node1_id[0], id1, create_missing)
-                    node2 = self.get_or_create_node(node2_id[0], id2, create_missing)
+                    from_layer = node1_id[0]
+                    to_layer = node2_id[0]
+                    node1 = self.get_or_create_node(layer=from_layer, node_id=id1, create_missing=create_missing)
+                    node2 = self.get_or_create_node(layer=to_layer, node_id=id2, create_missing=create_missing)
 
                     if node1 is None or node2 is None:
                         continue
@@ -129,11 +171,18 @@ class MultilayerNetwork:
                     edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
                     
                     # Use add_edge to create a single edge with resolved properties
-                    self.add_edge(node1, node2, **edge_specific_properties)
+                    self.add_edge(
+                        node1, node2,
+                        from_node_id=node1_ids, to_node_id=node2_ids,
+                        from_layer=from_layer, to_layer=to_layer,
+                        create_missing=create_missing,
+                        skip_if_duplicate=skip_if_duplicate,
+                        **edge_specific_properties
+                    )
                     edge_count += 1
 
 
-    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, **edge_properties):
+    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, skip_if_duplicate='exact', **edge_properties):
         """
         Adds directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional per-edge properties.
         Validates that any list properties match the expected number of edges.
@@ -174,8 +223,8 @@ class MultilayerNetwork:
 
             for id1 in from_node_ids:
                 for id2 in to_node_ids:
-                    node1 = self.get_or_create_node(from_layer, id1, create_missing)
-                    node2 = self.get_or_create_node(to_layer, id2, create_missing)
+                    node1 = self.get_or_create_node(layer=from_layer, node_id=id1, create_missing=create_missing)
+                    node2 = self.get_or_create_node(layer=to_layer, node_id=id2, create_missing=create_missing)
 
                     if node1 is None or node2 is None:
                         continue
@@ -184,52 +233,79 @@ class MultilayerNetwork:
                     edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
                     
                     # Add a single edge with resolved properties
-                    self.add_edge(node1, node2, **edge_specific_properties)
+                    self.add_edge(
+                        node1, node2,
+                        from_node_id=from_node_id, to_node_id=to_node_id,
+                        from_layer=from_layer, to_layer=to_layer,
+                        create_missing=create_missing,
+                        skip_if_duplicate=skip_if_duplicate,
+                        **edge_specific_properties
+                    )
                     edge_count += 1
 
 
-    def add_edges_from_dataframe(self, df, from_col, to_col, from_layer=None, to_layer=None, **edge_properties):
+    def add_edges_from_dataframe(self, df, from_col, to_col, from_layer=None, to_layer=None, from_layer_col=None, to_layer_col=None, property_cols=None, split_char='|', create_missing=False, skip_if_duplicate='exact'):
         """
         Adds directed edges from a DataFrame, using specified columns for node IDs and optional layers.
-        Validates that any list properties match the number of edges.
+        Allows customizable edge properties by specifying which DataFrame columns to use.
+        Supports multiple IDs in a single cell, separated by a specified character.
 
         Args:
         - df: DataFrame containing edge information.
         - from_col: Column name in df for source node IDs.
         - to_col: Column name in df for target node IDs.
-        - from_layer: Optional; specifies the layer for all 'from' nodes.
-        - to_layer: Optional; specifies the layer for all 'to' nodes.
-        - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
+        - from_layer: Fixed layer name for all source nodes if `from_layer_col` is not specified.
+        - to_layer: Fixed layer name for all target nodes if `to_layer_col` is not specified.
+        - from_layer_col: Optional; column in df specifying 'from' node layers if layers vary by row.
+        - to_layer_col: Optional; column in df specifying 'to' node layers if layers vary by row.
+        - property_cols: Optional; list of column names in df to be used as edge properties.
+        - split_char: Character used to split multiple node IDs within a single cell.
+        - create_missing: If True, creates missing nodes when they are not found in node_map.
 
         Raises:
-        - ValueError: If any list property in edge_properties does not match the number of edges in df.
+        - ValueError: If no fixed layer name or column name is provided for either source or target layers.
         """
-        num_edges = len(df)  # Number of edges to be created
+        # Determine edge properties to use
+        if property_cols is None:
+            excluded_cols = {from_col, to_col, from_layer_col, to_layer_col}
+            property_cols = [col for col in df.columns if col not in excluded_cols]
 
-        # Validate list lengths in edge_properties
-        self.validate_edge_properties_length(edge_properties, num_edges)
+        # Prepare edge properties by extracting specified columns as lists
+        edge_properties = {col: df[col].tolist() for col in property_cols}
+
+        # Ensure that either a fixed layer or a column is provided for source and target layers
+        if from_layer is None and from_layer_col is None:
+            raise ValueError("Either `from_layer` or `from_layer_col` must be specified for source node layers.")
+        if to_layer is None and to_layer_col is None:
+            raise ValueError("Either `to_layer` or `to_layer_col` must be specified for target node layers.")
 
         for edge_index, row in df.iterrows():
-            from_node_id = row[from_col]
-            to_node_id = row[to_col]
+            from_node_ids = [id_.strip() for id_ in row[from_col].split(split_char)] if split_char in row[from_col] else [row[from_col]]
+            to_node_ids = [id_.strip() for id_ in row[to_col].split(split_char)] if split_char in row[to_col] else [row[to_col]]
             
-            # Resolve optional layers
-            resolved_from_layer = from_layer if from_layer is not None else row.get('from_layer')
-            resolved_to_layer = to_layer if to_layer is not None else row.get('to_layer')
+            # Use fixed layer names if specified, otherwise fetch layer values from columns in the DataFrame
+            effective_from_layer = from_layer if from_layer else row[from_layer_col]
+            effective_to_layer = to_layer if to_layer else row[to_layer_col]
 
-            # Ensure both source and target layers are defined
-            if resolved_from_layer is None or resolved_to_layer is None:
-                raise ValueError("Source and target layers must be specified either as arguments or in the DataFrame.")
+            # For each combination of from_node_id and to_node_id, create an edge
+            for from_node_id in from_node_ids:
+                for to_node_id in to_node_ids:
+                    # Get or create nodes based on IDs and layers
+                    from_node = self.get_or_create_node(effective_from_layer, from_node_id, create_missing=create_missing)
+                    to_node = self.get_or_create_node(effective_to_layer, to_node_id, create_missing=create_missing)
 
-            # Get or create nodes based on IDs and layers
-            from_node = self.get_or_create_node(resolved_from_layer, from_node_id, create_missing=True)
-            to_node = self.get_or_create_node(resolved_to_layer, to_node_id, create_missing=True)
+                    # Resolve edge-specific properties for the current row
+                    edge_specific_properties = {prop: edge_properties[prop][edge_index] for prop in edge_properties}
 
-            # Resolve edge-specific properties for the current row
-            edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_index)
-
-            # Add the edge with resolved properties
-            self.add_edge(from_node, to_node, **edge_specific_properties)
+                    # Add the edge with resolved properties
+                    self.add_edge(
+                        from_node, to_node,
+                        from_node_id=from_node_id, to_node_id=to_node_id,
+                        from_layer=effective_from_layer, to_layer=effective_to_layer,
+                        create_missing=create_missing,
+                        skip_if_duplicate=skip_if_duplicate,
+                        **edge_specific_properties
+                    )
 
 
     def resolve_edge_properties(self, edge_properties, edge_index):
