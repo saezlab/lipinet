@@ -30,39 +30,43 @@ class MultilayerNetwork:
         self.graph.edge_properties["edge_layertype"] = self.edge_layertype
 
 
-    def add_node(self, layer, authority, node_type, node_id, verbose=True, **extra_properties):
+    def get_set_create_node(self, layer, node_id, create_missing=True, verbose=True, **extra_properties):
         """
-        Add a node to the graph with the given properties and additional custom properties.
-        
+        Retrieve an existing node or create a new one if it doesn't exist, then set its properties.
+
         :param layer: Layer name for the node.
-        :param authority: Source authority for the node.
-        :param node_type: Type of the node.
         :param node_id: Unique identifier for the node.
-        :param extra_properties: Additional properties for the node.
+        :param create_missing: If True, create the node if it doesn't exist.
+        :param verbose: If True, print debug information.
+        :param extra_properties: Additional properties to set on the node.
+        :return: The node object if found or created, else None.
         """
-        # Use (layer, node_id) as the unique key in node_map
         node_key = (layer, node_id)
+        node = self.node_map.get(node_key)
 
-        # Check if the node already exists; if not, create it
-        if node_key not in self.node_map:
-            node = self.graph.add_vertex()
-            self.node_map[node_key] = node  # Store node with (layer, node_id) as key
-        else:
-            node = self.node_map[node_key]  # Retrieve existing node
+        if node is None:
+            if create_missing:
+                if verbose:
+                    print(f"Node {node_key} not found. Creating node.")
+                node = self.graph.add_vertex()
+                self.node_map[node_key] = node
+                self._set_node_property(node, "layer", layer)
+                self._set_node_property(node, "node_id", node_id)
+            else:
+                if verbose:
+                    print(f"Node {node_key} not found and create_missing is False.")
+                return None
 
-        # Set core properties using _set_node_property
-        self._set_node_property(node, "layer", layer) # previously adjusted like this: self.layer[node] = layer
-        self._set_node_property(node, "authority", authority)
-        self._set_node_property(node, "node_type", node_type)
-        self._set_node_property(node, "node_id", node_id)
-
-        if verbose:
-            # Debugging output to check property setting
-            print(f"Node {node_id}: layer={layer}, authority={authority}, node_type={node_type}, extra props={extra_properties.items()}")
-
-        # Set additional custom properties
+        # Set additional properties
         for prop_name, prop_value in extra_properties.items():
             self._set_node_property(node, prop_name, prop_value)
+
+        if verbose:
+            props = { "layer": layer, "node_id": node_id }
+            props.update(extra_properties)
+            print(f"Node {node_id}: {props}")
+
+        return node
 
 
     def add_edge(self, from_node, to_node, from_node_id, to_node_id, from_layer, to_layer, create_missing=True, skip_if_duplicate=None, verbose=True, **edge_properties):
@@ -161,8 +165,8 @@ class MultilayerNetwork:
                 for id2 in node2_ids:
                     from_layer = node1_id[0]
                     to_layer = node2_id[0]
-                    node1 = self.get_or_create_node(layer=from_layer, node_id=id1, create_missing=create_missing)
-                    node2 = self.get_or_create_node(layer=to_layer, node_id=id2, create_missing=create_missing)
+                    node1 = self.get_set_create_node(layer=from_layer, node_id=id1, create_missing=create_missing)
+                    node2 = self.get_set_create_node(layer=to_layer, node_id=id2, create_missing=create_missing)
 
                     if node1 is None or node2 is None:
                         continue
@@ -182,66 +186,127 @@ class MultilayerNetwork:
                     edge_count += 1
 
 
-    def add_edges_from_nodes(self, from_nodes, to_nodes, from_layer, to_layer, split_char='|', create_missing=False, skip_if_duplicate='exact', **edge_properties):
-        """
-        Adds directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional per-edge properties.
-        Validates that any list properties match the expected number of edges.
+    def add_edges_from_nodes(
+        self,
+        from_nodes,
+        to_nodes,
+        from_layer,
+        to_layer,
+        split_char='|',
+        create_missing=False,
+        skip_if_duplicate='exact',
+        verbose=True,
+        **edge_properties
+        ):
+            """
+            Adds directed edges from 'from_nodes' to 'to_nodes' using specified layers and optional per-edge properties.
+            Validates that any list properties match the expected number of edges.
 
-        Args:
-        - from_nodes: List of node IDs for 'from' nodes.
-        - to_nodes: List of node IDs for 'to' nodes.
-        - from_layer: Layer name for all 'from' nodes.
-        - to_layer: Layer name for all 'to' nodes.
-        - split_char: Character to split multiple node IDs.
-        - create_missing: If True, creates missing nodes if they are not found in node_map.
-        - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
-        
-        Raises:
-        - ValueError: If any list property in edge_properties does not match the expected number of edges.
-        """
-        if len(from_nodes) != len(to_nodes):
-            raise ValueError("from_nodes and to_nodes must have the same length.")
-        
-        # Calculate the expected number of edges
-        expected_num_edges = sum(
-            len([id_.strip() for id_ in from_node_id.split(split_char)]) *
-            len([id_.strip() for id_ in to_node_id.split(split_char)])
-            for from_node_id, to_node_id in zip(from_nodes, to_nodes) if from_node_id and to_node_id
-        )
+            Args:
+            - from_nodes: List or iterable of node IDs for 'from' nodes.
+            - to_nodes: List or iterable of node IDs for 'to' nodes.
+            - from_layer: Layer name for all 'from' nodes.
+            - to_layer: Layer name for all 'to' nodes.
+            - split_char: Character to split multiple node IDs.
+            - create_missing: If True, creates missing nodes if they are not found in node_map.
+            - skip_if_duplicate: If 'exact', skips adding duplicate edges based on exact matches. Other options can be implemented as needed.
+            - verbose: If True, prints debug information.
+            - edge_properties: Additional properties for each created edge. Properties can be single values or lists.
 
-        # Validate list lengths in edge_properties
-        self.validate_edge_properties_length(edge_properties, expected_num_edges)
+            Raises:
+            - ValueError: If any list property in edge_properties does not match the expected number of edges.
+            """
+            if len(from_nodes) != len(to_nodes):
+                raise ValueError("from_nodes and to_nodes must have the same length.")
 
-        edge_count = 0  # Counter for each edge added, used as index for property lists
+            # Initialize counters
+            expected_num_edges = 0
+            skipped_rows_initial = 0
+            skipped_rows = []
 
-        for from_node_id, to_node_id in zip(from_nodes, to_nodes):
-            if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
-                continue
-            
-            from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
-            to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
+            # First pass: Calculate the expected number of edges, safely handling non-string node IDs
+            for from_node_id, to_node_id in zip(from_nodes, to_nodes):
+                if isinstance(from_node_id, str) and isinstance(to_node_id, str) and from_node_id and to_node_id:
+                    from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)]
+                    to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)]
+                    expected_num_edges += len(from_node_ids) * len(to_node_ids)
+                else:
+                    skipped_rows_initial += 1
+                    skipped_rows.append(f"Skipped: From node: {from_node_id}, To node: {from_node_id}")
 
-            for id1 in from_node_ids:
-                for id2 in to_node_ids:
-                    node1 = self.get_or_create_node(layer=from_layer, node_id=id1, create_missing=create_missing)
-                    node2 = self.get_or_create_node(layer=to_layer, node_id=id2, create_missing=create_missing)
+            if verbose and skipped_rows_initial > 0:
+                print(f"Skipped {skipped_rows_initial} rows due to non-string node IDs or missing values.\n{skipped_rows}")
 
-                    if node1 is None or node2 is None:
-                        continue
+            # Validate list lengths in edge_properties
+            self.validate_edge_properties_length(edge_properties, expected_num_edges)
 
-                    # Resolve edge-specific properties using helper function
-                    edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
-                    
-                    # Add a single edge with resolved properties
-                    self.add_edge(
-                        node1, node2,
-                        from_node_id=from_node_id, to_node_id=to_node_id,
-                        from_layer=from_layer, to_layer=to_layer,
-                        create_missing=create_missing,
-                        skip_if_duplicate=skip_if_duplicate,
-                        **edge_specific_properties
-                    )
-                    edge_count += 1
+            edge_count = 0  # Counter for each edge added
+            skipped_rows = 0  # Counter for skipped rows during edge addition
+
+            # Second pass: Iterate through from_nodes and to_nodes to add edges
+            for idx, (from_node_id, to_node_id) in enumerate(zip(from_nodes, to_nodes)):
+                # Check if both node IDs are strings
+                if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
+                    if verbose:
+                        print(f"Skipping row {idx} due to non-string node IDs: from_node_id={from_node_id}, to_node_id={to_node_id}")
+                    skipped_rows += 1
+                    continue
+
+                # Split node IDs by split_char and strip whitespace
+                from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
+                to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
+
+                # Iterate through all combinations of from_node_ids and to_node_ids
+                for id1 in from_node_ids:
+                    for id2 in to_node_ids:
+                        # Retrieve or create nodes
+                        node1 = self.get_set_create_node(
+                            layer=from_layer,
+                            node_id=id1,
+                            create_missing=create_missing,
+                            verbose=verbose
+                            # **edge_properties
+                        )
+                        node2 = self.get_set_create_node(
+                            layer=to_layer,
+                            node_id=id2,
+                            create_missing=create_missing,
+                            verbose=verbose
+                            # **edge_properties
+                        )
+
+                        # Skip if either node couldn't be retrieved or created
+                        if node1 is None or node2 is None:
+                            if verbose:
+                                print(f"Skipping edge from '{id1}' to '{id2}' because one of the nodes could not be retrieved or created.")
+                            continue
+
+                        # Resolve edge-specific properties using helper function
+                        edge_specific_properties = self.resolve_edge_properties(edge_properties, edge_count)
+
+                        # Add the edge with resolved properties
+                        self.add_edge(
+                            node1, node2,
+                            from_node_id=from_node_id,
+                            to_node_id=to_node_id,
+                            from_layer=from_layer,
+                            to_layer=to_layer,
+                            create_missing=create_missing,
+                            skip_if_duplicate=skip_if_duplicate,
+                            verbose=verbose,
+                            **edge_specific_properties
+                        )
+
+                        if verbose:
+                            print(f"Added edge from '{id1}' to '{id2}' with properties {edge_specific_properties}")
+
+                        edge_count += 1
+
+            if verbose:
+                print(f"Total edges expected to add: {expected_num_edges}")
+                print(f"Total edges actually added: {edge_count}")
+                if skipped_rows > 0:
+                    print(f"Total rows skipped during edge addition: {skipped_rows}")
 
 
     def add_edges_from_dataframe(self, df, from_col, to_col, from_layer=None, to_layer=None, from_layer_col=None, to_layer_col=None, property_cols=None, split_char='|', create_missing=False, skip_if_duplicate='exact'):
@@ -291,8 +356,8 @@ class MultilayerNetwork:
             for from_node_id in from_node_ids:
                 for to_node_id in to_node_ids:
                     # Get or create nodes based on IDs and layers
-                    from_node = self.get_or_create_node(effective_from_layer, from_node_id, create_missing=create_missing)
-                    to_node = self.get_or_create_node(effective_to_layer, to_node_id, create_missing=create_missing)
+                    from_node = self.get_set_create_node(effective_from_layer, from_node_id, create_missing=create_missing)
+                    to_node = self.get_set_create_node(effective_to_layer, to_node_id, create_missing=create_missing)
 
                     # Resolve edge-specific properties for the current row
                     edge_specific_properties = {prop: edge_properties[prop][edge_index] for prop in edge_properties}
@@ -337,23 +402,6 @@ class MultilayerNetwork:
             if isinstance(prop_value, list) and len(prop_value) != num_edges:
                 raise ValueError(f"Length of property list '{prop_name}' ({len(prop_value)}) does not match "
                                 f"the expected number of edges ({num_edges}).")
-
-
-    def get_or_create_node(self, layer, node_id, create_missing=False):
-        """
-        Helper function to get a node from node_map or create it if missing.
-        """
-        node_key = (layer, node_id)
-        node = self.node_map.get(node_key)
-        
-        if node is None and create_missing:
-            print(f"Node {node_key} not found. Creating node.")
-            node = self.graph.add_vertex()
-            self.node_map[node_key] = node
-            self.layer[node] = layer
-            self.node_id[node] = node_id
-            
-        return node
 
 
     def _set_node_property(self, node, prop_name, value, nan_replacement=None):
@@ -420,21 +468,20 @@ class MultilayerNetwork:
         self.graph.ep[prop_name][edge] = value
 
 
-    def build_layer(self, layer_data, layer_name, authority, custom_properties={}, verbose=True):
+    def build_layer(self, nodes, layer_name, custom_node_properties={}, verbose=True):
         """
         Build a network layer from a dataset.
         
-        :param layer_data: List of tuples (node_id, node_type)
+        :param layer_data: List of desired node ids
         :param layer_name: Name of the layer
-        :param authority: Source of the data (e.g., ChEBI, Rhea)
         :param custom_properties: Dictionary of extra properties for each node {node_id: {property_name: value}}
         :param verbose: Whether to print every node update.
         """
-        custom_properties = custom_properties or {}
-        for node_id, node_type in layer_data:
+        custom_node_properties = custom_node_properties or {}
+        for node_id in nodes:
             # Get extra properties for this node if they exist
-            node_properties = custom_properties.get(node_id, {})
-            self.add_node(layer=layer_name, authority=authority, node_type=node_type, node_id=node_id, verbose=verbose, **node_properties)
+            individual_node_properties = custom_node_properties.get(node_id, {})
+            self.get_set_create_node(layer=layer_name, node_id=node_id, verbose=verbose, create_missing=True, **individual_node_properties)
     
     
     def view_layer(self, layer_name):
