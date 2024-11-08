@@ -2,6 +2,9 @@ from graph_tool.all import Graph, GraphView, bfs_search, BFSVisitor, bfs_iterato
 from graph_tool.topology import label_out_component
 from collections import deque
 
+import pandas as pd
+import numpy as np
+
 
 class MultilayerNetwork:
     def __init__(self):
@@ -309,34 +312,93 @@ class MultilayerNetwork:
                     print(f"Total rows skipped during edge addition: {skipped_rows}")
 
 
-    def add_edges_from_dataframe(self, df, from_col, to_col, from_layer=None, to_layer=None, from_layer_col=None, to_layer_col=None, property_cols=None, split_char='|', create_missing=False, skip_if_duplicate='exact'):
+    def add_edges_from_dataframe(
+        self,
+        df: pd.DataFrame,
+        from_col: str,
+        to_col: str,
+        from_layer: str = None,
+        to_layer: str = None,
+        from_layer_col: str = None,
+        to_layer_col: str = None,
+        edge_property_cols: list = None,
+        from_node_property_cols: list = None,
+        to_node_property_cols: list = None,
+        split_char: str = '|',
+        create_missing: bool = False,
+        skip_if_duplicate: str = 'exact',
+        verbose: bool = True,
+        edge_property_mode: str = 'per-edge'  # New parameter
+    ):
         """
         Adds directed edges from a DataFrame, using specified columns for node IDs and optional layers.
         Allows customizable edge properties by specifying which DataFrame columns to use.
+        Additionally, allows setting or updating custom properties of source and target nodes
+        based on specified DataFrame columns.
         Supports multiple IDs in a single cell, separated by a specified character.
 
         Args:
-        - df: DataFrame containing edge information.
-        - from_col: Column name in df for source node IDs.
-        - to_col: Column name in df for target node IDs.
-        - from_layer: Fixed layer name for all source nodes if `from_layer_col` is not specified.
-        - to_layer: Fixed layer name for all target nodes if `to_layer_col` is not specified.
-        - from_layer_col: Optional; column in df specifying 'from' node layers if layers vary by row.
-        - to_layer_col: Optional; column in df specifying 'to' node layers if layers vary by row.
-        - property_cols: Optional; list of column names in df to be used as edge properties.
-        - split_char: Character used to split multiple node IDs within a single cell.
-        - create_missing: If True, creates missing nodes when they are not found in node_map.
+        - df (pd.DataFrame): DataFrame containing edge and node information.
+        - from_col (str): Column name in df for source node IDs.
+        - to_col (str): Column name in df for target node IDs.
+        - from_layer (str, optional): Fixed layer name for all source nodes if `from_layer_col` is not specified.
+        - to_layer (str, optional): Fixed layer name for all target nodes if `to_layer_col` is not specified.
+        - from_layer_col (str, optional): Column in df specifying 'from' node layers if layers vary by row.
+        - to_layer_col (str, optional): Column in df specifying 'to' node layers if layers vary by row.
+        - edge_property_cols (list of str, optional): List of column names in df to be used as edge properties.
+        - from_node_property_cols (list of str, optional): List of column names in df to be used as properties for source nodes.
+        - to_node_property_cols (list of str, optional): List of column names in df to be used as properties for target nodes.
+        - split_char (str, optional): Character used to split multiple node IDs within a single cell. Default is '|'.
+        - create_missing (bool, optional): If True, creates missing nodes when they are not found in node_map. Default is False.
+        - skip_if_duplicate (str, optional): Strategy to handle duplicate edges ('exact', 'any', or None). Default is 'exact'.
+        - verbose (bool, optional): If True, prints debug information. Default is True.
+        - edge_property_mode (str, optional): Mode for handling edge properties.
+            - 'per-edge': Each edge has its own property value. Requires property lists to match the number of edges.
+            - 'per-row': Each row provides a single property value applied to all edges generated from that row.
+            Default is 'per-edge'.
 
         Raises:
         - ValueError: If no fixed layer name or column name is provided for either source or target layers.
+        - ValueError: If edge_property_mode is not one of the accepted values.
         """
+        # Validate edge_property_mode
+        if edge_property_mode not in ['per-edge', 'per-row']:
+            raise ValueError("`edge_property_mode` must be either 'per-edge' or 'per-row'.")
+
+        # Validate input DataFrame
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("df must be a pandas DataFrame.")
+
         # Determine edge properties to use
-        if property_cols is None:
-            excluded_cols = {from_col, to_col, from_layer_col, to_layer_col}
+        excluded_cols = {from_col, to_col}
+        if from_layer_col:
+            excluded_cols.add(from_layer_col)
+        if to_layer_col:
+            excluded_cols.add(to_layer_col)
+        if edge_property_cols:
+            excluded_cols.update(edge_property_cols)
+        if from_node_property_cols:
+            excluded_cols.update(from_node_property_cols)
+        if to_node_property_cols:
+            excluded_cols.update(to_node_property_cols)
+
+        # If edge_property_cols is not specified, exclude node-related columns
+        if edge_property_cols is None:
             property_cols = [col for col in df.columns if col not in excluded_cols]
+        else:
+            property_cols = edge_property_cols
 
         # Prepare edge properties by extracting specified columns as lists
-        edge_properties = {col: df[col].tolist() for col in property_cols}
+        edge_properties = {}
+        for col in property_cols:
+            if col in df.columns:
+                edge_properties[col] = df[col].tolist()
+            else:
+                raise ValueError(f"Edge property column '{col}' not found in DataFrame.")
+
+        # Prepare node property columns
+        from_node_properties = from_node_property_cols if from_node_property_cols else []
+        to_node_properties = to_node_property_cols if to_node_property_cols else []
 
         # Ensure that either a fixed layer or a column is provided for source and target layers
         if from_layer is None and from_layer_col is None:
@@ -344,33 +406,151 @@ class MultilayerNetwork:
         if to_layer is None and to_layer_col is None:
             raise ValueError("Either `to_layer` or `to_layer_col` must be specified for target node layers.")
 
-        for edge_index, row in df.iterrows():
-            from_node_ids = [id_.strip() for id_ in row[from_col].split(split_char)] if split_char in row[from_col] else [row[from_col]]
-            to_node_ids = [id_.strip() for id_ in row[to_col].split(split_char)] if split_char in row[to_col] else [row[to_col]]
-            
-            # Use fixed layer names if specified, otherwise fetch layer values from columns in the DataFrame
-            effective_from_layer = from_layer if from_layer else row[from_layer_col]
-            effective_to_layer = to_layer if to_layer else row[to_layer_col]
+        # Calculate the expected number of edges for property validation
+        expected_num_edges = 0
+        skipped_due_to_invalid = 0
 
-            # For each combination of from_node_id and to_node_id, create an edge
-            for from_node_id in from_node_ids:
-                for to_node_id in to_node_ids:
-                    # Get or create nodes based on IDs and layers
-                    from_node = self.get_set_create_node(effective_from_layer, from_node_id, create_missing=create_missing)
-                    to_node = self.get_set_create_node(effective_to_layer, to_node_id, create_missing=create_missing)
+        for idx, row in df.iterrows():
+            from_node_id = row[from_col]
+            to_node_id = row[to_col]
 
-                    # Resolve edge-specific properties for the current row
-                    edge_specific_properties = {prop: edge_properties[prop][edge_index] for prop in edge_properties}
+            if pd.isna(from_node_id) or pd.isna(to_node_id):
+                skipped_due_to_invalid += 1
+                continue
+
+            if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
+                skipped_due_to_invalid += 1
+                continue
+
+            from_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
+            to_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
+
+            expected_num_edges += len(from_ids) * len(to_ids)
+
+        # Validate list lengths in edge_properties based on mode
+        if edge_property_mode == 'per-edge':
+            # Each property list must match the number of edges
+            self.validate_edge_properties_length(edge_properties, expected_num_edges)
+        elif edge_property_mode == 'per-row':
+            # Each property list must match the number of rows (excluding skipped)
+            num_valid_rows = len(df) - skipped_due_to_invalid
+            for prop_name, prop_value in edge_properties.items():
+                if isinstance(prop_value, list):
+                    if len(prop_value) != len(df):
+                        raise ValueError(f"Length of property list '{prop_name}' ({len(prop_value)}) does not match the number of rows ({len(df)}).")
+        # Note: 'per-row' mode assumes that the property value for a row applies to all edges generated from that row.
+
+        # Initialize counters and trackers
+        edge_count = 0  # Counter for each edge added, used as index for property lists
+        total_edges_added = 0
+
+        # Iterate through each row to add edges
+        for idx, row in df.iterrows():
+            from_node_id = row[from_col]
+            to_node_id = row[to_col]
+
+            if pd.isna(from_node_id) or pd.isna(to_node_id):
+                if verbose:
+                    if pd.isna(from_node_id) and pd.isna(to_node_id):
+                        print(f"Skipping row {idx}: Both 'from_col' and 'to_col' are NaN. Row data: {row.to_dict()}")
+                    elif pd.isna(from_node_id):
+                        print(f"Skipping row {idx}: 'from_col' is NaN. Row data: {row.to_dict()}")
+                    elif pd.isna(to_node_id):
+                        print(f"Skipping row {idx}: 'to_col' is NaN. Row data: {row.to_dict()}")
+                skipped_due_to_invalid += 1
+                continue
+
+            if not isinstance(from_node_id, str) or not isinstance(to_node_id, str):
+                if verbose:
+                    issues = []
+                    if not isinstance(from_node_id, str):
+                        issues.append(f"'from_col' is of type {type(from_node_id).__name__} with value {from_node_id}")
+                    if not isinstance(to_node_id, str):
+                        issues.append(f"'to_col' is of type {type(to_node_id).__name__} with value {to_node_id}")
+                    issue_details = "; ".join(issues)
+                    print(f"Skipping row {idx}: {issue_details}. Row data: {row.to_dict()}")
+                skipped_due_to_invalid += 1
+                continue
+
+            # Split node IDs if necessary
+            from_node_ids = [id_.strip() for id_ in from_node_id.split(split_char)] if split_char in from_node_id else [from_node_id]
+            to_node_ids = [id_.strip() for id_ in to_node_id.split(split_char)] if split_char in to_node_id else [to_node_id]
+
+            # Determine effective layers
+            effective_from_layer = from_layer if from_layer else row.get(from_layer_col, from_layer)
+            effective_to_layer = to_layer if to_layer else row.get(to_layer_col, to_layer)
+
+            # Extract node properties from the row
+            from_node_props = {prop: row[prop] for prop in from_node_properties if prop in row and not pd.isna(row[prop])}
+            to_node_props = {prop: row[prop] for prop in to_node_properties if prop in row and not pd.isna(row[prop])}
+
+            # Resolve edge-specific properties based on mode
+            if edge_property_mode == 'per-edge':
+                # For per-edge mode, properties are indexed by edge_count
+                edge_specific_properties = {}
+                for prop in edge_properties:
+                    prop_value = edge_properties[prop]
+                    if isinstance(prop_value, list):
+                        edge_specific_properties[prop] = prop_value[edge_count]
+                    else:
+                        edge_specific_properties[prop] = prop_value
+            elif edge_property_mode == 'per-row':
+                # For per-row mode, properties are indexed by row index
+                edge_specific_properties = {}
+                for prop in edge_properties:
+                    prop_value = edge_properties[prop]
+                    if isinstance(prop_value, list):
+                        edge_specific_properties[prop] = prop_value[idx]
+                    else:
+                        edge_specific_properties[prop] = prop_value
+
+            # Iterate through all combinations of from_node_ids and to_node_ids
+            for id1 in from_node_ids:
+                for id2 in to_node_ids:
+                    # Retrieve or create source node with custom properties
+                    node1 = self.get_set_create_node(
+                        layer=effective_from_layer,
+                        node_id=id1,
+                        create_missing=create_missing,
+                        verbose=verbose,
+                        **from_node_props
+                    )
+
+                    # Retrieve or create target node with custom properties
+                    node2 = self.get_set_create_node(
+                        layer=effective_to_layer,
+                        node_id=id2,
+                        create_missing=create_missing,
+                        verbose=verbose,
+                        **to_node_props
+                    )
+
+                    if node1 is None or node2 is None:
+                        if verbose:
+                            print(f"Skipping edge from '{id1}' to '{id2}': Missing nodes.")
+                        continue
 
                     # Add the edge with resolved properties
                     self.add_edge(
-                        from_node, to_node,
-                        from_node_id=from_node_id, to_node_id=to_node_id,
-                        from_layer=effective_from_layer, to_layer=effective_to_layer,
+                        from_node=node1,
+                        to_node=node2,
+                        from_node_id=id1,
+                        to_node_id=id2,
+                        from_layer=effective_from_layer,
+                        to_layer=effective_to_layer,
                         create_missing=create_missing,
                         skip_if_duplicate=skip_if_duplicate,
                         **edge_specific_properties
                     )
+                    edge_count += 1
+                    total_edges_added += 1
+
+        # Summary of the operation
+        if verbose:
+            print(f"Total edges expected to be added: {expected_num_edges}")
+            print(f"Total edges actually added: {total_edges_added}")
+            if skipped_due_to_invalid > 0:
+                print(f"Total rows skipped due to invalid node IDs: {skipped_due_to_invalid}")
 
 
     def resolve_edge_properties(self, edge_properties, edge_index):
