@@ -545,12 +545,12 @@ class MultilayerNetwork:
                     edge_count += 1
                     total_edges_added += 1
 
-        # Summary of the operation
-        if verbose:
-            print(f"Total edges expected to be added: {expected_num_edges}")
-            print(f"Total edges actually added: {total_edges_added}")
-            if skipped_due_to_invalid > 0:
-                print(f"Total rows skipped due to invalid node IDs: {skipped_due_to_invalid}")
+        # Summary of the operation - doesn't seem to be working as expected - underestimates expected number of edges to be added, and overestimates number skipped rows
+        # if verbose:
+        #     print(f"Total edges expected to be added: {expected_num_edges}")
+        #     print(f"Total edges actually added: {total_edges_added}")
+        #     if skipped_due_to_invalid > 0:
+        #         print(f"Total rows skipped due to invalid node IDs: {skipped_due_to_invalid}")
 
 
     def resolve_edge_properties(self, edge_properties, edge_index):
