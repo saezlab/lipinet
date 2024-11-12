@@ -41,6 +41,8 @@ class SuperOnion:
             return 'float'
         elif isinstance(value, str):
             return 'string'
+        elif isinstance(value, (bool, np.bool)):
+            return 'bool'
         else:
             return 'object'  # Use 'object' for any other type
     
@@ -109,7 +111,7 @@ class SuperOnion:
             self.node_id_reverse_mapping[node_id_int] = node_id_str
             return node_id_int
     
-    def add_vertices_from_dataframe(self, df_nodes, id_col, layer_col, property_cols=None, drop_na=True, fill_na_with=None):
+    def add_vertices_from_dataframe(self, df_nodes, id_col, layer_col, property_cols=None, drop_na=True, fill_na_with=None, string_override=False):
         """
         Add vertices from a DataFrame with custom IDs and properties.
         
@@ -121,6 +123,7 @@ class SuperOnion:
             drop_na (bool, optional): Whether to drop rows with missing IDs or layers.
             fill_na_with (any, optional): Value to fill NaNs if not dropping.
         """
+        df_nodes = df_nodes.copy()
         # Handle missing values
         if drop_na:
             df_nodes = df_nodes.dropna(subset=[id_col, layer_col])
@@ -153,7 +156,7 @@ class SuperOnion:
                 sample_value = prop_values[0]
                 prop_type = self._infer_property_type(sample_value)
                 
-                if prop_type in ['int', 'float']:
+                if prop_type in ['int', 'float'] and string_override!=True:
                     if prop_name not in self.graph.vp:
                         prop = self.graph.new_vertex_property(prop_type)
                         self.graph.vp[prop_name] = prop
@@ -162,7 +165,7 @@ class SuperOnion:
                     
                     # Assign values in bulk
                     prop.a[starting_index:] = prop_values
-                elif prop_type == 'string':
+                elif prop_type in ['string', 'bool'] or string_override==True:
                     # Map categorical string values to integers
                     mapped_values = self._map_categorical_property(prop_name, prop_values, category_type='vertex')
                     
@@ -178,7 +181,7 @@ class SuperOnion:
                     print(f"Unsupported property type for vertex property '{prop_name}': {prop_type}")
                     pass  # Extend as needed
     
-    def add_edges_from_dataframe(self, df_edges, source_id_col, source_layer_col, target_id_col, target_layer_col, property_cols=None, drop_na=True, fill_na_with=None):
+    def add_edges_from_dataframe(self, df_edges, source_id_col, source_layer_col, target_id_col, target_layer_col, property_cols=None, drop_na=True, fill_na_with=None, string_override=False):
         """
         Add edges from a DataFrame with custom IDs and properties.
         
@@ -192,6 +195,7 @@ class SuperOnion:
             drop_na (bool, optional): Whether to drop rows with missing IDs or layers.
             fill_na_with (any, optional): Value to fill NaNs if not dropping.
         """
+        df_edges = df_edges.copy()
         # Handle missing values
         if drop_na:
             df_edges = df_edges.dropna(subset=[source_id_col, source_layer_col, target_id_col, target_layer_col])
@@ -240,7 +244,7 @@ class SuperOnion:
                 sample_value = prop_values[0]
                 prop_type = self._infer_property_type(sample_value)
                 
-                if prop_type in ['int', 'float']:
+                if prop_type in ['int', 'float'] and string_override!=True:
                     if prop_name not in self.graph.ep:
                         prop = self.graph.new_edge_property(prop_type)
                         self.graph.ep[prop_name] = prop
@@ -250,7 +254,7 @@ class SuperOnion:
                     # Collect prop_values
                     prop_values_list.append(prop_values)
                     eprops.append(prop)
-                elif prop_type == 'string':
+                elif prop_type in ['string', 'bool'] or string_override==True:
                     # Map categorical string values to integers
                     mapped_values = self._map_categorical_property(prop_name, prop_values, category_type='edge')
                     
