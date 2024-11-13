@@ -1,7 +1,18 @@
+# Author: Macabe Daley
+
+from graph_tool.all import Graph, GraphView, bfs_search, BFSVisitor, bfs_iterator, shortest_distance, graph_draw
+from graph_tool.topology import label_out_component
+from collections import deque
+
 import pandas as pd
 import numpy as np
-from graph_tool.all import Graph
-import pickle
+# import json
+# import math
+# import pickle
+
+from itertools import product
+
+from typing import Any, Dict, Tuple, List
 
 
 # A super fast alternative to the previous implementation. 
@@ -16,12 +27,12 @@ import pickle
 class SuperOnion:
     def __init__(self, directed=True):
         self.graph = Graph(directed=directed)
-        self.id_to_index = {}  # Map from custom ID tuple (layer_code, node_id_int) to vertex index
-        self.index_to_id = {}  # Map from vertex index to custom ID tuple (layer_code, node_id_int)
-        self.layer_reverse_mapping = {}  # Map from layer codes to layer names
-        self.node_id_reverse_mapping = {}  # Map from node_id_int to node_id strings
-        self.layer_str_to_int = {}  # Map from layer names to integer codes
-        self.node_id_str_to_int = {}  # Map from node_id strings to integer codes
+        self.custom_id_to_vertex_index: Dict[Tuple[int, int], int] = {}    # Map from custom ID tuple (layer_code, node_id_int) to vertex index
+        self.vertex_index_to_custom_id: Dict[int, Tuple[int, int]] = {}    # Map from vertex index to custom ID tuple (layer_code, node_id_int)
+        self.layer_code_to_name: Dict[int, str] = {}           # Map from layer codes to layer names
+        self.node_id_int_to_str: Dict[int, str] = {}           # Map from node_id_int to node_id strings
+        self.layer_name_to_code: Dict[str, int] = {}           # Map from layer names to integer codes
+        self.node_id_str_to_int: Dict[str, int] = {}           # Map from node_id strings to integer codes
         
         # Initialize vertex properties for layer and node ID hashes
         self.graph.vp['layer_hash'] = self.graph.new_vertex_property('int64_t')
@@ -89,13 +100,13 @@ class SuperOnion:
         """
         Map a layer name to an integer code, updating the mapping if necessary.
         """
-        if layer_name in self.layer_str_to_int:
-            return self.layer_str_to_int[layer_name]
+        if layer_name in self.layer_name_to_code:
+            return self.layer_name_to_code[layer_name]
         else:
             # Assign a new integer code
-            layer_code = len(self.layer_str_to_int)
-            self.layer_str_to_int[layer_name] = layer_code
-            self.layer_reverse_mapping[layer_code] = layer_name
+            layer_code = len(self.layer_name_to_code)
+            self.layer_name_to_code[layer_name] = layer_code
+            self.layer_code_to_name[layer_code] = layer_name
             return layer_code
     
     def _map_node_id(self, node_id_str):
@@ -108,7 +119,7 @@ class SuperOnion:
             # Assign a new integer code
             node_id_int = len(self.node_id_str_to_int)
             self.node_id_str_to_int[node_id_str] = node_id_int
-            self.node_id_reverse_mapping[node_id_int] = node_id_str
+            self.node_id_int_to_str[node_id_int] = node_id_str
             return node_id_int
     
     def add_vertices_from_dataframe(self, df_nodes, id_col, layer_col, property_cols=None, drop_na=True, fill_na_with=None, string_override=False):
@@ -142,8 +153,8 @@ class SuperOnion:
         
         # Update mapping dictionaries
         new_indices = np.arange(starting_index, starting_index + n_new_vertices, dtype=np.int64)
-        self.id_to_index.update(zip(custom_ids, new_indices))
-        self.index_to_id.update(zip(new_indices, custom_ids))
+        self.custom_id_to_vertex_index.update(zip(custom_ids, new_indices))
+        self.vertex_index_to_custom_id.update(zip(new_indices, custom_ids))
         
         # Assign 'layer_hash' and 'node_id_hash' properties in bulk
         self.graph.vp['layer_hash'].a[starting_index:] = df_nodes['layer_int'].values
@@ -180,6 +191,24 @@ class SuperOnion:
                 else:
                     print(f"Unsupported property type for vertex property '{prop_name}': {prop_type}")
                     pass  # Extend as needed
+
+        # Update layer_code_to_name and node_id_int_to_str mappings
+        for layer_name in df_nodes[layer_col].unique():
+            layer_code = self.layer_name_to_code.get(layer_name)
+            if layer_code is not None:
+                self.layer_code_to_name[layer_code] = layer_name
+
+        for node_id_str in df_nodes[id_col].unique():
+            node_id_int = self.node_id_str_to_int.get(node_id_str)
+            if node_id_int is not None:
+                self.node_id_int_to_str[node_id_int] = node_id_str
+
+        # Update the cached node_map if it exists
+        if hasattr(self, '_node_map_cache'):
+            for (layer_code, node_id_int), vertex_index in zip(custom_ids, new_indices):
+                layer_name = self.layer_code_to_name.get(layer_code, f"Unknown Layer ({layer_code})")
+                node_id_str = self.node_id_int_to_str.get(node_id_int, f"Unknown ID ({node_id_int})")
+                self._node_map_cache[(layer_name, node_id_str)] = vertex_index
     
     def add_edges_from_dataframe(self, df_edges, source_id_col, source_layer_col, target_id_col, target_layer_col, property_cols=None, drop_na=True, fill_na_with=None, string_override=False):
         """
@@ -218,8 +247,8 @@ class SuperOnion:
         target_ids = list(zip(df_edges['target_layer_int'], df_edges['target_id_int']))
         
         # Map IDs to vertex indices
-        source_indices = [self.id_to_index.get(id_tuple) for id_tuple in source_ids]
-        target_indices = [self.id_to_index.get(id_tuple) for id_tuple in target_ids]
+        source_indices = [self.custom_id_to_vertex_index.get(id_tuple) for id_tuple in source_ids]
+        target_indices = [self.custom_id_to_vertex_index.get(id_tuple) for id_tuple in target_ids]
         
         # Filter out edges where source or target is missing
         valid_indices = [i for i, (s, t) in enumerate(zip(source_indices, target_indices)) if s is not None and t is not None]
@@ -324,7 +353,7 @@ class SuperOnion:
             'Edge Properties': edge_props
         }
     
-    def get_vertex_by_custom_id(self, layer_code, node_id_int):
+    def get_vertex_by_encoding_tuple(self, layer_code, node_id_int):
         """
         Retrieve a vertex by its custom ID tuple (layer_code, node_id_int).
         
@@ -336,11 +365,46 @@ class SuperOnion:
             graph_tool.Vertex or None: The corresponding vertex or None if not found.
         """
         id_tuple = (layer_code, node_id_int)
-        v_index = self.id_to_index.get(id_tuple)
+        v_index = self.custom_id_to_vertex_index.get(id_tuple)
         if v_index is not None:
             return self.graph.vertex(v_index)
         else:
             return None
+        
+    def get_vertex_by_name_tuple(self, layer_name: str, node_id_str: str) -> Any:
+        """
+        Retrieve a vertex by its original name using (layer_name, node_id_str) tuples.
+        
+        Parameters:
+            layer_name (str): The name of the layer.
+            node_id_str (str): The string identifier of the node.
+        
+        Returns:
+            graph_tool.Vertex or None: The corresponding vertex or None if not found.
+        
+        Raises:
+            KeyError: If the layer name or node ID string does not exist.
+        """
+        # Retrieve the layer code
+        layer_code = self.layer_name_to_code.get(layer_name)
+        if layer_code is None:
+            raise KeyError(f"Layer name '{layer_name}' not found.")
+        
+        # Retrieve the node ID integer
+        node_id_int = self.node_id_str_to_int.get(node_id_str)
+        if node_id_int is None:
+            raise KeyError(f"Node ID string '{node_id_str}' not found.")
+        
+        # Construct the custom ID tuple
+        id_tuple = (layer_code, node_id_int)
+        
+        # Retrieve the vertex index
+        vertex_index = self.custom_id_to_vertex_index.get(id_tuple)
+        if vertex_index is None:
+            return None  # Vertex not found
+        
+        # Return the vertex object
+        return self.graph.vertex(vertex_index)
     
     def get_vertex_property(self, layer_code, node_id_int, prop_name):
         """
@@ -354,7 +418,7 @@ class SuperOnion:
         Returns:
             any or None: The property value or None if not found.
         """
-        v = self.get_vertex_by_custom_id(layer_code, node_id_int)
+        v = self.get_vertex_by_encoding_tuple(layer_code, node_id_int)
         if v is not None and prop_name in self.graph.vp:
             return self.graph.vp[prop_name][v]
         return None
@@ -369,7 +433,7 @@ class SuperOnion:
             prop_name (str): Name of the property.
             value (any): Value to set.
         """
-        v = self.get_vertex_by_custom_id(layer_code, node_id_int)
+        v = self.get_vertex_by_encoding_tuple(layer_code, node_id_int)
         if v is not None:
             if prop_name not in self.graph.vp:
                 # Infer property type and create new property
@@ -391,7 +455,7 @@ class SuperOnion:
         Returns:
             dict: Dictionary of property names and their values.
         """
-        v = self.get_vertex_by_custom_id(layer_code, node_id_int)
+        v = self.get_vertex_by_encoding_tuple(layer_code, node_id_int)
         if v is None:
             print(f"Vertex with ID ({layer_code}, {node_id_int}) not found.")
             return {}
@@ -405,8 +469,8 @@ class SuperOnion:
             properties[prop_name] = prop_value
         
         # Decode layer and node_id
-        decoded_layer = self.layer_reverse_mapping.get(layer_code, f"Unknown Layer ({layer_code})")
-        decoded_node_id = self.node_id_reverse_mapping.get(node_id_int, f"Unknown Node ID ({node_id_int})")
+        decoded_layer = self.layer_code_to_name.get(layer_code, f"Unknown Layer ({layer_code})")
+        decoded_node_id = self.node_id_int_to_str.get(node_id_int, f"Unknown Node ID ({node_id_int})")
         properties['decoded_layer'] = decoded_layer
         properties['decoded_node_id'] = decoded_node_id
         
@@ -425,8 +489,8 @@ class SuperOnion:
             dict: Dictionary of property names and their values.
         """
         # Check if the layer name exists
-        if layer_name in self.layer_str_to_int:
-            layer_code = self.layer_str_to_int[layer_name]
+        if layer_name in self.layer_name_to_code:
+            layer_code = self.layer_name_to_code[layer_name]
         else:
             print(f"Layer '{layer_name}' not found.")
             return {}
@@ -462,8 +526,8 @@ class SuperOnion:
         Returns:
             any or None: The property value or None if not found.
         """
-        source_vertex = self.get_vertex_by_custom_id(source_layer_code, source_node_id_int)
-        target_vertex = self.get_vertex_by_custom_id(target_layer_code, target_node_id_int)
+        source_vertex = self.get_vertex_by_encoding_tuple(source_layer_code, source_node_id_int)
+        target_vertex = self.get_vertex_by_encoding_tuple(target_layer_code, target_node_id_int)
         if source_vertex is None or target_vertex is None:
             print("Source or target vertex not found.")
             return None
@@ -488,8 +552,8 @@ class SuperOnion:
             any or dict: The property value if prop_name is provided, or a dictionary of all properties if prop_name is None.
         """
         # Map layer names and node IDs to integer codes
-        if source_layer_name in self.layer_str_to_int:
-            source_layer_code = self.layer_str_to_int[source_layer_name]
+        if source_layer_name in self.layer_name_to_code:
+            source_layer_code = self.layer_name_to_code[source_layer_name]
         else:
             print(f"Source layer '{source_layer_name}' not found.")
             return None
@@ -500,8 +564,8 @@ class SuperOnion:
             print(f"Source node ID '{source_node_id_str}' not found.")
             return None
         
-        if target_layer_name in self.layer_str_to_int:
-            target_layer_code = self.layer_str_to_int[target_layer_name]
+        if target_layer_name in self.layer_name_to_code:
+            target_layer_code = self.layer_name_to_code[target_layer_name]
         else:
             print(f"Target layer '{target_layer_name}' not found.")
             return None
@@ -513,8 +577,8 @@ class SuperOnion:
             return None
         
         # Retrieve the edge
-        source_vertex = self.get_vertex_by_custom_id(source_layer_code, source_node_id_int)
-        target_vertex = self.get_vertex_by_custom_id(target_layer_code, target_node_id_int)
+        source_vertex = self.get_vertex_by_encoding_tuple(source_layer_code, source_node_id_int)
+        target_vertex = self.get_vertex_by_encoding_tuple(target_layer_code, target_node_id_int)
         
         if source_vertex is None or target_vertex is None:
             print("Source or target vertex not found.")
@@ -550,3 +614,496 @@ class SuperOnion:
                 for prop, value in edge_properties.items():
                     print(f"  {prop}: {value}")
             return edge_properties
+        
+    def view_layer(self, layer_name):
+        """
+        Return a subgraph view of a specific layer.
+
+        Parameters:
+            layer_name (str): The name of the layer to filter.
+
+        Returns:
+            GraphView: A subgraph containing only the vertices from the specified layer.
+        """
+        if layer_name not in self.layer_name_to_code:
+            raise ValueError(f"Layer '{layer_name}' does not exist.")
+        
+        layer_code = self.layer_name_to_code[layer_name]
+        return GraphView(self.graph, vfilt=lambda v: self.graph.vp['layer_hash'][v] == layer_code)
+    
+    def filter_view_by_property(self, prop_name, target_value, comparison="=="):
+        """
+        Creates a filtered graph view including only nodes where the specified property
+        meets the specified comparison with the target value.
+
+        Parameters:
+            prop_name (str): The name of the property to filter by.
+            target_value (any): The value to filter for.
+            comparison (str): The comparison operator as a string (e.g., "==", "!=", "<", ">").
+
+        Returns:
+            GraphView: A subgraph view with the filtered vertices.
+        """
+        import operator
+
+        # Define available operators
+        comparison_operators = {
+            "==": operator.eq,
+            "!=": operator.ne,
+            "<": operator.lt,
+            ">": operator.gt,
+            "<=": operator.le,
+            ">=": operator.ge
+        }
+
+        # Check if the property exists in vertex properties
+        if prop_name not in self.graph.vp:
+            raise ValueError(f"Property '{prop_name}' does not exist in the graph.")
+
+        # Check if the comparison operator is valid
+        if comparison not in comparison_operators:
+            raise ValueError(f"Invalid comparison operator '{comparison}'. Choose from {list(comparison_operators.keys())}.")
+
+        # Get the appropriate comparison function
+        compare_func = comparison_operators[comparison]
+
+        # Handle categorical properties by mapping target_value to its integer code
+        if prop_name in self.vertex_categorical_mappings:
+            str_to_int = self.vertex_categorical_mappings[prop_name]['str_to_int']
+            if target_value in str_to_int:
+                target_value_mapped = str_to_int[target_value]
+            else:
+                raise ValueError(f"Target value '{target_value}' not found in categorical mapping for property '{prop_name}'.")
+        else:
+            target_value_mapped = target_value
+
+        # Create a filter mask based on the property and comparison
+        def filter_func(v):
+            prop_val = self.graph.vp[prop_name][v]
+            return compare_func(prop_val, target_value_mapped)
+
+        # Create and return a filtered GraphView
+        return GraphView(self.graph, vfilt=filter_func)
+    
+    def extract_subgraph_with_paths(self, root_layer_name, root_node_id_str, nodes_of_interest_ids, direction='upstream'):
+        """
+        Extracts a subgraph that includes the nodes of interest, the root,
+        and any intermediate nodes along the paths from each node of interest according to the specified direction.
+        Direction can be 'upstream', 'downstream', or 'both'.
+
+        Parameters:
+            root_layer_name (str): The layer name of the root node.
+            root_node_id_str (str): The node ID string of the root node.
+            nodes_of_interest_ids (list of tuples): List of (layer_name, node_id_str) tuples for nodes of interest.
+            direction (str): The direction of traversal: 'upstream', 'downstream', or 'both'.
+
+        Returns:
+            GraphView: A subgraph containing relevant nodes and edges.
+        """
+
+        # Get root vertex
+        root_vertex = self.get_vertex_by_encoding_tuple(
+            layer_code=self.layer_name_to_code.get(root_layer_name),
+            node_id_int=self.node_id_str_to_int.get(root_node_id_str)
+        )
+        if root_vertex is None:
+            raise ValueError(f"Root node ({root_layer_name}, {root_node_id_str}) not found.")
+
+        # Get vertex objects for nodes of interest
+        nodes_of_interest_vertices = set()
+        for layer_name, node_id_str in nodes_of_interest_ids:
+            v = self.get_vertex_by_encoding_tuple(
+                layer_code=self.layer_name_to_code.get(layer_name),
+                node_id_int=self.node_id_str_to_int.get(node_id_str)
+            )
+            if v is not None:
+                nodes_of_interest_vertices.add(v)
+            else:
+                print(f"Node ({layer_name}, {node_id_str}) not found and will be skipped.")
+
+        # Initialize global vertex and edge filters
+        vfilt = self.graph.new_vertex_property('bool')
+        vfilt.a[:] = False
+        efilt = self.graph.new_edge_property('bool')
+        efilt.a[:] = False
+
+        if direction in ['upstream', 'both']:
+            # Upstream traversal (towards ancestors)
+            self._bfs_traversal(nodes_of_interest_vertices, vfilt, efilt, mode='upstream')
+            # Include the root node in upstream traversal
+            vfilt[root_vertex] = True
+
+        if direction in ['downstream', 'both']:
+            # Downstream traversal (towards descendants)
+            self._bfs_traversal(nodes_of_interest_vertices, vfilt, efilt, mode='downstream')
+
+        # Create a GraphView with the combined filters
+        subgraph = GraphView(self.graph, vfilt=vfilt, efilt=efilt)
+        return subgraph
+    
+    def _bfs_traversal(self, seed_vertices, vfilt, efilt, mode='downstream'):
+        """
+        Performs BFS traversal from seed vertices in the specified mode ('upstream' or 'downstream').
+        Updates the provided vertex and edge filters.
+
+        Parameters:
+            seed_vertices (set of Vertex): Seed vertex objects to start traversal.
+            vfilt (VertexPropertyMap): Vertex property map to update.
+            efilt (EdgePropertyMap): Edge property map to update.
+            mode (str): 'upstream' for ancestors, 'downstream' for descendants.
+        """
+
+        visited = set()
+        queue = deque(seed_vertices)
+
+        while queue:
+            v = queue.popleft()
+            if v in visited:
+                continue
+            visited.add(v)
+            vfilt[v] = True
+
+            if mode == 'downstream':
+                # Traverse outgoing edges
+                for e in v.out_edges():
+                    target = e.target()
+                    efilt[e] = True
+                    if target not in visited:
+                        queue.append(target)
+            elif mode == 'upstream':
+                # Traverse incoming edges
+                for e in v.in_edges():
+                    source = e.source()
+                    efilt[e] = True
+                    if source not in visited:
+                        queue.append(source)
+            else:
+                raise ValueError("Mode must be 'upstream' or 'downstream'.")
+        
+
+    def search(
+        self, 
+        #start_layer_name: str, #TODO: implement as option
+        #start_node_id_str: str, #TODO: implement as option
+        start_node_idx: int = 0, #The index of the node to start the search from.
+        max_dist: int = 5, 
+        direction: str = 'downstream', 
+        node_text_prop: str = 'node_label',  # Default to the new property
+        show_plot: bool = True, 
+        **kwargs
+    ) -> GraphView:
+        """
+        Generalized function to perform upstream, downstream, or both-directional search on a directed graph.
+
+        Parameters:
+            TODO: start_layer_name (str): The layer name of the node to start the search from.
+            TODO: start_node_id_str (str): The node ID string of the node to start the search from.
+            start_node_idx (int): The index of the node to start the search from.
+            max_dist (int): Maximum distance (in number of hops) to search.
+            direction (str): 'downstream', 'upstream', or 'both' to search in both directions.
+            node_text_prop (str): Vertex property to use for node labels.
+            show_plot (bool): Whether to display the plot.
+
+        Returns:
+            GraphView: A filtered subgraph containing the nodes within the given distance in the specified direction.
+        """
+        g = self.graph
+        MAX_DIST = max_dist
+
+        # Step 1: Select the starting node
+        start_vertex = g.vertex(start_node_idx)
+        # TODO: implement alternative using name and ID
+
+        # Step 2: Handle direction (upstream, downstream, or both)
+        if direction == 'upstream':
+            # Create a reversed view of the graph for upstream search
+            g_reversed = GraphView(g, reversed=True)
+            distances = shortest_distance(g_reversed, source=start_vertex, max_dist=MAX_DIST)
+
+        elif direction == 'downstream':
+            # Use the graph as is for downstream search
+            distances = shortest_distance(g, source=start_vertex, max_dist=MAX_DIST)
+
+        elif direction == 'both':
+            # Perform both upstream and downstream searches separately
+            # Upstream search with reversed graph
+            g_upstream = GraphView(g, reversed=True)
+            distances_upstream = shortest_distance(g_upstream, source=start_vertex, max_dist=MAX_DIST)
+
+            # Downstream search
+            distances_downstream = shortest_distance(g, source=start_vertex, max_dist=MAX_DIST)
+
+            # Merge distances (take minimum distance if reachable in both directions)
+            distances = {}
+            for v in g.vertices():
+                dist_up = distances_upstream.get(v, float('inf'))
+                dist_down = distances_downstream.get(v, float('inf'))
+                min_dist = min(dist_up, dist_down)
+                if min_dist <= MAX_DIST:
+                    distances[v] = min_dist
+
+        else:
+            raise ValueError("Invalid direction. Choose 'upstream', 'downstream', or 'both'.")
+
+        # Step 3: Filter the graph to only include nodes within the specified distance
+        result_filter = GraphView(g, vfilt=lambda v: distances[v] <= MAX_DIST and distances[v] < float('inf'))
+
+        # Output details
+        print(f"{direction.capitalize()} graph from node {start_vertex} contains {result_filter.num_vertices()} vertices and {result_filter.num_edges()} edges.")
+
+        # Optionally draw the filtered graph
+        if show_plot:
+            if node_text_prop in self.graph.vp:
+                vertex_text_prop = self.graph.vp[node_text_prop]
+            else:
+                # Handle cases where node_text_prop is not a valid property
+                vertex_text_prop = self.graph.new_vertex_property('string')
+                for v in result_filter.vertices():
+                    vertex_text_prop[v] = str(int(v))
+            
+            graph_draw(result_filter, vertex_text=vertex_text_prop, **kwargs)
+
+        # # Optionally draw the filtered graph
+        # if show_plot:
+        #     vertex_text_prop = result_filter.vertex_properties[node_text] if node_text != None else result_filter.vertex_index
+        #     graph_draw(result_filter, vertex_text=vertex_text_prop, **kwargs)
+
+        return result_filter
+    
+    def extract_subgraph_with_label_component(self, root_layer_name, root_node_id_str, nodes_of_interest_ids, direction='downstream'):
+        """
+        Extracts a subgraph including all nodes reachable from nodes of interest 
+        in the specified direction ('upstream', 'downstream', or 'both').
+
+        Parameters:
+            root_layer_name (str): The layer name of the root node.
+            root_node_id_str (str): The node ID string of the root node.
+            nodes_of_interest_ids (list of tuples): List of (layer_name, node_id_str) tuples for nodes of interest.
+            direction (str): The direction of traversal ('upstream', 'downstream', or 'both').
+
+        Returns:
+            GraphView: A subgraph containing relevant nodes and edges.
+        """
+        from graph_tool.topology import label_out_component
+
+        # Initialize an empty vertex filter property map with False values
+        vfilt = self.graph.new_vertex_property('bool')
+        vfilt.a[:] = False
+
+        # Get root vertex
+        root_vertex = self.get_vertex_by_encoding_tuple(
+            layer_code=self.layer_name_to_code.get(root_layer_name),
+            node_id_int=self.node_id_str_to_int.get(root_node_id_str)
+        )
+        if root_vertex is None:
+            raise ValueError(f"Root node ({root_layer_name}, {root_node_id_str}) not found.")
+
+        # Get vertex objects for nodes of interest
+        nodes_of_interest_vertices = []
+        for layer_name, node_id_str in nodes_of_interest_ids:
+            v = self.get_vertex_by_encoding_tuple(
+                layer_code=self.layer_name_to_code.get(layer_name),
+                node_id_int=self.node_id_str_to_int.get(node_id_str)
+            )
+            if v is not None:
+                nodes_of_interest_vertices.append(v)
+            else:
+                print(f"Node ({layer_name}, {node_id_str}) not found and will be skipped.")
+
+        # Downstream component
+        if direction in ['downstream', 'both']:
+            for node in nodes_of_interest_vertices:
+                component = label_out_component(self.graph, node)
+                vfilt.a = vfilt.a | component.a  # Logical OR to combine component labels
+
+        # Upstream component by using a reversed graph view
+        if direction in ['upstream', 'both']:
+            reversed_graph = GraphView(self.graph, reversed=True)
+            for node in nodes_of_interest_vertices:
+                component = label_out_component(reversed_graph, node)
+                vfilt.a = vfilt.a | component.a  # Logical OR to combine component labels
+
+        # Include the root node explicitly
+        vfilt[root_vertex] = True
+
+        # Create the filtered subgraph with the combined vertex filter
+        subgraph = GraphView(self.graph, vfilt=vfilt)
+        return subgraph
+    
+    def inspect_properties(self, layer_name, node_id_str, verbose=True):
+        """
+        Inspect all properties of a specific node, decoding categorical properties.
+
+        Parameters:
+            layer_name (str): The layer name of the node.
+            node_id_str (str): The node ID string of the node.
+            verbose (bool): If True, prints the properties.
+
+        Returns:
+            dict: Dictionary of property names and their values.
+        """
+        # Retrieve properties using existing method
+        properties = self.view_node_properties_by_names(layer_name, node_id_str, verbose=False)
+        
+        if verbose:
+            print(f"Properties for node ({layer_name}, {node_id_str}):")
+            for prop, value in properties.items():
+                print(f"  {prop}: {value}")
+        
+        return properties
+    
+    def get_root_nodes(self):
+        """
+        Identifies root nodes in the graph (nodes with no incoming edges).
+
+        Returns:
+            list: List of vertex objects that are root nodes.
+        """
+        return [v for v in self.graph.vertices() if v.in_degree() == 0]
+    
+    def create_node_label_property(self, prop_name: str = 'node_label') -> None:
+        """
+        Creates a new vertex property that combines layer names and node IDs for informative labeling.
+        
+        Parameters:
+            prop_name (str): The name of the new vertex property to create. Defaults to 'node_label'.
+        """
+        if prop_name in self.graph.vp:
+            print(f"Vertex property '{prop_name}' already exists.")
+            return
+        
+        # Create a new string property
+        node_label = self.graph.new_vertex_property('string')
+        
+        # Efficiently generate labels using list comprehension
+        labels = [
+            f"{self.layer_code_to_name.get(self.graph.vp['layer_hash'][v], f'Unknown Layer ({self.graph.vp['layer_hash'][v]})')}:" +
+            f"{self.node_id_int_to_str.get(self.graph.vp['node_id_hash'][v], f'Unknown ID ({self.graph.vp['node_id_hash'][v]})')}"
+            for v in self.graph.vertices()
+        ]
+        
+        # Assign the labels to the property
+        for v, label in zip(self.graph.vertices(), labels):
+            node_label[v] = label
+        
+        # Assign the new property to the graph
+        self.graph.vp[prop_name] = node_label
+        print(f"Vertex property '{prop_name}' created successfully.")
+
+    def create_human_readable_property(
+        self, 
+        encoded_prop_type: str,  # 'v' for vertex, 'e' for edge
+        encoded_prop_name: str, 
+        mapping_dict: Dict[int, str], 
+        new_prop_name: str, 
+        default_label: str = 'Unknown'
+    ) -> None:
+        """
+        Creates a new property by mapping encoded integers to human-readable strings.
+
+        Parameters:
+            encoded_prop_type (str): Type of the property ('v' for vertex, 'e' for edge).
+            encoded_prop_name (str): Name of the existing encoded property.
+            mapping_dict (Dict[int, str]): Dictionary mapping encoded integers to strings.
+            new_prop_name (str): Name of the new human-readable property to create.
+            default_label (str, optional): Default label for unmapped integers. Defaults to 'Unknown'.
+        
+        Raises:
+            ValueError: If the encoded_prop_type is neither 'v' nor 'e'.
+            KeyError: If the encoded_prop_name does not exist in the graph.
+
+        Example usage:
+        # Assuming you have already populated layer_code_to_name mapping
+        onion.create_human_readable_property(
+            encoded_prop_type='v', 
+            encoded_prop_name='layer_hash', 
+            mapping_dict=onion.layer_code_to_name, 
+            new_prop_name='layer_name'
+        )
+        """
+        if encoded_prop_type not in ['v', 'e']:
+            raise ValueError("encoded_prop_type must be 'v' for vertex or 'e' for edge.")
+        
+        if (encoded_prop_type, encoded_prop_name) not in self.graph.properties():
+            raise KeyError(f"{encoded_prop_type.upper()} property '{encoded_prop_name}' does not exist.")
+        
+        # Determine the property type
+        if encoded_prop_type == 'v':
+            prop = self.graph.vp[encoded_prop_name]
+        else:
+            prop = self.graph.ep[encoded_prop_name]
+        
+        # Create a new string property
+        human_readable_prop = self.graph.new_property('string')
+        
+        # Efficiently generate labels using list comprehension
+        if encoded_prop_type == 'v':
+            items = self.graph.vertices()
+        else:
+            items = self.graph.edges()
+        
+        labels = [
+            mapping_dict.get(int(prop[item]), default_label) for item in items
+        ]
+        
+        # Assign the labels to the new property
+        for item, label in zip(items, labels):
+            human_readable_prop[item] = label
+        
+        # Assign the new property to the graph
+        if encoded_prop_type == 'v':
+            self.graph.vp[new_prop_name] = human_readable_prop
+        else:
+            self.graph.ep[new_prop_name] = human_readable_prop
+        
+        print(f"{encoded_prop_type.upper()} property '{new_prop_name}' created successfully.")
+
+    def create_all_human_readable_properties(self) -> None:
+        """
+        Automatically creates human-readable properties for all encoded vertex and edge properties
+        based on existing mapping dictionaries.
+        """
+        # Define a dictionary of encoded properties and their corresponding mapping dictionaries
+        # Format: (type, encoded_prop_name, mapping_dict, new_prop_name)
+        mapping_definitions = [
+            ('v', 'layer_hash', self.layer_code_to_name, 'layer_name'),
+            ('v', 'node_id_hash', self.node_id_int_to_str, 'node_id_str'),
+            # Add more mappings as needed
+            # Example for edge properties:
+            # ('e', 'edge_prop_1', edge_prop_1_code_to_name, 'edge_prop_1_name'),
+
+            ######## TODO #########
+            # TODO: MORE TO ADD: TODO
+            ######## TODO #########
+        ]
+        
+        for prop_type, encoded_prop, mapping_dict, new_prop in mapping_definitions:
+            try:
+                self.create_human_readable_property(
+                    encoded_prop_type=prop_type,
+                    encoded_prop_name=encoded_prop,
+                    mapping_dict=mapping_dict,
+                    new_prop_name=new_prop
+                )
+            except KeyError as e:
+                print(f"Mapping failed for {prop_type.upper()} property '{encoded_prop}': {e}")
+            except ValueError as e:
+                print(f"Invalid property type for '{prop_type}': {e}")
+
+    @property
+    def node_map(self):
+        """
+        Creates and returns a mapping from (layer_name, node_id_str) tuples to vertex indices.
+        
+        Returns:
+            dict: A dictionary mapping (layer_name, node_id_str) to vertex index.
+        """
+        # Initialize node_map if it hasn't been created yet
+        if not hasattr(self, '_node_map'):
+            self._node_map = {}
+            for (layer_code, node_id_int), v_idx in self.custom_id_to_vertex_index.items():
+                layer_name = self.layer_code_to_name.get(layer_code, f"Unknown Layer ({layer_code})")
+                node_id_str = self.node_id_int_to_str.get(node_id_int, f"Unknown ID ({node_id_int})")
+                self._node_map[(layer_name, node_id_str)] = v_idx
+        return self._node_map
+    
