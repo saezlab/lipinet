@@ -14,6 +14,13 @@ from itertools import product
 
 from typing import Any, Dict, Tuple, List
 
+# Import for the `display` function used in the `grow_onion` method
+try:
+    from IPython.display import display
+    IPYTHON_AVAILABLE = True
+except ImportError:
+    IPYTHON_AVAILABLE = False
+
 
 # A super fast alternative to the previous implementation. 
 # Less flexible, but capable of creating networks from huge datasets (e.g. 10m+ nodes) 
@@ -121,6 +128,139 @@ class SuperOnion:
             self.node_id_str_to_int[node_id_str] = node_id_int
             self.node_id_int_to_str[node_id_int] = node_id_str
             return node_id_int
+        
+    def grow_onion(
+        self, 
+        df_nodes: pd.DataFrame, 
+        df_edges: pd.DataFrame, 
+        node_prop_cols: List[str] = ['node_prop_1', 'node_prop_2'], 
+        edge_prop_cols: List[str] = ['edge_prop_1', 'edge_prop_2'],
+        drop_na: bool = True,
+        drop_duplicates: bool = True,
+        use_display: bool = True,
+        node_id_col: str = 'node_id',
+        node_layer_col: str = 'layer',
+        edge_source_id_col: str = 'source_id',
+        edge_source_layer_col: str = 'source_layer',
+        edge_target_id_col: str = 'target_id',
+        edge_target_layer_col: str = 'target_layer'
+    ) -> None:
+        """
+        Grow the onion graph by adding nodes and edges from provided DataFrames.
+
+        This method performs the following steps:
+            1. Displays a snippet and shape of the node and edge DataFrames.
+            2. Adds vertices from the node DataFrame.
+            3. Adds edges from the edge DataFrame.
+            4. Displays a summary of the graph.
+            5. Lists all vertex and edge properties.
+
+        Parameters:
+            df_nodes (pd.DataFrame): DataFrame containing node information.
+            df_edges (pd.DataFrame): DataFrame containing edge information.
+            node_prop_cols (List[str], optional): List of node property column names to include. Defaults to ['node_prop_1', 'node_prop_2'].
+            edge_prop_cols (List[str], optional): List of edge property column names to include. Defaults to ['edge_prop_1', 'edge_prop_2'].
+            drop_na (bool, optional): Whether to drop rows with missing IDs or layers. Defaults to True.
+            drop_duplicates (bool, optional): Whether to drop nodes and edges that have duplicate entries. Only consideres layer and node ids for vertices and edges, not their properties. Defaults to True.
+            use_display (bool, optional): Whether to use the `display` function (useful in Jupyter notebooks). If False, uses `print`. Defaults to True.
+            node_id_col (str, optional): Column name for node IDs in df_nodes. Defaults to 'node_id'.
+            node_layer_col (str, optional): Column name for layer names in df_nodes. Defaults to 'layer'.
+            edge_source_id_col (str, optional): Column name for source node IDs in df_edges. Defaults to 'source_id'.
+            edge_source_layer_col (str, optional): Column name for source layer names in df_edges. Defaults to 'source_layer'.
+            edge_target_id_col (str, optional): Column name for target node IDs in df_edges. Defaults to 'target_id'.
+            edge_target_layer_col (str, optional): Column name for target layer names in df_edges. Defaults to 'target_layer'.
+
+        Raises:
+            ValueError: If any of the specified columns are missing from the provided DataFrames.
+
+        Returns:
+            None
+        """
+        # Validate that the necessary columns exist in df_nodes
+        required_node_cols = [node_id_col, node_layer_col] + node_prop_cols
+        missing_node_cols = [col for col in required_node_cols if col not in df_nodes.columns]
+        if missing_node_cols:
+            raise ValueError(f"The following node columns are missing in df_nodes: {missing_node_cols}")
+        
+        # Validate that the necessary columns exist in df_edges
+        required_edge_cols = [edge_source_id_col, edge_source_layer_col, edge_target_id_col, edge_target_layer_col] + edge_prop_cols
+        missing_edge_cols = [col for col in required_edge_cols if col not in df_edges.columns]
+        if missing_edge_cols:
+            raise ValueError(f"The following edge columns are missing in df_edges: {missing_edge_cols}")
+
+        if drop_duplicates:
+            # Optional: Remove duplicate nodes and edges
+            df_nodes = df_nodes.drop_duplicates(subset=[node_id_col, node_layer_col])
+            df_edges = df_edges.drop_duplicates(subset=[edge_source_id_col, edge_source_layer_col, edge_target_id_col, edge_target_layer_col])
+
+        # Display snippet of the data and shape
+        for df, name in zip([df_nodes, df_edges], ['Nodes', 'Edges']):
+            if use_display and IPYTHON_AVAILABLE:
+                display(df.head())
+            else:
+                print(f"{name} DataFrame Head:\n{df.head()}\n")
+            print(f"{name} DataFrame Shape: {df.shape}\n")    
+    
+        # Add vertices from the DataFrame
+        self.add_vertices_from_dataframe(
+            df_nodes,
+            id_col=node_id_col,      # Custom node ID column
+            layer_col=node_layer_col,     # Custom layer column
+            property_cols=node_prop_cols,
+            drop_na=drop_na,           # Drop rows with missing IDs or layers
+            string_override=True
+        )
+    
+        # Add edges from the DataFrame
+        self.add_edges_from_dataframe(
+            df_edges,
+            source_id_col=edge_source_id_col,
+            source_layer_col=edge_source_layer_col,
+            target_id_col=edge_target_id_col,
+            target_layer_col=edge_target_layer_col,
+            property_cols=edge_prop_cols,
+            drop_na=drop_na,
+            string_override=True
+        )
+    
+        # Display graph summary
+        summary_info = self.summary()
+        if use_display and IPYTHON_AVAILABLE:
+            print("\nGraph Summary:")
+            for key, value in summary_info.items():
+                if isinstance(value, list):
+                    print(f"{key}:")
+                    for item in value:
+                        print(f"  - {item}")
+                else:
+                    print(f"{key}: {value}")
+        else:
+            print("\nGraph Summary:")
+            for key, value in summary_info.items():
+                if isinstance(value, list):
+                    print(f"{key}:")
+                    for item in value:
+                        print(f"  - {item}")
+                else:
+                    print(f"{key}: {value}")
+    
+        # List all vertex properties
+        vertex_props_df = self.list_vertex_properties()
+        if use_display and IPYTHON_AVAILABLE:
+            print("\nVertex Properties:")
+            display(vertex_props_df)
+        else:
+            print("\nVertex Properties:")
+            print(vertex_props_df)
+    
+        # List all edge properties
+        edge_props_df = self.list_edge_properties()
+        if use_display and IPYTHON_AVAILABLE:
+            print("\nEdge Properties:")
+            display(edge_props_df)
+        else:
+            print("\nEdge Properties:")
+            print(edge_props_df)
     
     def add_vertices_from_dataframe(self, df_nodes, id_col, layer_col, property_cols=None, drop_na=True, fill_na_with=None, string_override=False):
         """
