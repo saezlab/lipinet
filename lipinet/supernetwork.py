@@ -6,12 +6,7 @@ from collections import deque
 
 import pandas as pd
 import numpy as np
-# import json
-# import math
-# import pickle
-
 from itertools import product
-
 from typing import Any, Dict, Tuple, List
 
 # Import for the `display` function used in the `grow_onion` method
@@ -22,6 +17,9 @@ except ImportError:
     IPYTHON_AVAILABLE = False
 
 
+# Main class used for OnionNet creation, basic inspection, fundamental operations.
+
+# Update notes:
 # A super fast alternative to the previous implementation. 
 # Less flexible, but capable of creating networks from huge datasets (e.g. 10m+ nodes) 
 # in only minutes. So long as you have the memory to hold the dfs and they are relatively clean.
@@ -31,7 +29,7 @@ except ImportError:
 # - polar integration
 
 
-class SuperOnion:
+class OnionNet:
     def __init__(self, directed=True):
         self.graph = Graph(directed=directed)
         self.custom_id_to_vertex_index: Dict[Tuple[int, int], int] = {}    # Map from custom ID tuple (layer_code, node_id_int) to vertex index
@@ -146,7 +144,7 @@ class SuperOnion:
         edge_target_layer_col: str = 'target_layer'
     ) -> None:
         """
-        Grow the onion graph by adding nodes and edges from provided DataFrames.
+        Grow the onion net by adding nodes and edges from provided DataFrames.
 
         This method performs the following steps:
             1. Displays a snippet and shape of the node and edge DataFrames.
@@ -923,90 +921,147 @@ class SuperOnion:
 
     def search(
         self, 
-        #start_layer_name: str, #TODO: implement as option
-        #start_node_id_str: str, #TODO: implement as option
-        start_node_idx: int = 0, #The index of the node to start the search from.
+        start_node_idx: int = 0, # The index of the node to start the search from.
         max_dist: int = 5, 
         direction: str = 'downstream', 
         node_text_prop: str = 'node_label',  # Default to the new property
         show_plot: bool = True, 
+        include_upstream_children: bool = False,  # New parameter
+        verbosity: bool = False,  # New parameter
         **kwargs
     ) -> GraphView:
         """
-        Generalized function to perform upstream, downstream, or both-directional search on a directed graph.
+        Generalized function to perform upstream, downstream, or bidirectional search on a directed graph.
 
         Parameters:
-            TODO: start_layer_name (str): The layer name of the node to start the search from.
-            TODO: start_node_id_str (str): The node ID string of the node to start the search from.
             start_node_idx (int): The index of the node to start the search from.
             max_dist (int): Maximum distance (in number of hops) to search.
-            direction (str): 'downstream', 'upstream', or 'both' to search in both directions.
+            direction (str): 'downstream', 'upstream', or 'bi' to search in both directions.
             node_text_prop (str): Vertex property to use for node labels.
             show_plot (bool): Whether to display the plot.
+            include_upstream_children (bool): Whether to include immediate children of upstream nodes during a bidirectional search.
+            verbosity (bool): If True, print detailed information about all upstream and downstream nodes.
 
         Returns:
             GraphView: A filtered subgraph containing the nodes within the given distance in the specified direction.
         """
+
         g = self.graph
         MAX_DIST = max_dist
 
+        # Helper function to get node label
+        def get_label(v):
+            return g.vp[node_text_prop][v] if node_text_prop in g.vp else str(int(v))
+
         # Step 1: Select the starting node
-        start_vertex = g.vertex(start_node_idx)
+        try:
+            start_vertex = g.vertex(start_node_idx)
+            start_label = get_label(start_vertex)
+            print(f"Start vertex: {int(start_vertex)} ({start_label})")
+        except (IndexError, AttributeError) as e:
+            raise ValueError(f"start_node_idx {start_node_idx} is invalid: {e}")
         # TODO: implement alternative using name and ID
 
-        # Step 2: Handle direction (upstream, downstream, or both)
-        if direction == 'upstream':
+        # Initialize sets to hold upstream and downstream nodes
+        upstream_nodes = set()
+        downstream_nodes = set()
+        combined_nodes = set()
+
+        # Initialize variables to hold distances
+        distances_upstream = None
+        distances_downstream = None
+
+        # Handle upstream direction
+        if direction in ('upstream', 'bi'):
             # Create a reversed view of the graph for upstream search
             g_reversed = GraphView(g, reversed=True)
-            distances = shortest_distance(g_reversed, source=start_vertex, max_dist=MAX_DIST)
+            distances_upstream = shortest_distance(g_reversed, source=start_vertex, max_dist=MAX_DIST)
+            upstream_nodes = {v for v in g.vertices() if distances_upstream[v] <= MAX_DIST and distances_upstream[v] < float('inf')}
+            print(f"Number of upstream nodes: {len(upstream_nodes)}")
 
-        elif direction == 'downstream':
-            # Use the graph as is for downstream search
-            distances = shortest_distance(g, source=start_vertex, max_dist=MAX_DIST)
+            # Verbose output for upstream nodes
+            if verbosity:
+                upstream_labels = [f"{int(v)} ({get_label(v)})" for v in upstream_nodes]
+                print(f"Upstream nodes: {', '.join(upstream_labels)}")
 
-        elif direction == 'both':
-            # Perform both upstream and downstream searches separately
-            # Upstream search with reversed graph
-            g_upstream = GraphView(g, reversed=True)
-            distances_upstream = shortest_distance(g_upstream, source=start_vertex, max_dist=MAX_DIST)
+            if include_upstream_children and direction == 'bi':
+                # Collect immediate children (downstream neighbors) of upstream nodes
+                children_nodes = set()
+                for v in upstream_nodes:
+                    children = list(v.out_neighbours())
+                    children_nodes.update(children)
+                    if verbosity:
+                        children_labels = [f"{int(child)} ({get_label(child)})" for child in children]
+                        print(f"Vertex {int(v)} ({get_label(v)}) children: {', '.join(children_labels)}")
 
-            # Downstream search
+                # Combine upstream nodes and their immediate children
+                combined_nodes = upstream_nodes.union(children_nodes)
+                print(f"Number of combined nodes (upstream + children): {len(combined_nodes)}")
+            else:
+                combined_nodes = upstream_nodes
+
+        # Handle downstream direction
+        if direction in ('downstream', 'bi'):
+            # Perform downstream search
             distances_downstream = shortest_distance(g, source=start_vertex, max_dist=MAX_DIST)
+            downstream_nodes = {v for v in g.vertices() if distances_downstream[v] <= MAX_DIST and distances_downstream[v] < float('inf')}
+            print(f"Number of downstream nodes: {len(downstream_nodes)}")
 
-            # Merge distances (take minimum distance if reachable in both directions)
-            distances = {}
-            for v in g.vertices():
-                dist_up = distances_upstream.get(v, float('inf'))
-                dist_down = distances_downstream.get(v, float('inf'))
-                min_dist = min(dist_up, dist_down)
-                if min_dist <= MAX_DIST:
-                    distances[v] = min_dist
+            # Verbose output for downstream nodes
+            if verbosity:
+                downstream_labels = [f"{int(v)} ({get_label(v)})" for v in downstream_nodes]
+                print(f"Downstream nodes: {', '.join(downstream_labels)}")
 
+        # Merge nodes based on direction
+        if direction == 'bi':
+            if include_upstream_children:
+                # Merge combined upstream nodes (including children) with downstream nodes
+                final_nodes = combined_nodes.union(downstream_nodes)
+                print(f"Number of final nodes (upstream + children + downstream): {len(final_nodes)}")
+                if verbosity:
+                    final_labels = [f"{int(v)} ({get_label(v)})" for v in final_nodes]
+                    print(f"Final nodes: {', '.join(final_labels)}")
+            else:
+                # Merge upstream and downstream nodes without children
+                final_nodes = upstream_nodes.union(downstream_nodes)
+                print(f"Number of final nodes (upstream + downstream): {len(final_nodes)}")
+                if verbosity:
+                    final_labels = [f"{int(v)} ({get_label(v)})" for v in final_nodes]
+                    print(f"Final nodes: {', '.join(final_labels)}")
+        elif direction == 'upstream':
+            final_nodes = combined_nodes
+            print(f"Number of final nodes (upstream): {len(final_nodes)}")
+            if verbosity:
+                final_labels = [f"{int(v)} ({get_label(v)})" for v in final_nodes]
+                print(f"Final nodes: {', '.join(final_labels)}")
+        elif direction == 'downstream':
+            final_nodes = downstream_nodes
+            print(f"Number of final nodes (downstream): {len(final_nodes)}")
+            if verbosity:
+                final_labels = [f"{int(v)} ({get_label(v)})" for v in final_nodes]
+                print(f"Final nodes: {', '.join(final_labels)}")
         else:
-            raise ValueError("Invalid direction. Choose 'upstream', 'downstream', or 'both'.")
+            raise ValueError("Invalid direction. Choose 'upstream', 'downstream', or 'bi'.")
 
-        # Step 3: Filter the graph to only include nodes within the specified distance
-        result_filter = GraphView(g, vfilt=lambda v: distances[v] <= MAX_DIST and distances[v] < float('inf'))
+        # Create the filtered subgraph
+        # Convert Vertex objects to their integer indices for comparison
+        final_node_indices = {int(v) for v in final_nodes}
+        result_filter = GraphView(g, vfilt=lambda v: int(v) in final_node_indices)
 
-        # Output details
-        print(f"{direction.capitalize()} graph from node {start_vertex} contains {result_filter.num_vertices()} vertices and {result_filter.num_edges()} edges.")
+        # Always print the number of final nodes
+        print(f"Filtered graph contains {result_filter.num_vertices()} vertices and {result_filter.num_edges()} edges.")
 
-        # Optionally draw the filtered graph
+        # Step 3: Optionally draw the filtered graph
         if show_plot:
-            if node_text_prop in self.graph.vp:
-                vertex_text_prop = self.graph.vp[node_text_prop]
+            if node_text_prop in g.vp:
+                vertex_text_prop = g.vp[node_text_prop]
             else:
                 # Handle cases where node_text_prop is not a valid property
-                vertex_text_prop = self.graph.new_vertex_property('string')
+                vertex_text_prop = g.new_vertex_property('string')
                 for v in result_filter.vertices():
                     vertex_text_prop[v] = str(int(v))
             
             graph_draw(result_filter, vertex_text=vertex_text_prop, **kwargs)
-
-        # # Optionally draw the filtered graph
-        # if show_plot:
-        #     vertex_text_prop = result_filter.vertex_properties[node_text] if node_text != None else result_filter.vertex_index
-        #     graph_draw(result_filter, vertex_text=vertex_text_prop, **kwargs)
 
         return result_filter
     
