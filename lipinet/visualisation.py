@@ -70,74 +70,179 @@ def create_node_labels(g: gt.Graph, property_map: gt.PropertyMap) -> gt.Property
     return vertex_labels
 
 
-def color_nodes(g, prop_name, method="categorical"):
+def color_nodes(
+    g,
+    prop_name,
+    method="categorical",
+    generate_legend=False,
+    custom_colormap=None,
+    custom_color_dict=None,
+):
     """
-    Assign colors to nodes in a graph based on a specified property, either categorical or continuous.
-    
+    Assign colors to nodes in a graph.
+
     Parameters:
     -------
-    - g (Graph): The graph object where nodes are colored.
+    - g (Graph): The graph object where nodes are styled.
     - prop_name (str): The name of the vertex property used to determine colors.
     - method (str): 
         'categorical': assigns distinct colors for each unique category in the property.
-        'continuous' : uses a colour scale.
-        'boolean'    : uses red if the property is True or present, and grey if False or absent.
-      If False, assigns colors on a gradient scale based on the continuous values in the property.
+        'continuous' : uses a color scale.
+        'boolean'    : uses red if the property is True, grey if False.
+    - generate_legend (bool): If True, generates a legend dictionary mapping categories to colors.
+    - custom_colormap (Colormap or None): A custom matplotlib colormap for continuous values.
+    - custom_color_dict (dict or None): A user-defined dictionary mapping property values to colors.
 
     Returns:
     -------
-    - v_color (PropertyMap): A vertex property map with RGBA color values (as a 4-element tuple),
-      with each color assigned based on the specified property.
-    
-    Example usage:
-    -------
-    # 1. Color by 'level' (categorical)
-    v_color_by_level = color_nodes(g, 'level', method='categorical')
-
-    # 2. Color by 'reaction_count' (continuous)
-    v_color_by_reactions = color_nodes(g, 'reaction_count', method='continuous')
+    - result (dict): A dictionary containing:
+        - 'v_color' (PropertyMap): A vertex property map with RGBA color values.
+        - 'legend' (dict): A dictionary mapping categories to colors (if generate_legend=True).
     """
-    # Initialize a new vertex property for color, storing RGBA as a vector of doubles
     v_color = g.new_vertex_property("vector<double>")
-    
-    if method=='categorical':
-        # Handle categorical properties: assign distinct colors for each category
-        categories = set(g.vp[prop_name])
-        # Use a predefined color map (e.g., tab10) for distinct color assignment to each category
-        color_map = {cat: cm.tab10(i % 10) for i, cat in enumerate(categories)}
-        
-        for v in g.vertices():
-            category = g.vp[prop_name][v]
-            # Assign the RGB color with added alpha of 1.0 for full opacity
-            v_color[v] = color_map[category][:3] + (1.0,)
-    
-    elif method=='continuous':
-        # Handle continuous properties: assign colors on a gradient scale
-        values = [float(g.vp[prop_name][v]) for v in g.vertices()]
-        min_val, max_val = min(values), max(values)
-        
-        # Normalize values for color mapping on a continuous scale using Viridis colormap
-        norm = plt.Normalize(vmin=min_val, vmax=max_val)
-        scalar_map = cm.ScalarMappable(norm=norm, cmap=cm.viridis)
-        
-        for v in g.vertices():
-            value = float(g.vp[prop_name][v])
-            # Map value to an RGBA color, extracting RGB and adding alpha of 1.0 for opacity
-            v_color[v] = scalar_map.to_rgba(value)[:3] + (1.0,)
+    legend = {} if generate_legend else None
 
-    elif method == 'boolean':
-        # Handle boolean properties: red for True or present, grey for False or absent
+    # Handle custom color dictionary
+    if custom_color_dict:
         for v in g.vertices():
             value = g.vp[prop_name][v]
-            if bool(value):  # True or present
-                v_color[v] = (1.0, 0.0, 0.0, 1.0)  # Red with full opacity
-            else:  # False or absent
-                v_color[v] = (0.5, 0.5, 0.5, 1.0)  # Grey with full opacity
-    
-    else:
-        raise('Intended method not supported. Please choose from: categorical, continuous, boolean.')
+            if value in custom_color_dict:
+                v_color[v] = custom_color_dict[value]
+            else:
+                raise ValueError(f"Value '{value}' not found in custom_color_dict.")
+        if generate_legend:
+            legend = custom_color_dict
 
-    return v_color
+    # Handle colors with custom colormap or default colormap
+    elif method == "categorical":
+        categories = list(set(g.vp[prop_name]))
+        colormap = custom_colormap or cm.tab10
+        color_map = {cat: colormap(i % 10) for i, cat in enumerate(categories)}
+        for v in g.vertices():
+            category = g.vp[prop_name][v]
+            v_color[v] = color_map[category][:3] + (1.0,)
+        if generate_legend:
+            legend = {cat: color_map[cat][:3] + (1.0,) for cat in categories}
+
+    elif method == "continuous":
+        values = [float(g.vp[prop_name][v]) for v in g.vertices()]
+        min_val, max_val = min(values), max(values)
+        colormap = custom_colormap or cm.viridis
+        norm = plt.Normalize(vmin=min_val, vmax=max_val)
+        scalar_map = cm.ScalarMappable(norm=norm, cmap=colormap)
+        for v in g.vertices():
+            value = float(g.vp[prop_name][v])
+            v_color[v] = scalar_map.to_rgba(value)[:3] + (1.0,)
+        if generate_legend:
+            legend = {"min": scalar_map.to_rgba(min_val), "max": scalar_map.to_rgba(max_val)}
+
+    elif method == "boolean":
+        for v in g.vertices():
+            value = g.vp[prop_name][v]
+            v_color[v] = (1.0, 0.0, 0.0, 1.0) if bool(value) else (0.5, 0.5, 0.5, 1.0)
+        if generate_legend:
+            legend = {"True": (1.0, 0.0, 0.0, 1.0), "False": (0.5, 0.5, 0.5, 1.0)}
+
+    else:
+        raise ValueError("Unsupported color method. Choose from: categorical, continuous, boolean.")
+
+    return {"v_color": v_color, "legend_node_color": legend}
+
+
+def shape_nodes(
+    g,
+    prop_name,
+    shape_method=None,
+    generate_legend=False,
+    custom_shape_dict=None,
+):
+    """
+    Assign shapes to nodes in a graph.
+
+    Parameters:
+    -------
+    - g (Graph): The graph object where nodes are styled.
+    - prop_name (str): The name of the vertex property used to determine shapes.
+    - shape_method (str or None): If specified, assigns vertex shapes based on a property or method.
+    - generate_legend (bool): If True, generates a legend dictionary mapping categories to shapes.
+    - custom_shape_dict (dict or None): A user-defined dictionary mapping property values to shapes.
+
+    Returns:
+    -------
+    - result (dict): A dictionary containing:
+        - 'v_shape' (PropertyMap): A vertex property map with shape values.
+        - 'legend' (dict): A dictionary mapping categories to shapes (if generate_legend=True).
+    """
+    v_shape = g.new_vertex_property("string")
+    legend = {} if generate_legend else None
+
+    # Handle custom shape dictionary
+    if custom_shape_dict:
+        for v in g.vertices():
+            value = g.vp[prop_name][v]
+            if value in custom_shape_dict:
+                v_shape[v] = custom_shape_dict[value]
+            else:
+                raise ValueError(f"Value '{value}' not found in custom_shape_dict.")
+        if generate_legend:
+            legend = custom_shape_dict
+
+    # Handle shapes with default assignment
+    elif shape_method == "categorical":
+        categories = list(set(g.vp[prop_name]))
+        shapes = ["circle", "triangle", "square", "pentagon", "hexagon"]
+        shape_map = {cat: shapes[i % len(shapes)] for i, cat in enumerate(categories)}
+        for v in g.vertices():
+            category = g.vp[prop_name][v]
+            v_shape[v] = shape_map.get(category, "circle")
+        if generate_legend:
+            legend = shape_map
+
+    elif shape_method == "boolean":
+        for v in g.vertices():
+            value = g.vp[prop_name][v]
+            v_shape[v] = "triangle" if bool(value) else "square"
+        if generate_legend:
+            legend = {"True": "triangle", "False": "square"}
+
+    return {"v_shape": v_shape, "legend_node_shape": legend}
+
+
+def add_halo_to_node(
+    g,
+    node,
+    halo_color=(1.0, 1.0, 0.0, 0.5),  # Default yellow halo
+    halo_size_factor=1.5,
+):
+    """
+    Add a halo to a specific node while styling the graph.
+
+    Parameters:
+    -------
+    - g (Graph): The graph object.
+    - node (Vertex): The specific vertex requiring a halo.
+    - halo_color (tuple): RGBA color for the halo.
+    - halo_size_factor (float): Size of the halo relative to the node size.
+
+    Returns:
+    -------
+    - result (dict): A dictionary containing:
+        - 'v_halo' (PropertyMap): Halo property map (only for the specific node).
+        - 'v_halo_color' (PropertyMap): Halo colour as a property map (only for the specific node with halo).
+    """
+    # Initialize halo property
+    v_halo = g.new_vertex_property("bool")
+    v_halo_color = g.new_vertex_property("vector<double>")
+    
+    for v in g.vertices():
+        #print(v)
+        if v == node:  # Add a halo to the specified node
+            v_halo[v] = True 
+            v_halo_color[v] = halo_color
+        else:  # No halo for other nodes
+            v_halo[v] = False #(0, 0, 0, 0)  # Transparent / no halo
+
+    return {"v_halo": v_halo, "v_halo_color": v_halo_color}
 
 
 def draw_weight_propagation_graph(
