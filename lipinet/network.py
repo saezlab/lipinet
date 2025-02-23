@@ -1219,7 +1219,7 @@ class OnionNet:
         if encoded_prop_type not in ['v', 'e']:
             raise ValueError("encoded_prop_type must be 'v' for vertex or 'e' for edge.")
         
-        if (encoded_prop_type, encoded_prop_name) not in self.graph.properties():
+        if (encoded_prop_type, encoded_prop_name) not in self.graph.properties:
             raise KeyError(f"{encoded_prop_type.upper()} property '{encoded_prop_name}' does not exist.")
         
         # Determine the property type
@@ -1229,7 +1229,7 @@ class OnionNet:
             prop = self.graph.ep[encoded_prop_name]
         
         # Create a new string property
-        human_readable_prop = self.graph.new_property('string')
+        human_readable_prop = self.graph.new_property(encoded_prop_type, 'string') #key_type and value_type
         
         # Efficiently generate labels using list comprehension
         if encoded_prop_type == 'v':
@@ -1241,6 +1241,11 @@ class OnionNet:
             mapping_dict.get(int(prop[item]), default_label) for item in items
         ]
         
+        # Efficiently re-generate labels using list comprehension (note the previous instance of labels will be used up by the list comprehension)
+        if encoded_prop_type == 'v':
+            items = self.graph.vertices()
+        else:
+            items = self.graph.edges()
         # Assign the labels to the new property
         for item, label in zip(items, labels):
             human_readable_prop[item] = label
