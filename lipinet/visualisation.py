@@ -77,6 +77,7 @@ def color_nodes(
     generate_legend=False,
     custom_colormap=None,
     custom_color_dict=None,
+    zero_centred=False
 ):
     """
     Assign colors to nodes in a graph.
@@ -92,6 +93,8 @@ def color_nodes(
     - generate_legend (bool): If True, generates a legend dictionary mapping categories to colors.
     - custom_colormap (Colormap or None): A custom matplotlib colormap for continuous values.
     - custom_color_dict (dict or None): A user-defined dictionary mapping property values to colors.
+    - zero_centered (bool): If True (and method is 'continuous'), adjusts the normalization range so that
+          zero is centered (i.e. using symmetric bounds [-abs(max_val), abs(max_val)]). Defaults to False. 
 
     Returns:
     -------
@@ -127,6 +130,11 @@ def color_nodes(
     elif method == "continuous":
         values = [float(g.vp[prop_name][v]) for v in g.vertices()]
         min_val, max_val = min(values), max(values)
+        # If the user wants, they can set the middle of the bar based on the max absolute value
+        if zero_centred == True:
+            abs_max = max(abs(min_val), abs(max_val))
+            min_val = -abs_max
+            max_val = abs_max    
         colormap = custom_colormap or cm.viridis
         norm = plt.Normalize(vmin=min_val, vmax=max_val)
         scalar_map = cm.ScalarMappable(norm=norm, cmap=colormap)
@@ -134,7 +142,8 @@ def color_nodes(
             value = float(g.vp[prop_name][v])
             v_color[v] = scalar_map.to_rgba(value)[:3] + (1.0,)
         if generate_legend:
-            legend = {"min": scalar_map.to_rgba(min_val), "max": scalar_map.to_rgba(max_val)}
+            legend = {"min_col": scalar_map.to_rgba(min_val), "max_col": scalar_map.to_rgba(max_val),
+                      "min_val": min_val, "max_val": max_val}
 
     elif method == "boolean":
         for v in g.vertices():
