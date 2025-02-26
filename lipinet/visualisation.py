@@ -120,7 +120,9 @@ def color_nodes(
     elif method == "categorical":
         categories = list(set(g.vp[prop_name]))
         colormap = custom_colormap or cm.tab10
-        color_map = {cat: colormap(i % 10) for i, cat in enumerate(categories)}
+        colormap_len = len(colormap.colors)
+        print(colormap_len)
+        color_map = {cat: colormap(i % colormap_len) for i, cat in enumerate(categories)}
         for v in g.vertices():
             category = g.vp[prop_name][v]
             v_color[v] = color_map[category][:3] + (1.0,)
