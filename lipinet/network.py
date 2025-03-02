@@ -753,21 +753,32 @@ class OnionNet:
                     print(f"  {prop}: {value}")
             return edge_properties
         
-    def view_layer(self, layer_name):
+        
+    def view_layers(self, layer_names):
         """
-        Return a subgraph view of a specific layer.
+        Return a subgraph view of one or more layers.
 
         Parameters:
-            layer_name (str): The name of the layer to filter.
-
-        Returns:
-            GraphView: A subgraph containing only the vertices from the specified layer.
-        """
-        if layer_name not in self.layer_name_to_code:
-            raise ValueError(f"Layer '{layer_name}' does not exist.")
+            layer_names (str or list of str): A single layer name or a list of layer names to filter.
         
-        layer_code = self.layer_name_to_code[layer_name]
-        return GraphView(self.graph, vfilt=lambda v: self.graph.vp['layer_hash'][v] == layer_code)
+        Returns:
+            GraphView: A subgraph containing only the vertices from the specified layer(s).
+        """
+        # Allow a single string to be passed in
+        if isinstance(layer_names, str):
+            layer_names = [layer_names]
+
+        # Check that all specified layers exist
+        missing = [ln for ln in layer_names if ln not in self.layer_name_to_code]
+        if missing:
+            raise ValueError(f"Layer(s) {missing} do not exist.")
+
+        # Get the set of layer codes to filter on
+        layer_codes = {self.layer_name_to_code[ln] for ln in layer_names}
+
+        # Return the subgraph view with the appropriate filter.
+        return GraphView(self.graph, vfilt=lambda v: self.graph.vp['layer_hash'][v] in layer_codes)
+    
     
     def filter_view_by_property(self, prop_name, target_value, comparison="=="):
         """
