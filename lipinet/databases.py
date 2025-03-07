@@ -5,7 +5,7 @@ import gzip
 import io
 import json
 
-def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8'):
+def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', verbose=False):
     """
     Checks if the specified file exists locally. If not, downloads it from the provided URL.
     Supports loading compressed files and handling different formats.
@@ -17,6 +17,7 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
     - compressed (bool): If True, expects the downloaded file to be in gzip format. Defaults to False.
     - sep (str): Separator to use if loading CSV/TSV data. Defaults to ','.
     - encoding (str): Encoding to use for reading files. Defaults to 'utf-8'.
+    - verbose (bool): If True, prints additional information during the process. Defaults to False.
 
     Returns:
     - data (DataFrame, dict, or list): The loaded data from the file, in the format specified.
@@ -31,7 +32,8 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
 
     # Check if the file already exists
     if not os.path.exists(filepath):
-        print(f"File not found locally. Downloading from {url}...")
+        if verbose:
+            print(f"File not found locally. Downloading from {url}...")
         response = requests.get(url)
         response.raise_for_status()  # Raises an error if the download fails
         
@@ -56,9 +58,11 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
             else:
                 raise ValueError("Unsupported file format. Only 'json', 'csv' and 'tsv' are supported.")
 
-        print(f"Data downloaded and saved to {filepath}.")
+        if verbose:
+            print(f"Data downloaded and saved to {filepath}.")
     else:
-        print(f"File found locally at {filepath}. Loading data...")
+        if verbose:
+            print(f"File found locally at {filepath}. Loading data...")
 
         # Load the file from local storage
         if file_format == 'csv' or file_format == 'tsv':
@@ -77,7 +81,7 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
 
 
 
-def get_prior_knowledge(name_of_resource):
+def get_prior_knowledge(name_of_resource, verbose=False):
     resources = {
         'swisslipids':{'filename': 'swisslipids_lipids.tsv', #note this will be joined to the data dir (.data/databases)
                        'data_url': "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv"}
@@ -87,23 +91,25 @@ def get_prior_knowledge(name_of_resource):
         local_filename = resources[name_of_resource]['filename']
         data_url = resources[name_of_resource]['data_url']
         if name_of_resource=='swisslipids':
-            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', compressed=True, sep='\t', encoding='latin-1')
-            fetched_data = clean(fetched_data, name_of_resource=name_of_resource)
+            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', compressed=True, sep='\t', encoding='latin-1', verbose=verbose)
+            fetched_data = clean(fetched_data, name_of_resource=name_of_resource, verbose=verbose)
         else:
-            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t')
+            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t', verbose=verbose)
         return fetched_data
     except KeyError as e:
         raise e(f"KeyError encountered, probably because the resource you requested is not yet supported.")
     
 
-def clean(df, name_of_resource):
+def clean(df, name_of_resource, verbose=False):
     """
     Some of the data sources need specialised cleaning to make them nicer to work with.
     """
 
     if name_of_resource=='swisslipids':
         # Note the swisslipids 'Lipid class*' column has some strings ending with an empty space, which can really screw with the hierarchy...
-        print(f'Before cleaning, number of values in lipid class column with trailing space: {df['Lipid class*'].str.endswith(' ').value_counts()}')
+        if verbose:
+            print("Before cleaning, number of values in lipid class column with trailing space:", df["Lipid class*"].str.endswith(" ").value_counts())
         df['Lipid class*'] = df['Lipid class*'].str.strip(' ')
-        print(f'After cleaning, number of values in lipid class column with trailing space: {df['Lipid class*'].str.endswith(' ').value_counts()}')
+        if verbose:
+            print("After cleaning, number of values in lipid class column with trailing space:", df["Lipid class*"].str.endswith(" ").value_counts())
         return df
