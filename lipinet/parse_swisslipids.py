@@ -32,49 +32,46 @@ def parse_swisslipids_data(verbose=False):
     # Load the SwissLipids data and add a layer column
     df_swisslipids = get_prior_knowledge('swisslipids')
     df_swisslipids['from_layer_col'] = 'swisslipids'
+    
+    # Add a parsed version of the Components column
+    df_swisslipids['Components_parsed'] = df_swisslipids['Components*']
+    
     if verbose:
         print("Initial SwissLipids DataFrame (first 5 rows):")
         print(df_swisslipids.head(), "\n")
     
-    # Check for double entries in the 'Lipid class*' column
-    double_entries = df_swisslipids.dropna(subset=['Lipid class*'])[df_swisslipids['Lipid class*'].dropna().str.contains('|', regex=False)]
-    if verbose:
-        print("Double entries in 'Lipid class*':")
-        print(double_entries, "\n")
-    
-    # Split the 'Lipid class*' column into multiple rows
-    df_swisslipids_splitexp = split_and_expand_large(
-        df_swisslipids, 
-        split_col='Lipid class*', 
-        expand_cols=['Lipid ID', 'Level', 'Name', 'Abbreviation*',
-                     'CHEBI', 'LIPID MAPS', 'HMDB', 'MetaNetX', 'PMID', 'from_layer_col'],
-        delimiter='|'
-    )
-    
-    # Melt the expanded dataframe to create an edges dataframe
+    # Melt the dataframe to create an edges dataframe
     df_swisslipids_edges = pd.melt(
-        df_swisslipids_splitexp, 
-        id_vars=['Lipid ID'], 
-        value_vars=['CHEBI', 'LIPID MAPS', 'HMDB', 'MetaNetX', 'PMID', 'Lipid class*'], 
-        var_name='melted_column', 
+        df_swisslipids,
+        id_vars=['Lipid ID'],
+        value_vars=[
+            'CHEBI', 'LIPID MAPS', 'HMDB', 'MetaNetX', 'PMID',
+            'Lipid class*', 'Abbreviation*', 'Synonyms*', 'Parent',
+            'Components*', 'Components_parsed'
+        ],
+        var_name='melted_column',
         value_name='value'
     )
+    df_swisslipids_edges = df_swisslipids_edges.dropna(subset=['value'])
     
-    # Prepare the edges dataframe
+    # Set static source layer and rename columns
     df_swisslipids_edges['source_layer'] = 'swisslipids'
     df_swisslipids_edges.rename(
-        columns={'Lipid ID': 'source_id', 'melted_column': 'target_layer', 'value': 'target_id'}, 
+        columns={
+            'Lipid ID': 'source_id',
+            'melted_column': 'target_layer',
+            'value': 'target_id'
+        },
         inplace=True
     )
     df_swisslipids_edges = df_swisslipids_edges[['source_layer', 'source_id', 'target_layer', 'target_id']]
+    
+    # Update target_layer: if 'Lipid class*' then set to 'swisslipids', otherwise format the string
     df_swisslipids_edges['target_layer'] = df_swisslipids_edges['target_layer'].map(
-        lambda x: 'swisslipids' if x == 'Lipid class*' else x
-    )
-    df_swisslipids_edges['target_layer'] = df_swisslipids_edges['target_layer'].map(
-        lambda x: str(x).replace(' ', '').strip('*').lower()
+        lambda x: 'swisslipids' if x=='Lipid class*' else f"sl_{str(x).replace(' ','').strip('*').lower()}"
     )
     
-    # For rows where both source_layer and target_layer are 'swisslipids', swap columns so that the parent points to the children
+    # For rows where both source and target layers are 'swisslipids', swap the columns so that the parent points to the children
     condition = (
         (df_swisslipids_edges["source_layer"] == "swisslipids") &
         (df_swisslipids_edges["target_layer"] == "swisslipids")
@@ -82,21 +79,55 @@ def parse_swisslipids_data(verbose=False):
     df_swisslipids_edges.loc[condition, ["source_layer", "source_id", "target_layer", "target_id"]] = \
         df_swisslipids_edges.loc[condition, ["target_layer", "target_id", "source_layer", "source_id"]].values
     
-    # Define function to assess if an edge is interlayer or intralayer
-    def assess_edge_layertype(df):
-        df['interlayer'] = df['source_layer'] != df['target_layer']
-        return df 
+    # Handle multilinks: edges with '|' in target_id
+    edges_with_multilinks = df_swisslipids_edges[
+        df_swisslipids_edges['target_id'].str.contains('|', regex=False, na=False)
+    ]
+    edges_with_multilinks_split = split_and_expand_large(
+        edges_with_multilinks, 
+        split_col='target_id', 
+        expand_cols=['source_layer', 'source_id', 'target_layer'],
+        delimiter='|'
+    ).drop_duplicates()
     
-    df_swisslipids_edges = assess_edge_layertype(df_swisslipids_edges)
+    # Handle multilinks for components: edges with '/' in target_id and target_layer contains 'sl_components'
+    edges_with_multilinks2 = df_swisslipids_edges[
+        df_swisslipids_edges['target_id'].str.contains('/', regex=False, na=False) &
+        df_swisslipids_edges['target_layer'].str.contains('sl_components', regex=False, na=False)
+    ]
+    edges_with_multilinks2_split = split_and_expand_large(
+        edges_with_multilinks2, 
+        split_col='target_id', 
+        expand_cols=['source_layer', 'source_id', 'target_layer'],
+        delimiter='/'
+    ).drop_duplicates()
+    
+    # For parsed components, remove any parenthesized info (e.g., '(sn2)')
+    mask = edges_with_multilinks2_split['target_layer'] == 'sl_components_parsed'
+    edges_with_multilinks2_split.loc[mask, 'target_id'] = \
+        edges_with_multilinks2_split.loc[mask, 'target_id'].str.split('(').str[0].str.strip()
+    
+    # Remove the original problematic multilink rows and combine with the corrected ones
+    mask_pipe = df_swisslipids_edges['target_id'].str.contains('|', regex=False, na=False)
+    mask_slash = (
+        df_swisslipids_edges['target_id'].str.contains('/', regex=False, na=False) &
+        df_swisslipids_edges['target_layer'].str.contains('sl_components', regex=False, na=False)
+    )
+    mask_problem = mask_pipe | mask_slash
+    df_clean = df_swisslipids_edges[~mask_problem].copy()
+    df_swisslipids_edges = pd.concat([
+        df_clean, 
+        edges_with_multilinks_split, 
+        edges_with_multilinks2_split
+    ], ignore_index=True)
+    df_swisslipids_edges = df_swisslipids_edges.drop_duplicates()
+    
+    # Add an 'interlayer' column indicating whether the edge is between different layers
+    df_swisslipids_edges['interlayer'] = df_swisslipids_edges['source_layer'] != df_swisslipids_edges['target_layer']
+    
     if verbose:
         print("Processed edges DataFrame (first 5 rows):")
         print(df_swisslipids_edges.head(), "\n")
-    
-    # Group and count edges by target_layer and target_id (for diagnostic purposes)
-    edge_counts = df_swisslipids_edges.groupby('target_layer').value_counts(subset=['target_id'], dropna=False)
-    if verbose:
-        print("Edge counts by target_layer and target_id:")
-        print(edge_counts, "\n")
     
     # Create the node dataframe from the edges dataframe
     df_swisslipids_nodes = create_nodedf_from_edgedf(
@@ -104,25 +135,27 @@ def parse_swisslipids_data(verbose=False):
         props=['layer', 'id'], 
         cols=['layer', 'node_id']
     )
+    
     if verbose:
         print("Initial node DataFrame (first 5 rows):")
         print(df_swisslipids_nodes.head(), "\n")
         print("Duplicate counts in node DataFrame:")
         print(df_swisslipids_nodes.value_counts(dropna=True), "\n")
     
-    # Merge node information with additional details from the expanded SwissLipids dataframe
+    # Merge node information with additional details from the original SwissLipids dataframe
     df_swisslipids_nodes = pd.merge(
         df_swisslipids_nodes, 
-        df_swisslipids_splitexp,
+        df_swisslipids.assign(from_layer_col='swisslipids'),
         left_on=['layer', 'node_id'], 
         right_on=['from_layer_col', 'Lipid ID'],
         how='outer'
     )
     
-    # Remove duplicates and drop the 'from_layer_col' column
+    # Clean up duplicates and remove the auxiliary 'from_layer_col'
     df_swisslipids_nodes = df_swisslipids_nodes.drop_duplicates()
     if 'from_layer_col' in df_swisslipids_nodes.columns:
         df_swisslipids_nodes = df_swisslipids_nodes.drop(columns='from_layer_col')
+    
     if verbose:
         print("Final node DataFrame (first 5 rows):")
         print(df_swisslipids_nodes.head())
