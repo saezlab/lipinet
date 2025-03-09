@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from IPython.display import display
 
 def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
@@ -48,3 +49,19 @@ def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'no
     node_df = node_df['value']
     node_df.columns = cols
     return node_df
+
+def check_for_split_characters(df, delimiter='|'):
+    cols_with_split_chars = []
+    for col in df.columns:
+        print(f'Checking split characters ({delimiter}) in ' + col)
+        try:
+            temp = df[df[col].str.contains(delimiter, regex=False, na=False)]
+            if len(temp) > 0:
+                print(f'Found {len(temp)} rows with split characters')
+                display(temp)
+                cols_with_split_chars.append(col)
+            else:
+                print('No rows found\n')
+        except AttributeError:
+            print('Not a string column\n')
+    return cols_with_split_chars
