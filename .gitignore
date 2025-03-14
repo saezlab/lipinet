@@ -1,5 +1,6 @@
 lipinet.egg-info/*
-.data*
+/lipinet/.data/*
+!lipinet/.data/.gitkeep
 __pycache__
 .DS_Store
 notebooks/lib/bindings/utils.js
