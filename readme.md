@@ -1,4 +1,4 @@
-# LipiNet <img src="./.assets/.lipinet_logo_v1_0051.png" alt="OnionNet Logo" width="120" align="right" />
+# LipiNet <img src="./.assets/.lipinet_logo_v1_0051.png" alt="OnionNet Logo" width="140" align="right" />
 
 ## Context
 
