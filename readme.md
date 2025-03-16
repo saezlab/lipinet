@@ -1,4 +1,4 @@
-# LipiNet 
+# LipiNet <img src="./.assets/.lipinet_logo_v1_0051.png" alt="OnionNet Logo" width="120" align="right" />
 
 ## Context
 
@@ -12,13 +12,39 @@ LipiNet is designed to address these challenges by integrating information acros
 - Cross-database lipid identifier integration 
 - Tools for filtering, analysing and visualising by layers
 
-## Getting started
+## Installation
 
-You can currently install using pip via GitHub, or alternatively through local installation.
+`LipiNet` relies on functions in `OnionNet`, which in turn requires `graph-tool` to be installed. Because `graph-tool` is built around C++ for efficiency, unfortunately there is no straightforward pip installation. Nonetheless, there are a number of ways to install `graph-tool` besides pip, see [here](https://graph-tool.skewed.de/installation.html) for more details. The easiest way for most users is probably to create a new env via `conda`:
 
-GitHub
-1. `pip install git+https://github.com/saezlab/lipinet.git`
+```
+conda create --name gt -c conda-forge graph-tool ipython jupyter
+conda activate gt
+```
+Then you can install `OnionNet` within the conda env with:
+```
+pip install git+https://github.com/saezlab/onionnet.git
+```
+Finally you can install `LipiNet` in a similar fashion:
+```
+pip install git+https://github.com/saezlab/lipinet.git
+```
+Now you should be ready to go!
 
-Local installation 
-1. download locally and navigate to the directory where `setup.py` is located
-2. install as an editable package: `pip install -e .`
+In the near future we intend to include both `LipiNet` and `OnionNet` on PyPI.
+
+## Quick Start
+
+The general framework for LipiNet is:
+1. Dataset parsing
+2. Dataset exploration
+3. Integration (in progress)
+
+You can currently find tutorials for the first two steps with SwissLipids in the notebooks folder, describing the network creation process and initial findings from exploration.
+
+## License
+
+Most of the datasets in `LipiNet` are openly available for use provided you cite them accordingly. We encourage users to check the terms of the resource themselves.
+
+## Contributing 
+
+Both `LipiNet` and `OnionNet` are in active development and subject to change. Some functions may be modified or deprecated in future releases. If you find `LipiNet` helpful or have ideas for improvement, we'd love to hear more!
