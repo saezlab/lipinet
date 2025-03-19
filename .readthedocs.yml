@@ -1,0 +1,10 @@
+version: 2
+conda:
+  environment: environment.yml
+sphinx:
+  configuration: docs/source/conf.py
+
+# Because we will probs have issues with graph-tool if we use req. will try conda instead
+# python:
+#   install:
+#     - requirements: docs/source/requirements.txt

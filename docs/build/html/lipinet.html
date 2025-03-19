@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>lipinet package &#8212; LipiNet 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parsing SwissLipids into a network for LipiNet" href="notebooks/parsing_swisslipids.html" />
+    <link rel="prev" title="LipiNet API" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="lipinet-package">
+<h1>lipinet package<a class="headerlink" href="#lipinet-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-lipinet.databases">
+<span id="lipinet-databases-module"></span><h2>lipinet.databases module<a class="headerlink" href="#module-lipinet.databases" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.databases.clean">
+<span class="sig-prename descclassname"><span class="pre">lipinet.databases.</span></span><span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_of_resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.databases.clean" title="Link to this definition">¶</a></dt>
+<dd><p>Some of the data sources need specialised cleaning to make them nicer to work with.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.databases.download_and_load_data">
+<span class="sig-prename descclassname"><span class="pre">lipinet.databases.</span></span><span class="sig-name descname"><span class="pre">download_and_load_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.databases.download_and_load_data" title="Link to this definition">¶</a></dt>
+<dd><p>Checks if the specified file exists locally. If not, downloads it from the provided URL.
+Supports loading compressed files and handling different formats.</p>
+<p>Parameters:
+- filename (str): The name of the file to be saved within the data directory.
+- url (str): The URL to download the file from if it’s not found locally.
+- file_format (str): The format of the file (‘json’ or ‘csv’). Defaults to ‘csv’.
+- compressed (bool): If True, expects the downloaded file to be in gzip format. Defaults to False.
+- sep (str): Separator to use if loading CSV/TSV data. Defaults to ‘,’.
+- encoding (str): Encoding to use for reading files. Defaults to ‘utf-8’.
+- verbose (bool): If True, prints additional information during the process. Defaults to False.</p>
+<p>Returns:
+- data (DataFrame, dict, or list): The loaded data from the file, in the format specified.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.databases.get_prior_knowledge">
+<span class="sig-prename descclassname"><span class="pre">lipinet.databases.</span></span><span class="sig-name descname"><span class="pre">get_prior_knowledge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_of_resource</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.databases.get_prior_knowledge" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-lipinet.parse_swisslipids">
+<span id="lipinet-parse-swisslipids-module"></span><h2>lipinet.parse_swisslipids module<a class="headerlink" href="#module-lipinet.parse_swisslipids" title="Link to this heading">¶</a></h2>
+<p>A standalone module that loads and processes SwissLipids data into a df_nodes using lipinet.</p>
+<p>This module provides a helper function <cite>parse_swisslipids_data</cite> that can be imported into notebooks or other scripts.
+A thin wrapper in the <cite>main()</cite> function allows command-line execution.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.parse_swisslipids.main">
+<span class="sig-prename descclassname"><span class="pre">lipinet.parse_swisslipids.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.parse_swisslipids.main" title="Link to this definition">¶</a></dt>
+<dd><p>Thin wrapper for command-line execution.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.parse_swisslipids.parse_swisslipids_data">
+<span class="sig-prename descclassname"><span class="pre">lipinet.parse_swisslipids.</span></span><span class="sig-name descname"><span class="pre">parse_swisslipids_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.parse_swisslipids.parse_swisslipids_data" title="Link to this definition">¶</a></dt>
+<dd><p>Core function to process SwissLipids data and return nodes and edges dataframes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<em>bool</em>) – If True, prints detailed output. Defaults to False.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary with keys ‘df_nodes’ and ‘df_edges’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-lipinet.utils">
+<span id="lipinet-utils-module"></span><h2>lipinet.utils module<a class="headerlink" href="#module-lipinet.utils" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.utils.check_for_split_characters">
+<span class="sig-prename descclassname"><span class="pre">lipinet.utils.</span></span><span class="sig-name descname"><span class="pre">check_for_split_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'|'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.utils.check_for_split_characters" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.utils.create_nodedf_from_edgedf">
+<span class="sig-prename descclassname"><span class="pre">lipinet.utils.</span></span><span class="sig-name descname"><span class="pre">create_nodedf_from_edgedf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['layer',</span> <span class="pre">'id']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['layer',</span> <span class="pre">'node_id']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.utils.create_nodedf_from_edgedf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lipinet.utils.split_and_expand_large">
+<span class="sig-prename descclassname"><span class="pre">lipinet.utils.</span></span><span class="sig-name descname"><span class="pre">split_and_expand_large</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand_cols</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lipinet.utils.split_and_expand_large" title="Link to this definition">¶</a></dt>
+<dd><p>Splits a column by a delimiter and expands specified columns for large DataFrames, handling None/NaN values.</p>
+<p>Parameters:
+df (pd.DataFrame): The original DataFrame.
+split_col (str): The name of the column to split.
+delimiter (str): The delimiter to split the column by.
+expand_cols (list): List of column names to be expanded with the split column.</p>
+<p>Returns:
+pd.DataFrame: A new DataFrame with the split and expanded rows.</p>
+</dd></dl>
+
+</section>
+<section id="module-lipinet">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lipinet" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/.lipinet_logo_v1_0051.png" alt="Logo of LipiNet"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">LipiNet</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Main:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">LipiNet API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">lipinet package</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/parsing_swisslipids.html">Parsing SwissLipids into a network for LipiNet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/explore_swisslipids.html">Exploring SwissLipids from a network perspective</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">LipiNet API</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">LipiNet API</a></li>
+      <li>Next: <a href="notebooks/parsing_swisslipids.html" title="next chapter">Parsing SwissLipids into a network for LipiNet</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Macabe Daley et al..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/lipinet.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

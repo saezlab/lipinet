@@ -1,0 +1,15 @@
+name: onionnet_docs_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - graph-tool          # Note: graph-tool may have platform-specific requirements
+  - jupyterlab          # Provides Jupyter Notebook and lab interface
+  - numpy
+  - pandas
+  - matplotlib
+  - sphinx>=4.0         # For building your documentation
+  - myst-nb             # Enables MyST Markdown & notebook support in Sphinx
+  - pip:
+      - -e .
+      - https://github.com/saezlab/onionnet.git#egg:onionnet
