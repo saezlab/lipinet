@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
+  - pip
   - graph-tool          # Note: graph-tool may have platform-specific requirements
   - jupyterlab          # Provides Jupyter Notebook and lab interface
   - numpy
@@ -10,6 +11,7 @@ dependencies:
   - matplotlib
   - sphinx>=4.0         # For building your documentation
   - myst-nb             # Enables MyST Markdown & notebook support in Sphinx
+
   - pip:
       - -e .
-      - https://github.com/saezlab/onionnet.git#egg:onionnet
+      - git+https://github.com/saezlab/onionnet.git#egg:onionnet
