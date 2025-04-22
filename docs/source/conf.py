@@ -29,8 +29,16 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 
+# Detect RTD build
+on_rtd = os.environ.get("READTHEDOCS") == "True"
+
+# If we’re on RTD, never re‑execute; just render committed outputs.
+# Otherwise (e.g. local dev) use cache mode so missing outputs still run.
+if on_rtd:
+    nb_execution_mode = "off"
+else:
+    nb_execution_mode = "cache"
 nb_execution_timeout = 90  # Set timeout to 90 seconds
-nb_execution_mode = "cache"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
