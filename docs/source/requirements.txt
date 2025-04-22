@@ -1,0 +1,13 @@
+graph-tool # not pip installable so could cause issues, should use env.yml instead probably...
+onionnet
+
+numpy
+pandas
+matplotlib
+
+sphinx>=8.0
+myst-nb
+sphinx.ext.napoleon
+alabaster  # or your chosen theme
+ipython
+sphinx_rtd_theme

@@ -1,0 +1,5330 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Parsing SwissLipids into a network for LipiNet &#8212; LipiNet 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Exploring SwissLipids from a network perspective" href="explore_swisslipids.html" />
+    <link rel="prev" title="lipinet package" href="../lipinet.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="parsing-swisslipids-into-a-network-for-lipinet">
+<h1>Parsing SwissLipids into a network for LipiNet<a class="headerlink" href="#parsing-swisslipids-into-a-network-for-lipinet" title="Link to this heading">¶</a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.databases</span>  <span class="c1"># Import the module</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+
+<span class="c1"># Reload the module to ensure changes are picked up</span>
+<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="p">)</span>
+
+<span class="c1"># Now can use the functions after reloading the module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.databases</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_prior_knowledge</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_and_expand_large</span><span class="p">,</span> <span class="n">create_nodedf_from_edgedf</span><span class="p">,</span> <span class="n">check_for_split_characters</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="parsing-the-manual-way">
+<h2>Parsing the manual way<a class="headerlink" href="#parsing-the-manual-way" title="Link to this heading">¶</a></h2>
+<p>LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening behind the scenes, this notebook goes through the data and each of the steps. Which may also be particularly helpful to you if you need to customise the networks in a way that is not yet supported by LipiNet directly.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span> <span class="o">=</span> <span class="n">get_prior_knowledge</span><span class="p">(</span><span class="s1">&#39;swisslipids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df_swisslipids</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>File found locally at /Users/agjanyunlu/Documents/Metabolomics/lipinet/lipinet/.data/downloaded/swisslipids_lipids.tsv. Loading data...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Before cleaning, number of values in lipid class column with trailing space: Lipid class*
+False    779171
+True         76
+Name: count, dtype: int64
+After cleaning, number of values in lipid class column with trailing space: Lipid class*
+False    779247
+Name: count, dtype: int64
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>SLM:000000002</td>
+      <td>Class</td>
+      <td>Ceramide (iso-d17:1(4E))</td>
+      <td>Cer(iso-d17:1(4E))</td>
+      <td>N-acyl-15-methylhexadecasphing-4-enine</td>
+      <td>SLM:000399814</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCC\C=C\[C@@H](O)[C@H](CO)NC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>70846</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97012</td>
+      <td>| 11443131 | 14685263 | 18390550 | 21325339 |...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>SLM:000000003</td>
+      <td>Isomeric subspecies</td>
+      <td>15-methylhexadecasphing-4-enine</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390097</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCC\C=C\[C@@H](O)[C@@H]([NH3+])CO</td>
+      <td>InChI=1S/C17H35NO2/c1-15(2)12-10-8-6-4-3-5-7-9...</td>
+      <td>...</td>
+      <td>292.282235</td>
+      <td>303.300605</td>
+      <td>284.259503</td>
+      <td>320.236181</td>
+      <td>344.280632</td>
+      <td>70771</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM57784</td>
+      <td>19372430</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>SLM:000000006</td>
+      <td>Isomeric subspecies</td>
+      <td>15-methylhexadecasphinganine</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390097</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCCCC[C@@H](O)[C@@H]([NH3+])CO</td>
+      <td>InChI=1S/C17H37NO2/c1-15(2)12-10-8-6-4-3-5-7-9...</td>
+      <td>...</td>
+      <td>294.297885</td>
+      <td>305.316255</td>
+      <td>286.275153</td>
+      <td>322.251831</td>
+      <td>346.296282</td>
+      <td>70829</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97029</td>
+      <td>19372430</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>SLM:000000007</td>
+      <td>Class</td>
+      <td>Sphingomyelin (iso-d17:1(4E))</td>
+      <td>SM(iso-d17:1(4E))</td>
+      <td>N-acyl-15-methylhexadecasphing-4-enine-1-phosp...</td>
+      <td>SLM:000001000</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCC\C=C\[C@@H](O)[C@H](COP([O-])(=O...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>70775</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97113</td>
+      <td>14685263 | 21926990 | 9603947</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>SLM:000000035</td>
+      <td>Isomeric subspecies</td>
+      <td>sphinganine</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390097</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCCCCCCCCC[C@@H](O)[C@@H]([NH3+])CO</td>
+      <td>InChI=1S/C18H39NO2/c1-2-3-4-5-6-7-8-9-10-11-12...</td>
+      <td>...</td>
+      <td>308.313535</td>
+      <td>319.331905</td>
+      <td>300.290803</td>
+      <td>336.267481</td>
+      <td>360.311932</td>
+      <td>57817</td>
+      <td>LMSP01020001</td>
+      <td>HMDB00269</td>
+      <td>MNXM302</td>
+      <td>10652340 | 10702247 | 10751414 | 10802064 | 10...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>779244</th>
+      <td>SLM:000782324</td>
+      <td>NaN</td>
+      <td>apo carotenoid</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000508864</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>53183</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779245</th>
+      <td>SLM:000782325</td>
+      <td>NaN</td>
+      <td>terpenoid</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000508864</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>26873</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779246</th>
+      <td>SLM:000782326</td>
+      <td>NaN</td>
+      <td>C-45 isoprenoid</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000508864</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>87168</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779247</th>
+      <td>SLM:000782327</td>
+      <td>NaN</td>
+      <td>gamma-lactone</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000782238</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>O1C(C(C(C1=O)*)*)*</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>37581</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779248</th>
+      <td>SLM:000782328</td>
+      <td>NaN</td>
+      <td>oxidized 2-acylglycerol</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000355</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OCC(CO)OC(=O)*</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>167117</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>779249 rows × 29 columns</p>
+</div></div></div>
+</div>
+<p>If we take a closer look into the data, especially the <code class="docutils literal notranslate"><span class="pre">Lipid</span> <span class="pre">class*</span></code> column, we will see that some of the values have multiple entries. For example Ceramide phosphoinositol is a Class level entry that itself belongs to both the SLM:000000834 and SLM:000399815 classes.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;Lipid class*&#39;</span><span class="p">)[</span><span class="n">df_swisslipids</span><span class="p">[</span><span class="s1">&#39;Lipid class*&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>142</th>
+      <td>SLM:000000392</td>
+      <td>Class</td>
+      <td>Ceramide phosphoinositol</td>
+      <td>IPC</td>
+      <td>Inositol-1-phosphoceramide</td>
+      <td>SLM:000000834 | SLM:000399815</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>O[C@H]([*])[C@H](COP([O-])(=O)O[C@H]1[C@H](O)[...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>64916</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>10888667 | 20727985</td>
+    </tr>
+    <tr>
+      <th>234</th>
+      <td>SLM:000000509</td>
+      <td>Isomeric subspecies</td>
+      <td>All-trans-retinyl hexadecanoate</td>
+      <td>NaN</td>
+      <td>all-trans-retinyl palmitate</td>
+      <td>SLM:000000982 | SLM:000508854</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCCCCCCCCCC(=O)OCC=C(C)C=CC=C(C)C=CC1=C(C...</td>
+      <td>InChI=1S/C36H60O2/c1-7-8-9-10-11-12-13-14-15-1...</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17616</td>
+      <td>NaN</td>
+      <td>HMDB03648</td>
+      <td>NaN</td>
+      <td>10769148 | 10819989 | 12230550 | 15550674 | 15...</td>
+    </tr>
+    <tr>
+      <th>315</th>
+      <td>SLM:000000612</td>
+      <td>NaN</td>
+      <td>tetracosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74146</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18541923 | 20110363 | 20937905</td>
+    </tr>
+    <tr>
+      <th>317</th>
+      <td>SLM:000000614</td>
+      <td>NaN</td>
+      <td>hexacosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74161</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18165233</td>
+    </tr>
+    <tr>
+      <th>319</th>
+      <td>SLM:000000621</td>
+      <td>NaN</td>
+      <td>2-hydroxy-tetracosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74215</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18541923</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>755324</th>
+      <td>SLM:000758294</td>
+      <td>Class</td>
+      <td>Globoside</td>
+      <td>Globo</td>
+      <td>Globo-series</td>
+      <td>SLM:000000834 | SLM:000399813</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>61360</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>755325</th>
+      <td>SLM:000758295</td>
+      <td>Class</td>
+      <td>Isogloboside</td>
+      <td>Isoglobo</td>
+      <td>Isoglobo-series</td>
+      <td>SLM:000000834 | SLM:000399813</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>78257</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779141</th>
+      <td>SLM:000782221</td>
+      <td>NaN</td>
+      <td>Resolvin E</td>
+      <td>RvE</td>
+      <td>NaN</td>
+      <td>SLM:000501332 | SLM:000508853</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>LMFA0314</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779142</th>
+      <td>SLM:000782222</td>
+      <td>NaN</td>
+      <td>Resolvin D</td>
+      <td>RvD</td>
+      <td>NaN</td>
+      <td>SLM:000501331 | SLM:000508853</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>LMFA0403</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779157</th>
+      <td>SLM:000782237</td>
+      <td>NaN</td>
+      <td>an N-(omega-(9Z,12Z-octadecadienoyloxy)-ultra-...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000413 | SLM:000782274</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[C@H]([C@@H](/C=C/CCCCCCCCCCCCC)O)(NC(=O)*COC(...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>157662</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>119 rows × 29 columns</p>
+</div></div></div>
+</div>
+<p>What about other IDs?</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cols_with_split_chars</span> <span class="o">=</span> <span class="n">check_for_split_characters</span><span class="p">(</span><span class="n">df_swisslipids</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in Lipid ID
+No rows found
+
+Checking split characters (|) in Level
+No rows found
+
+Checking split characters (|) in Name
+No rows found
+
+Checking split characters (|) in Abbreviation*
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 9768 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>56</th>
+      <td>SLM:000000262</td>
+      <td>Class</td>
+      <td>1,2-diacyl-sn-glycerol</td>
+      <td>1,2-sn-DAG | DAG | DG</td>
+      <td>Diacylglycerol</td>
+      <td>SLM:000000423</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OC[C@@H](COC([*])=O)OC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17815</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM59</td>
+      <td>10336610 | 10685032 | 10888667 | 10931938 | 11...</td>
+    </tr>
+    <tr>
+      <th>114</th>
+      <td>SLM:000000341</td>
+      <td>Class</td>
+      <td>1-acyl-sn-glycerol</td>
+      <td>MAG | MG</td>
+      <td>Monoacylglycerol</td>
+      <td>SLM:000117130</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OC[C@H](O)COC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>64683</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM2963</td>
+      <td>10685032 | 15939762 | 18037386 | 8663293 | 960...</td>
+    </tr>
+    <tr>
+      <th>122</th>
+      <td>SLM:000000355</td>
+      <td>Class</td>
+      <td>2-acylglycerol</td>
+      <td>MAG | MG</td>
+      <td>Monoacylglycerol</td>
+      <td>SLM:000000403</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OCC(CO)OC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17389</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM335</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>146</th>
+      <td>SLM:000000400</td>
+      <td>Class</td>
+      <td>Triacylglycerol</td>
+      <td>TAG | TG</td>
+      <td>NaN</td>
+      <td>SLM:000117141</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[*]C(=O)OCC(COC([*])=O)OC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17855</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM248</td>
+      <td>12682047 | 16135509 | 16150821 | 21704635 | 27...</td>
+    </tr>
+    <tr>
+      <th>147</th>
+      <td>SLM:000000401</td>
+      <td>Class</td>
+      <td>Diacylglycerol</td>
+      <td>DAG | DG</td>
+      <td>NaN</td>
+      <td>SLM:000117140</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[*]OCC(CO[*])O[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18035</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM59</td>
+      <td>12682047 | 16135509 | 16150821 | 27247428 | 29...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>505694</th>
+      <td>SLM:000508489</td>
+      <td>Molecular subspecies</td>
+      <td>Phosphatidylglycerol (O-17:1_0:0)</td>
+      <td>LPG(O-17:1_0:0) | PG(O-17:1_0:0)</td>
+      <td>Lysophosphatidylglycerol (O-17:1_0:0)</td>
+      <td>SLM:000508807</td>
+      <td>SLM:000508779</td>
+      <td>SLM:000001333 (sn1 or sn2 or sn3)</td>
+      <td>OCC(O)COP([O-])(=O)OCC(CO[*])O[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>489.316311</td>
+      <td>500.334681</td>
+      <td>481.293579</td>
+      <td>517.270257</td>
+      <td>541.314708</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM629334</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>505695</th>
+      <td>SLM:000508490</td>
+      <td>Molecular subspecies</td>
+      <td>Phosphatidylglycerol (O-15:1_0:0)</td>
+      <td>LPG(O-15:1_0:0) | PG(O-15:1_0:0)</td>
+      <td>Lysophosphatidylglycerol (O-15:1_0:0)</td>
+      <td>SLM:000508807</td>
+      <td>SLM:000508775</td>
+      <td>SLM:000001331 (sn1 or sn2 or sn3)</td>
+      <td>OCC(O)COP([O-])(=O)OCC(CO[*])O[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>461.285011</td>
+      <td>472.303381</td>
+      <td>453.262279</td>
+      <td>489.238957</td>
+      <td>513.283408</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM628940</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>505696</th>
+      <td>SLM:000508491</td>
+      <td>Molecular subspecies</td>
+      <td>Phosphatidylglycerol (O-13:1_0:0)</td>
+      <td>LPG(O-13:1_0:0) | PG(O-13:1_0:0)</td>
+      <td>Lysophosphatidylglycerol (O-13:1_0:0)</td>
+      <td>SLM:000508807</td>
+      <td>SLM:000508771</td>
+      <td>SLM:000001329 (sn1 or sn2 or sn3)</td>
+      <td>OCC(O)COP([O-])(=O)OCC(CO[*])O[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>433.253711</td>
+      <td>444.272081</td>
+      <td>425.230979</td>
+      <td>461.207657</td>
+      <td>485.252108</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM628548</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>595061</th>
+      <td>SLM:000597889</td>
+      <td>Isomeric subspecies</td>
+      <td>7-oxoresolvin D2</td>
+      <td>7-oxo-RvD2| 7-keto-RvD2</td>
+      <td>(16R,17S)-dihydroxy-7-oxo-(4Z,8E,10Z,12E,14E,1...</td>
+      <td>SLM:000508853 | SLM:000782222</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>C(C/C=C\CC(/C=C/C=C\C=C\C=C\[C@H]([C@H](C/C=C\...</td>
+      <td>InChI=1S/C22H30O5/c1-2-3-9-16-20(24)21(25)17-1...</td>
+      <td>...</td>
+      <td>381.224780</td>
+      <td>392.243150</td>
+      <td>373.202048</td>
+      <td>409.178725</td>
+      <td>433.223177</td>
+      <td>137497</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>22844113</td>
+    </tr>
+    <tr>
+      <th>595062</th>
+      <td>SLM:000597890</td>
+      <td>Isomeric subspecies</td>
+      <td>16-oxoresolvin D2</td>
+      <td>16-oxo-RvD2| 16-keto-RvD2</td>
+      <td>(7S,17S)-dihydroxy-16-oxo-(4Z,8E,10Z,12E,14E,1...</td>
+      <td>SLM:000508853 | SLM:000782222</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>C(C/C=C\C[C@@H](\C=C\C=C/C=C/C=C/C([C@H](C/C=C...</td>
+      <td>InChI=1S/C22H30O5/c1-2-3-9-16-20(24)21(25)17-1...</td>
+      <td>...</td>
+      <td>381.224780</td>
+      <td>392.243150</td>
+      <td>373.202048</td>
+      <td>409.178725</td>
+      <td>433.223177</td>
+      <td>137498</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>22844113</td>
+    </tr>
+  </tbody>
+</table>
+<p>9768 rows × 29 columns</p>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in Synonyms*
+Found 19853 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>11</th>
+      <td>SLM:000000101</td>
+      <td>Class</td>
+      <td>1,2-diacyl-sn-glycero-3-phospho-(1'-sn-glycero...</td>
+      <td>PA</td>
+      <td>1,2-diacyl-sn-glycero-3-phospho-(1'-sn-glycero...</td>
+      <td>SLM:000477285</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>O[C@@H](COP([O-])([O-])=O)COP([O-])(=O)OC[C@@H...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>60110</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM871</td>
+      <td>20485265 | 9880566</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>SLM:000000147</td>
+      <td>Isomeric subspecies</td>
+      <td>N-(9Z-octadecenoyl)-ethanolamine</td>
+      <td>NAE (18:1(9Z))</td>
+      <td>(9Z-octadecenoyl)-ethanolamide | N-(9Z-octadec...</td>
+      <td>SLM:000000378</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCC\C=C/CCCCCCCC(=O)NCCO</td>
+      <td>InChI=1S/C20H39NO2/c1-2-3-4-5-6-7-8-9-10-11-12...</td>
+      <td>...</td>
+      <td>332.313535</td>
+      <td>343.331905</td>
+      <td>324.290803</td>
+      <td>360.267481</td>
+      <td>384.311932</td>
+      <td>71466</td>
+      <td>NaN</td>
+      <td>HMDB02088</td>
+      <td>MNXM107386</td>
+      <td>14634025 | 16527816 | 17015445 | 17626977 | 17...</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>SLM:000000149</td>
+      <td>Isomeric subspecies</td>
+      <td>N-hexadecanoyl-ethanolamine</td>
+      <td>NAE (16:0)</td>
+      <td>hexadecanoyl-ethanolamide | N-hexadecanoyl eth...</td>
+      <td>SLM:000000378</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCCCCCCCCCC(=O)NCCO</td>
+      <td>InChI=1S/C18H37NO2/c1-2-3-4-5-6-7-8-9-10-11-12...</td>
+      <td>...</td>
+      <td>306.297885</td>
+      <td>317.316255</td>
+      <td>298.275153</td>
+      <td>334.251831</td>
+      <td>358.296282</td>
+      <td>71464</td>
+      <td>NaN</td>
+      <td>HMDB02100</td>
+      <td>MNXM107548</td>
+      <td>12824167 | 14634025 | 15655246 | 15760304 | 16...</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>SLM:000000178</td>
+      <td>Isomeric subspecies</td>
+      <td>N-(docosanoyl)-15-methylhexadecasphing-4-enine</td>
+      <td>Cer(iso-d17:1(4E)/22:0)</td>
+      <td>Ceramide (iso-d17:1(4E)/22:0) | N-docosanoyl-1...</td>
+      <td>SLM:000000002</td>
+      <td>SLM:000392021</td>
+      <td>SLM:000000827 (n-acyl)</td>
+      <td>CCCCCCCCCCCCCCCCCCCCCC(=O)N[C@@H](CO)[C@H](O)\...</td>
+      <td>InChI=1S/C39H77NO3/c1-4-5-6-7-8-9-10-11-12-13-...</td>
+      <td>...</td>
+      <td>614.605801</td>
+      <td>625.624171</td>
+      <td>606.583069</td>
+      <td>642.559747</td>
+      <td>666.604198</td>
+      <td>71377</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM107026</td>
+      <td>19372430</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>SLM:000000179</td>
+      <td>Isomeric subspecies</td>
+      <td>N-(heneicosanoyl)-15-methylhexadecasphing-4-enine</td>
+      <td>Cer(iso-d17:1(4E)/21:0)</td>
+      <td>Ceramide (iso-d17:1(4E)/21:0) | N-henicosanoyl...</td>
+      <td>SLM:000000002</td>
+      <td>SLM:000392020</td>
+      <td>SLM:000001207 (n-acyl)</td>
+      <td>CCCCCCCCCCCCCCCCCCCCC(=O)N[C@@H](CO)[C@H](O)\C...</td>
+      <td>InChI=1S/C38H75NO3/c1-4-5-6-7-8-9-10-11-12-13-...</td>
+      <td>...</td>
+      <td>600.590151</td>
+      <td>611.608521</td>
+      <td>592.567419</td>
+      <td>628.544097</td>
+      <td>652.588548</td>
+      <td>71375</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM107036</td>
+      <td>19372430</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>745092</th>
+      <td>SLM:000747954</td>
+      <td>Isomeric subspecies</td>
+      <td>CDP-1,2-di-(13-methyltetradecanoyl)-sn-glycerol</td>
+      <td>CDP-DAG (iso15:0/iso15:0)</td>
+      <td>1,2-di-(13-methyltetradecanoyl)-sn-glycero-3-c...</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000047 (sn1 or sn2)</td>
+      <td>[H]Nc1ccn([C@@H]2O[C@H](COP([O-])(=O)OP([O-])(...</td>
+      <td>InChI=1S/C42H77N3O15P2/c1-32(2)23-19-15-11-7-5...</td>
+      <td>...</td>
+      <td>932.498448</td>
+      <td>943.516818</td>
+      <td>924.475716</td>
+      <td>960.452394</td>
+      <td>984.496846</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116214</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745093</th>
+      <td>SLM:000747955</td>
+      <td>Isomeric subspecies</td>
+      <td>CDP-1-(13-methyltetradecanoyl)-2-(15-methylhex...</td>
+      <td>CDP-DAG (iso15:0/iso17:0)</td>
+      <td>1-(13-methyltetradecanoyl)-2-(15-methylhexadec...</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000047 (sn1) / SLM:000000048 (sn2)</td>
+      <td>[H]Nc1ccn([C@@H]2O[C@H](COP([O-])(=O)OP([O-])(...</td>
+      <td>InChI=1S/C44H81N3O15P2/c1-34(2)25-21-17-13-9-6...</td>
+      <td>...</td>
+      <td>960.529748</td>
+      <td>971.548118</td>
+      <td>952.507016</td>
+      <td>988.483694</td>
+      <td>1012.528146</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116216</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745175</th>
+      <td>SLM:000748037</td>
+      <td>Isomeric subspecies</td>
+      <td>CDP-1-(15-methylhexadecanoyl)-2-(11-methyldode...</td>
+      <td>CDP-DAG (iso17:0/iso13:0)</td>
+      <td>1-(15-methylhexadecanoyl)-2-(11-methyldodecano...</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1) / SLM:000001197 (sn2)</td>
+      <td>[H]Nc1ccn([C@@H]2O[C@H](COP([O-])(=O)OP([O-])(...</td>
+      <td>InChI=1S/C42H77N3O15P2/c1-32(2)23-19-15-11-8-6...</td>
+      <td>...</td>
+      <td>932.498448</td>
+      <td>943.516818</td>
+      <td>924.475716</td>
+      <td>960.452394</td>
+      <td>984.496846</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116248</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745176</th>
+      <td>SLM:000748038</td>
+      <td>Isomeric subspecies</td>
+      <td>CDP-1-(15-methylhexadecanoyl)-2-(13-methyltetr...</td>
+      <td>CDP-DAG (iso17:0/iso15:0)</td>
+      <td>1-(15-methylhexadecanoyl)-2-(13-methyltetradec...</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000047 (sn2) / SLM:000000048 (sn1)</td>
+      <td>[H]Nc1ccn([C@@H]2O[C@H](COP([O-])(=O)OP([O-])(...</td>
+      <td>InChI=1S/C44H81N3O15P2/c1-34(2)25-21-17-13-9-6...</td>
+      <td>...</td>
+      <td>960.529748</td>
+      <td>971.548118</td>
+      <td>952.507016</td>
+      <td>988.483694</td>
+      <td>1012.528146</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116250</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745177</th>
+      <td>SLM:000748039</td>
+      <td>Isomeric subspecies</td>
+      <td>CDP-1,2-di-(15-methylhexadecanoyl)-sn-glycerol</td>
+      <td>CDP-DAG (iso17:0/iso17:0)</td>
+      <td>1,2-di-(15-methylhexadecanoyl)-sn-glycero-3-cy...</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1 or sn2)</td>
+      <td>[H]Nc1ccn([C@@H]2O[C@H](COP([O-])(=O)OP([O-])(...</td>
+      <td>InChI=1S/C46H85N3O15P2/c1-36(2)27-23-19-15-11-...</td>
+      <td>...</td>
+      <td>988.561049</td>
+      <td>999.579419</td>
+      <td>980.538317</td>
+      <td>1016.514994</td>
+      <td>1040.559446</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116252</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>19853 rows × 29 columns</p>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in Lipid class*
+Found 119 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>142</th>
+      <td>SLM:000000392</td>
+      <td>Class</td>
+      <td>Ceramide phosphoinositol</td>
+      <td>IPC</td>
+      <td>Inositol-1-phosphoceramide</td>
+      <td>SLM:000000834 | SLM:000399815</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>O[C@H]([*])[C@H](COP([O-])(=O)O[C@H]1[C@H](O)[...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>64916</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>10888667 | 20727985</td>
+    </tr>
+    <tr>
+      <th>234</th>
+      <td>SLM:000000509</td>
+      <td>Isomeric subspecies</td>
+      <td>All-trans-retinyl hexadecanoate</td>
+      <td>NaN</td>
+      <td>all-trans-retinyl palmitate</td>
+      <td>SLM:000000982 | SLM:000508854</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCCCCCCCCCC(=O)OCC=C(C)C=CC=C(C)C=CC1=C(C...</td>
+      <td>InChI=1S/C36H60O2/c1-7-8-9-10-11-12-13-14-15-1...</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17616</td>
+      <td>NaN</td>
+      <td>HMDB03648</td>
+      <td>NaN</td>
+      <td>10769148 | 10819989 | 12230550 | 15550674 | 15...</td>
+    </tr>
+    <tr>
+      <th>315</th>
+      <td>SLM:000000612</td>
+      <td>NaN</td>
+      <td>tetracosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74146</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18541923 | 20110363 | 20937905</td>
+    </tr>
+    <tr>
+      <th>317</th>
+      <td>SLM:000000614</td>
+      <td>NaN</td>
+      <td>hexacosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74161</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18165233</td>
+    </tr>
+    <tr>
+      <th>319</th>
+      <td>SLM:000000621</td>
+      <td>NaN</td>
+      <td>2-hydroxy-tetracosenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390051 | SLM:000782334</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)(COP([O-])(=O)OP([O-])(=O)OC[C@H]1O[C@H](...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74215</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>18541923</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>755324</th>
+      <td>SLM:000758294</td>
+      <td>Class</td>
+      <td>Globoside</td>
+      <td>Globo</td>
+      <td>Globo-series</td>
+      <td>SLM:000000834 | SLM:000399813</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>61360</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>755325</th>
+      <td>SLM:000758295</td>
+      <td>Class</td>
+      <td>Isogloboside</td>
+      <td>Isoglobo</td>
+      <td>Isoglobo-series</td>
+      <td>SLM:000000834 | SLM:000399813</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>78257</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779141</th>
+      <td>SLM:000782221</td>
+      <td>NaN</td>
+      <td>Resolvin E</td>
+      <td>RvE</td>
+      <td>NaN</td>
+      <td>SLM:000501332 | SLM:000508853</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>LMFA0314</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779142</th>
+      <td>SLM:000782222</td>
+      <td>NaN</td>
+      <td>Resolvin D</td>
+      <td>RvD</td>
+      <td>NaN</td>
+      <td>SLM:000501331 | SLM:000508853</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>LMFA0403</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>779157</th>
+      <td>SLM:000782237</td>
+      <td>NaN</td>
+      <td>an N-(omega-(9Z,12Z-octadecadienoyloxy)-ultra-...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000413 | SLM:000782274</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[C@H]([C@@H](/C=C/CCCCCCCCCCCCC)O)(NC(=O)*COC(...</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>157662</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>119 rows × 29 columns</p>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in Parent
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in Components*
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in SMILES (pH7.3)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in InChI (pH7.3)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in InChI key (pH7.3)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in Formula (pH7.3)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in Charge (pH7.3)
+Not a string column
+
+Checking split characters (|) in Mass (pH7.3)
+Not a string column
+
+Checking split characters (|) in Exact Mass (neutral form)
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M.]+
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+H]+
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+K]+ 
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+Na]+
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+Li]+
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+NH4]+
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M-H]-
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+Cl]-
+Not a string column
+
+Checking split characters (|) in Exact m/z of [M+OAc]- 
+Not a string column
+
+Checking split characters (|) in CHEBI
+Found 3 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>465</th>
+      <td>SLM:000000784</td>
+      <td>Isomeric subspecies</td>
+      <td>1,2-di-(9Z-octadecenoyl)-sn-glycero-3-phosphate</td>
+      <td>PA(18:1(9Z)/18:1(9Z))</td>
+      <td>Phosphatidate (18:1(9Z)/18:1(9Z))</td>
+      <td>SLM:000000329</td>
+      <td>SLM:000082169</td>
+      <td>SLM:000000418 (sn1 or sn2)</td>
+      <td>CCCCCCCC\C=C/CCCCCCCC(=O)OC[C@H](COP([O-])([O-...</td>
+      <td>InChI=1S/C39H73O8P/c1-3-5-7-9-11-13-15-17-19-2...</td>
+      <td>...</td>
+      <td>707.519775</td>
+      <td>718.538147</td>
+      <td>699.497009</td>
+      <td>735.473694</td>
+      <td>759.518188</td>
+      <td>74546 | 82922</td>
+      <td>LMGP10010962</td>
+      <td>HMDB07865</td>
+      <td>MNXM51075</td>
+      <td>11309392 | 14634025 | 14665624 | 15164764 | 15...</td>
+    </tr>
+    <tr>
+      <th>387185</th>
+      <td>SLM:000389154</td>
+      <td>NaN</td>
+      <td>(14Z,17Z,20Z,23Z,26Z)-dotriacontapentaenoate</td>
+      <td>NaN</td>
+      <td>Fatty acid 32:5(14Z,17Z,20Z,23Z,26Z)</td>
+      <td>SLM:000389801</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCC\C=C/C\C=C/C\C=C/C\C=C/C\C=C/CCCCCCCCCCCC...</td>
+      <td>InChI=1S/C32H54O2/c1-2-3-4-5-6-7-8-9-10-11-12-...</td>
+      <td>...</td>
+      <td>477.427836</td>
+      <td>488.446207</td>
+      <td>469.405105</td>
+      <td>505.381782</td>
+      <td>529.426234</td>
+      <td>82731 | CHEBI:82731</td>
+      <td>LMFA01030848</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>595221</th>
+      <td>SLM:000598072</td>
+      <td>NaN</td>
+      <td>all-trans-retinol--[retinol-binding protein]</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000982</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[*][C@H](N-*)C(-*)=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17336 | 83228</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>20628054 | 28758396</td>
+    </tr>
+  </tbody>
+</table>
+<p>3 rows × 29 columns</p>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in LIPID MAPS
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in HMDB
+No rows found
+
+Checking split characters (|) in MetaNetX
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (|) in PMID
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 1318 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>SLM:000000002</td>
+      <td>Class</td>
+      <td>Ceramide (iso-d17:1(4E))</td>
+      <td>Cer(iso-d17:1(4E))</td>
+      <td>N-acyl-15-methylhexadecasphing-4-enine</td>
+      <td>SLM:000399814</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCC\C=C\[C@@H](O)[C@H](CO)NC([*])=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>70846</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97012</td>
+      <td>| 11443131 | 14685263 | 18390550 | 21325339 |...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>SLM:000000007</td>
+      <td>Class</td>
+      <td>Sphingomyelin (iso-d17:1(4E))</td>
+      <td>SM(iso-d17:1(4E))</td>
+      <td>N-acyl-15-methylhexadecasphing-4-enine-1-phosp...</td>
+      <td>SLM:000001000</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CC(C)CCCCCCCCC\C=C\[C@@H](O)[C@H](COP([O-])(=O...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>70775</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97113</td>
+      <td>14685263 | 21926990 | 9603947</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>SLM:000000035</td>
+      <td>Isomeric subspecies</td>
+      <td>sphinganine</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000390097</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>CCCCCCCCCCCCCCC[C@@H](O)[C@@H]([NH3+])CO</td>
+      <td>InChI=1S/C18H39NO2/c1-2-3-4-5-6-7-8-9-10-11-12...</td>
+      <td>...</td>
+      <td>308.313535</td>
+      <td>319.331905</td>
+      <td>300.290803</td>
+      <td>336.267481</td>
+      <td>360.311932</td>
+      <td>57817</td>
+      <td>LMSP01020001</td>
+      <td>HMDB00269</td>
+      <td>MNXM302</td>
+      <td>10652340 | 10702247 | 10751414 | 10802064 | 10...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>SLM:000000042</td>
+      <td>Isomeric subspecies</td>
+      <td>cholesta-5,7-dien-3beta-ol</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000501263</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[H][C@@]1(CC[C@@]2([H])C3=CC=C4C[C@@H](O)CC[C@...</td>
+      <td>InChI=1S/C27H44O/c1-18(2)7-6-8-19(3)23-11-12-2...</td>
+      <td>...</td>
+      <td>391.354671</td>
+      <td>402.373042</td>
+      <td>383.331940</td>
+      <td>419.308617</td>
+      <td>443.353069</td>
+      <td>17759</td>
+      <td>LMST01010069</td>
+      <td>HMDB00032</td>
+      <td>MNXM710</td>
+      <td>10329655 | 10344195 | 10786622 | 11230174 | 16...</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>SLM:000000043</td>
+      <td>Isomeric subspecies</td>
+      <td>lathosterone</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000501263</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[H][C@@]12CC=C3[C@]4([H])CC[C@]([H])([C@H](C)C...</td>
+      <td>InChI=1S/C27H44O/c1-18(2)7-6-8-19(3)23-11-12-2...</td>
+      <td>...</td>
+      <td>391.354671</td>
+      <td>402.373042</td>
+      <td>383.331940</td>
+      <td>419.308617</td>
+      <td>443.353069</td>
+      <td>71550</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM97065</td>
+      <td>19531354 | 22505847</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>595221</th>
+      <td>SLM:000598072</td>
+      <td>NaN</td>
+      <td>all-trans-retinol--[retinol-binding protein]</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000982</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>[*][C@H](N-*)C(-*)=O</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17336 | 83228</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>20628054 | 28758396</td>
+    </tr>
+    <tr>
+      <th>595222</th>
+      <td>SLM:000598073</td>
+      <td>NaN</td>
+      <td>all-trans-retinyl heptanoate</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000982</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>C1(C)(C)C(\C=C\C(=C\C=C\C(=C\COC(CCCCCC)=O)\C)...</td>
+      <td>InChI=1S/C27H42O2/c1-7-8-9-10-16-26(28)29-21-1...</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>138724</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>20628054 | 28758396</td>
+    </tr>
+    <tr>
+      <th>595223</th>
+      <td>SLM:000598074</td>
+      <td>NaN</td>
+      <td>2-heptanoyl-sn-glycero-3-phosphocholine</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000724</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>P(OC[C@@H](CO)OC(=O)CCCCCC)(=O)(OCC[N+](C)(C)C...</td>
+      <td>InChI=1S/C15H32NO7P/c1-5-6-7-8-9-15(18)23-14(1...</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>138266</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>20628054 | 22605381 | 28758396</td>
+    </tr>
+    <tr>
+      <th>595230</th>
+      <td>SLM:000598083</td>
+      <td>NaN</td>
+      <td>12-hydroxy-(9Z)-octadecenoyl-CoA</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000389958 | SLM:000390051</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>S(C(CCCCCCC/C=C\C[C@@H](CCCCCC)O)=O)CCNC(CCNC(...</td>
+      <td>InChI=1S/C39H68N7O18P3S/c1-4-5-6-13-16-27(47)1...</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>139559</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>17084870 | 27758859</td>
+    </tr>
+    <tr>
+      <th>595245</th>
+      <td>SLM:000598101</td>
+      <td>NaN</td>
+      <td>a mannosylinositol-1-phospho-N-(2-hydroxyacyl)...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000835</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OC[C@H]1OC(O[C@@H]2[C@@H](O)[C@H](O)[C@@H](O)[...</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>74994</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>12954640 | 9368028</td>
+    </tr>
+  </tbody>
+</table>
+<p>1318 rows × 29 columns</p>
+</div></div></div>
+</div>
+<p>Okay wow! So these are all the columns we have found with split characters…</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cols_with_split_chars</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;Abbreviation*&#39;, &#39;Synonyms*&#39;, &#39;Lipid class*&#39;, &#39;CHEBI&#39;, &#39;PMID&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can also check for different types of characters if we know that they will be present. For instance SL uses the <code class="docutils literal notranslate"><span class="pre">/</span></code> character for Components*, but this is also used by another of columns like the lipid names themselves or smiles and inchi.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">check_for_split_characters</span><span class="p">(</span><span class="n">df_swisslipids</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="s1">&#39;Abbreviation*&#39;</span><span class="p">,</span><span class="s1">&#39;Synonyms*&#39;</span><span class="p">,</span><span class="s1">&#39;SMILES (pH7.3)&#39;</span><span class="p">,</span><span class="s1">&#39;InChI (pH7.3)&#39;</span><span class="p">]),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (/) in Lipid ID
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (/) in Level
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (/) in Lipid class*
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (/) in Parent
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (/) in Components*
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 708725 rows with split characters
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>InChI key (pH7.3)</th>
+      <th>Formula (pH7.3)</th>
+      <th>Charge (pH7.3)</th>
+      <th>Mass (pH7.3)</th>
+      <th>Exact Mass (neutral form)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>164</th>
+      <td>SLM:000000422</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000329</td>
+      <td>SLM:000081844</td>
+      <td>SLM:000000418 (sn2) / SLM:000000510 (sn1)</td>
+      <td>InChIKey=OPVZUEPSMJNLOM-QEJMHMKOSA-L</td>
+      <td>C37H69O8P</td>
+      <td>-2.0</td>
+      <td>672.913818</td>
+      <td>674.488647</td>
+      <td>...</td>
+      <td>681.504089</td>
+      <td>692.522461</td>
+      <td>673.481384</td>
+      <td>709.458069</td>
+      <td>733.502502</td>
+      <td>64839</td>
+      <td>LMGP10010032</td>
+      <td>HMDB07859</td>
+      <td>MNXM66476</td>
+      <td>10359651 | 11788596 | 12963729 | 16620771 | 17...</td>
+    </tr>
+    <tr>
+      <th>229</th>
+      <td>SLM:000000498</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000324</td>
+      <td>SLM:000105249</td>
+      <td>SLM:000000296 (sn2) / SLM:000000826 (sn1)</td>
+      <td>InChIKey=KRTOMQDUKGRFDJ-ZAHDIIMDSA-M</td>
+      <td>C47H82O13P</td>
+      <td>-1.0</td>
+      <td>886.120483</td>
+      <td>886.557129</td>
+      <td>...</td>
+      <td>893.572571</td>
+      <td>904.590942</td>
+      <td>885.549866</td>
+      <td>921.526550</td>
+      <td>945.570984</td>
+      <td>133606</td>
+      <td>LMGP06010010</td>
+      <td>HMDB09815</td>
+      <td>MNXM75683</td>
+      <td>22942276 | 23097495 | 23472195 | 8300559</td>
+    </tr>
+    <tr>
+      <th>269</th>
+      <td>SLM:000000557</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000261</td>
+      <td>SLM:000088147</td>
+      <td>SLM:000000510 (sn1) / SLM:000000826 (sn2)</td>
+      <td>InChIKey=PZNPLUBHRSSFHT-RRHRGVEJSA-N</td>
+      <td>C42H84NO8P</td>
+      <td>0.0</td>
+      <td>762.091980</td>
+      <td>761.593445</td>
+      <td>...</td>
+      <td>768.608887</td>
+      <td>779.627258</td>
+      <td>NaN</td>
+      <td>796.562866</td>
+      <td>820.607300</td>
+      <td>73000</td>
+      <td>LMGP01010573</td>
+      <td>HMDB07970</td>
+      <td>MNXM69304</td>
+      <td>18195019 | 19416660 | 22923616 | 27399000</td>
+    </tr>
+    <tr>
+      <th>332</th>
+      <td>SLM:000000636</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000329</td>
+      <td>SLM:000082164</td>
+      <td>SLM:000000418 (sn1) / SLM:000000510 (sn2)</td>
+      <td>InChIKey=ZSXHMDPHNCOWSV-QEJMHMKOSA-L</td>
+      <td>C37H69O8P</td>
+      <td>-2.0</td>
+      <td>672.913818</td>
+      <td>674.488647</td>
+      <td>...</td>
+      <td>681.504089</td>
+      <td>692.522461</td>
+      <td>673.481384</td>
+      <td>709.458069</td>
+      <td>733.502502</td>
+      <td>74551</td>
+      <td>LMGP10010964</td>
+      <td>NaN</td>
+      <td>MNXM66662</td>
+      <td>16620771 | 18606822 | 19318427 | 19801371 | 20...</td>
+    </tr>
+    <tr>
+      <th>333</th>
+      <td>SLM:000000637</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000329</td>
+      <td>SLM:000082168</td>
+      <td>SLM:000000418 (sn1) / SLM:000000826 (sn2)</td>
+      <td>InChIKey=XIERONXOJKEALF-PXYGFXEISA-L</td>
+      <td>C39H73O8P</td>
+      <td>-2.0</td>
+      <td>700.966980</td>
+      <td>702.519958</td>
+      <td>...</td>
+      <td>709.535400</td>
+      <td>720.553772</td>
+      <td>701.512695</td>
+      <td>737.489380</td>
+      <td>761.533813</td>
+      <td>74552</td>
+      <td>LMGP10010963</td>
+      <td>NaN</td>
+      <td>MNXM66667</td>
+      <td>16620771 | 18606822 | 19318427 | 19801371 | 21...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>745172</th>
+      <td>SLM:000748034</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1) / SLM:000001195 (sn2)</td>
+      <td>InChIKey=LJSBNBPNSBKZCI-JNOBRDIFSA-L</td>
+      <td>C33H57N3O15P2</td>
+      <td>-2.0</td>
+      <td>NaN</td>
+      <td>799.342142</td>
+      <td>...</td>
+      <td>806.357598</td>
+      <td>817.375968</td>
+      <td>798.334866</td>
+      <td>834.311543</td>
+      <td>858.355995</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745173</th>
+      <td>SLM:000748035</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1) / SLM:000001196 (sn2)</td>
+      <td>InChIKey=ODNYDZLXLRZPCJ-GPTQCAHZSA-L</td>
+      <td>C35H61N3O15P2</td>
+      <td>-2.0</td>
+      <td>NaN</td>
+      <td>827.373442</td>
+      <td>...</td>
+      <td>834.388898</td>
+      <td>845.407268</td>
+      <td>826.366166</td>
+      <td>862.342844</td>
+      <td>886.387295</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745174</th>
+      <td>SLM:000748036</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1) / SLM:000000853 (sn2)</td>
+      <td>InChIKey=FJIBTCUXUBRYKG-QOTCTSOZSA-L</td>
+      <td>C37H65N3O15P2</td>
+      <td>-2.0</td>
+      <td>NaN</td>
+      <td>855.404743</td>
+      <td>...</td>
+      <td>862.420198</td>
+      <td>873.438568</td>
+      <td>854.397466</td>
+      <td>890.374144</td>
+      <td>914.418595</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745175</th>
+      <td>SLM:000748037</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000048 (sn1) / SLM:000001197 (sn2)</td>
+      <td>InChIKey=AIBKQADSQWEVSS-HUKRWTLJSA-L</td>
+      <td>C42H75N3O15P2</td>
+      <td>-2.0</td>
+      <td>NaN</td>
+      <td>925.482993</td>
+      <td>...</td>
+      <td>932.498448</td>
+      <td>943.516818</td>
+      <td>924.475716</td>
+      <td>960.452394</td>
+      <td>984.496846</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116248</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>745176</th>
+      <td>SLM:000748038</td>
+      <td>Isomeric subspecies</td>
+      <td>SLM:000000084</td>
+      <td>NaN</td>
+      <td>SLM:000000047 (sn2) / SLM:000000048 (sn1)</td>
+      <td>InChIKey=PIZFKSVTEGNINS-BQUKFSKHSA-L</td>
+      <td>C44H79N3O15P2</td>
+      <td>-2.0</td>
+      <td>NaN</td>
+      <td>953.514293</td>
+      <td>...</td>
+      <td>960.529748</td>
+      <td>971.548118</td>
+      <td>952.507016</td>
+      <td>988.483694</td>
+      <td>1012.528146</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>HMDB0116250</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>708725 rows × 24 columns</p>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (/) in InChI key (pH7.3)
+No rows found
+
+Checking split characters (/) in Formula (pH7.3)
+No rows found
+
+Checking split characters (/) in Charge (pH7.3)
+Not a string column
+
+Checking split characters (/) in Mass (pH7.3)
+Not a string column
+
+Checking split characters (/) in Exact Mass (neutral form)
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M.]+
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+H]+
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+K]+ 
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+Na]+
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+Li]+
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+NH4]+
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M-H]-
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+Cl]-
+Not a string column
+
+Checking split characters (/) in Exact m/z of [M+OAc]- 
+Not a string column
+
+Checking split characters (/) in CHEBI
+No rows found
+
+Checking split characters (/) in LIPID MAPS
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+
+Checking split characters (/) in HMDB
+No rows found
+
+Checking split characters (/) in MetaNetX
+No rows found
+
+Checking split characters (/) in PMID
+No rows found
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;Components*&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>These double entries for the classes will be important to take into account for our class hierarchy, because if we don’t many of these Class level entries will become disjointed in the ontology.</p>
+<p>To help us handle this connection we will split it into two using the <code class="docutils literal notranslate"><span class="pre">split_and_expand_large</span></code> utility function, but we will come back to this a bit later…</p>
+<p>For now we will also add another column for components, so that later we can have both the actual component with location (e.g. sn) and a parsed version where we just have the SL</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span><span class="p">[</span><span class="s1">&#39;Components_parsed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_swisslipids</span><span class="p">[</span><span class="s1">&#39;Components*&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we can melt to start creating the edges df</p>
+<section id="building-the-edges-df">
+<h3>Building the edges df<a class="headerlink" href="#building-the-edges-df" title="Link to this heading">¶</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># # Split the &#39;Lipid class*&#39; column into multiple rows</span>
+<span class="c1"># df_swisslipids_splitexp = split_and_expand_large(</span>
+<span class="c1">#     df_swisslipids, #.assign(from_layer_col=&#39;swisslipids&#39;)</span>
+<span class="c1">#     split_col=&#39;Lipid class*&#39;, </span>
+<span class="c1">#     expand_cols=[&#39;Lipid ID&#39;, &#39;Level&#39;, &#39;Name&#39;, &#39;Abbreviation*&#39;,</span>
+<span class="c1">#                     &#39;CHEBI&#39;, &#39;LIPID MAPS&#39;, &#39;HMDB&#39;, &#39;MetaNetX&#39;, &#39;PMID&#39;,&#39;Synonyms*&#39;,&#39;Parent&#39;,&#39;Components*&#39;,&#39;Components_parsed&#39;], #&#39;from_layer_col&#39;</span>
+<span class="c1">#     delimiter=&#39;|&#39;</span>
+<span class="c1"># )</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">df_swisslipids</span><span class="p">,</span>  <span class="c1">#df_swisslipids_splitexp</span>
+                <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Lipid ID&#39;</span><span class="p">],</span> 
+                <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CHEBI&#39;</span><span class="p">,</span><span class="s1">&#39;LIPID MAPS&#39;</span><span class="p">,</span><span class="s1">&#39;HMDB&#39;</span><span class="p">,</span><span class="s1">&#39;MetaNetX&#39;</span><span class="p">,</span><span class="s1">&#39;PMID&#39;</span><span class="p">,</span><span class="s1">&#39;Lipid class*&#39;</span><span class="p">,</span><span class="s1">&#39;Abbreviation*&#39;</span><span class="p">,</span><span class="s1">&#39;Synonyms*&#39;</span><span class="p">,</span><span class="s1">&#39;Parent&#39;</span><span class="p">,</span><span class="s1">&#39;Components*&#39;</span><span class="p">,</span><span class="s1">&#39;Components_parsed&#39;</span><span class="p">],</span> 
+                <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;melted_column&#39;</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>melted_column</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>SLM:000000002</td>
+      <td>CHEBI</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>SLM:000000003</td>
+      <td>CHEBI</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>SLM:000000006</td>
+      <td>CHEBI</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>SLM:000000007</td>
+      <td>CHEBI</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>SLM:000000035</td>
+      <td>CHEBI</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8571734</th>
+      <td>SLM:000782324</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571735</th>
+      <td>SLM:000782325</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571736</th>
+      <td>SLM:000782326</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571737</th>
+      <td>SLM:000782327</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571738</th>
+      <td>SLM:000782328</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>8571739 rows × 3 columns</p>
+</div></div></div>
+</div>
+<p>Because this melt operation also resulted in a large number of null values, which probably mean nothing to us in this case, we will drop instances where the value is null</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>melted_column</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>SLM:000000002</td>
+      <td>CHEBI</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>SLM:000000003</td>
+      <td>CHEBI</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>SLM:000000006</td>
+      <td>CHEBI</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>SLM:000000007</td>
+      <td>CHEBI</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>SLM:000000035</td>
+      <td>CHEBI</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8571494</th>
+      <td>SLM:000781997</td>
+      <td>Components_parsed</td>
+      <td>SLM:000000856 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571495</th>
+      <td>SLM:000781998</td>
+      <td>Components_parsed</td>
+      <td>SLM:000389154 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571496</th>
+      <td>SLM:000781999</td>
+      <td>Components_parsed</td>
+      <td>SLM:000485643 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571497</th>
+      <td>SLM:000782000</td>
+      <td>Components_parsed</td>
+      <td>SLM:000485644 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571498</th>
+      <td>SLM:000782001</td>
+      <td>Components_parsed</td>
+      <td>SLM:000485645 (n-acyl)</td>
+    </tr>
+  </tbody>
+</table>
+<p>4678499 rows × 3 columns</p>
+</div></div></div>
+</div>
+<p>There are still some things we need to tidy up so that it is in a suitable format for OnionNet</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;source_layer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
+<span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Lipid ID&#39;</span><span class="p">:</span><span class="s1">&#39;source_id&#39;</span><span class="p">,</span> <span class="s1">&#39;melted_column&#39;</span><span class="p">:</span><span class="s1">&#39;target_layer&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span><span class="s1">&#39;target_id&#39;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[[</span><span class="s1">&#39;source_layer&#39;</span><span class="p">,</span><span class="s1">&#39;source_id&#39;</span><span class="p">,</span><span class="s1">&#39;target_layer&#39;</span><span class="p">,</span><span class="s1">&#39;target_id&#39;</span><span class="p">]]</span>
+<span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;swisslipids&#39;</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="s1">&#39;Lipid class*&#39;</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;sl_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1">#df_swisslipids_edges[&#39;target_layer&#39;] = df_swisslipids_edges[&#39;target_layer&#39;].map(lambda x: )</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_chebi</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000003</td>
+      <td>sl_chebi</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000006</td>
+      <td>sl_chebi</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+      <td>sl_chebi</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000035</td>
+      <td>sl_chebi</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8571494</th>
+      <td>swisslipids</td>
+      <td>SLM:000781997</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000856 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571495</th>
+      <td>swisslipids</td>
+      <td>SLM:000781998</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000389154 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571496</th>
+      <td>swisslipids</td>
+      <td>SLM:000781999</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485643 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571497</th>
+      <td>swisslipids</td>
+      <td>SLM:000782000</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485644 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571498</th>
+      <td>swisslipids</td>
+      <td>SLM:000782001</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485645 (n-acyl)</td>
+    </tr>
+  </tbody>
+</table>
+<p>4678499 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>For rows where it is swisslipids to swisslipids, we actually want to correct this from target_layer to source_layer, because currently the target_layer in this case is actually the parent class, and ideally it would be better to have the parent point towards the children, so that way the root node should be the one with multiple outgoing edges and no incoming edges…</p>
+<p>Be sure to only run this once, otherwise it will switch back again…</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Identify rows where both source_layer and target_layer are &#39;swisslipids&#39;</span>
+<span class="n">condition</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s2">&quot;source_layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;swisslipids&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s2">&quot;target_layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;swisslipids&quot;</span><span class="p">)</span>
+
+<span class="c1"># Swap the columns for rows satisfying the condition</span>
+<span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">condition</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;source_layer&quot;</span><span class="p">,</span> <span class="s2">&quot;source_id&quot;</span><span class="p">,</span> <span class="s2">&quot;target_layer&quot;</span><span class="p">,</span> <span class="s2">&quot;target_id&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">condition</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;target_layer&quot;</span><span class="p">,</span> <span class="s2">&quot;target_id&quot;</span><span class="p">,</span> <span class="s2">&quot;source_layer&quot;</span><span class="p">,</span> <span class="s2">&quot;source_id&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Output the modified DataFrame</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_chebi</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000003</td>
+      <td>sl_chebi</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000006</td>
+      <td>sl_chebi</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+      <td>sl_chebi</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000035</td>
+      <td>sl_chebi</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8571494</th>
+      <td>swisslipids</td>
+      <td>SLM:000781997</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000856 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571495</th>
+      <td>swisslipids</td>
+      <td>SLM:000781998</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000389154 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571496</th>
+      <td>swisslipids</td>
+      <td>SLM:000781999</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485643 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571497</th>
+      <td>swisslipids</td>
+      <td>SLM:000782000</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485644 (n-acyl)</td>
+    </tr>
+    <tr>
+      <th>8571498</th>
+      <td>swisslipids</td>
+      <td>SLM:000782001</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000485645 (n-acyl)</td>
+    </tr>
+  </tbody>
+</table>
+<p>4678499 rows × 4 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>target_layer
+swisslipids             779247
+sl_abbreviation         776464
+sl_components           765323
+sl_components_parsed    765323
+sl_synonyms             548163
+sl_metanetx             505003
+sl_parent               493491
+sl_hmdb                  26026
+sl_lipidmaps             12117
+sl_chebi                  4276
+sl_pmid                   3066
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let’s return to two items on our todo list:</p>
+<ol class="arabic simple">
+<li><p>splitting values that have multi-identifiers</p></li>
+<li><p>trimming/parsing the components col</p></li>
+</ol>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+<span class="n">edges_with_multilinks</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>465</th>
+      <td>swisslipids</td>
+      <td>SLM:000000784</td>
+      <td>sl_chebi</td>
+      <td>74546 | 82922</td>
+    </tr>
+    <tr>
+      <th>387185</th>
+      <td>swisslipids</td>
+      <td>SLM:000389154</td>
+      <td>sl_chebi</td>
+      <td>82731 | CHEBI:82731</td>
+    </tr>
+    <tr>
+      <th>595221</th>
+      <td>swisslipids</td>
+      <td>SLM:000598072</td>
+      <td>sl_chebi</td>
+      <td>17336 | 83228</td>
+    </tr>
+    <tr>
+      <th>3116996</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_pmid</td>
+      <td>| 11443131 | 14685263 | 18390550 | 21325339 |...</td>
+    </tr>
+    <tr>
+      <th>3116999</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+      <td>sl_pmid</td>
+      <td>14685263 | 21926990 | 9603947</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>6199835</th>
+      <td>swisslipids</td>
+      <td>SLM:000747954</td>
+      <td>sl_synonyms</td>
+      <td>1,2-di-(13-methyltetradecanoyl)-sn-glycero-3-c...</td>
+    </tr>
+    <tr>
+      <th>6199836</th>
+      <td>swisslipids</td>
+      <td>SLM:000747955</td>
+      <td>sl_synonyms</td>
+      <td>1-(13-methyltetradecanoyl)-2-(15-methylhexadec...</td>
+    </tr>
+    <tr>
+      <th>6199918</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_synonyms</td>
+      <td>1-(15-methylhexadecanoyl)-2-(11-methyldodecano...</td>
+    </tr>
+    <tr>
+      <th>6199919</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_synonyms</td>
+      <td>1-(15-methylhexadecanoyl)-2-(13-methyltetradec...</td>
+    </tr>
+    <tr>
+      <th>6199920</th>
+      <td>swisslipids</td>
+      <td>SLM:000748039</td>
+      <td>sl_synonyms</td>
+      <td>1,2-di-(15-methylhexadecanoyl)-sn-glycero-3-cy...</td>
+    </tr>
+  </tbody>
+</table>
+<p>30942 rows × 4 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="s1">&#39;target_layer&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>target_layer
+sl_synonyms        19853
+sl_abbreviation     9768
+sl_pmid             1318
+sl_chebi               3
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks_split</span> <span class="o">=</span> <span class="n">split_and_expand_large</span><span class="p">(</span><span class="n">edges_with_multilinks</span><span class="p">,</span> 
+                       <span class="n">split_col</span><span class="o">=</span><span class="s1">&#39;target_id&#39;</span><span class="p">,</span> 
+                       <span class="n">expand_cols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;source_layer&#39;</span><span class="p">,</span><span class="s1">&#39;source_id&#39;</span><span class="p">,</span><span class="s1">&#39;target_layer&#39;</span><span class="p">],</span>
+                       <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+<span class="n">edges_with_multilinks_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000784</td>
+      <td>sl_chebi</td>
+      <td>74546</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000784</td>
+      <td>sl_chebi</td>
+      <td>82922</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000389154</td>
+      <td>sl_chebi</td>
+      <td>82731</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000389154</td>
+      <td>sl_chebi</td>
+      <td>CHEBI:82731</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000598072</td>
+      <td>sl_chebi</td>
+      <td>17336</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>68383</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:1(11Z))</td>
+    </tr>
+    <tr>
+      <th>68384</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_synonyms</td>
+      <td>1-(15-methylhexadecanoyl)-2-(13-methyltetradec...</td>
+    </tr>
+    <tr>
+      <th>68385</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:1(9Z))</td>
+    </tr>
+    <tr>
+      <th>68386</th>
+      <td>swisslipids</td>
+      <td>SLM:000748039</td>
+      <td>sl_synonyms</td>
+      <td>1,2-di-(15-methylhexadecanoyl)-sn-glycero-3-cy...</td>
+    </tr>
+    <tr>
+      <th>68387</th>
+      <td>swisslipids</td>
+      <td>SLM:000748039</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:2(9Z,12Z))</td>
+    </tr>
+  </tbody>
+</table>
+<p>68380 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>This is good, but we also need to remember the separators in the components column</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks2</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">&amp;</span>
+                     <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;sl_components&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+<span class="n">edges_with_multilinks2</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>7013405</th>
+      <td>swisslipids</td>
+      <td>SLM:000000422</td>
+      <td>sl_components</td>
+      <td>SLM:000000418 (sn2) / SLM:000000510 (sn1)</td>
+    </tr>
+    <tr>
+      <th>7013470</th>
+      <td>swisslipids</td>
+      <td>SLM:000000498</td>
+      <td>sl_components</td>
+      <td>SLM:000000296 (sn2) / SLM:000000826 (sn1)</td>
+    </tr>
+    <tr>
+      <th>7013510</th>
+      <td>swisslipids</td>
+      <td>SLM:000000557</td>
+      <td>sl_components</td>
+      <td>SLM:000000510 (sn1) / SLM:000000826 (sn2)</td>
+    </tr>
+    <tr>
+      <th>7013573</th>
+      <td>swisslipids</td>
+      <td>SLM:000000636</td>
+      <td>sl_components</td>
+      <td>SLM:000000418 (sn1) / SLM:000000510 (sn2)</td>
+    </tr>
+    <tr>
+      <th>7013574</th>
+      <td>swisslipids</td>
+      <td>SLM:000000637</td>
+      <td>sl_components</td>
+      <td>SLM:000000418 (sn1) / SLM:000000826 (sn2)</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8537662</th>
+      <td>swisslipids</td>
+      <td>SLM:000748034</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1) / SLM:000001195 (sn2)</td>
+    </tr>
+    <tr>
+      <th>8537663</th>
+      <td>swisslipids</td>
+      <td>SLM:000748035</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1) / SLM:000001196 (sn2)</td>
+    </tr>
+    <tr>
+      <th>8537664</th>
+      <td>swisslipids</td>
+      <td>SLM:000748036</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1) / SLM:000000853 (sn2)</td>
+    </tr>
+    <tr>
+      <th>8537665</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1) / SLM:000001197 (sn2)</td>
+    </tr>
+    <tr>
+      <th>8537666</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047 (sn2) / SLM:000000048 (sn1)</td>
+    </tr>
+  </tbody>
+</table>
+<p>1417450 rows × 4 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks2_split</span> <span class="o">=</span> <span class="n">split_and_expand_large</span><span class="p">(</span><span class="n">edges_with_multilinks2</span><span class="p">,</span> 
+                       <span class="n">split_col</span><span class="o">=</span><span class="s1">&#39;target_id&#39;</span><span class="p">,</span> 
+                       <span class="n">expand_cols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;source_layer&#39;</span><span class="p">,</span><span class="s1">&#39;source_id&#39;</span><span class="p">,</span><span class="s1">&#39;target_layer&#39;</span><span class="p">],</span>
+                       <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+<span class="n">edges_with_multilinks2_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000422</td>
+      <td>sl_components</td>
+      <td>SLM:000000418 (sn2)</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000422</td>
+      <td>sl_components</td>
+      <td>SLM:000000510 (sn1)</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000498</td>
+      <td>sl_components</td>
+      <td>SLM:000000296 (sn2)</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000498</td>
+      <td>sl_components</td>
+      <td>SLM:000000826 (sn1)</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000557</td>
+      <td>sl_components</td>
+      <td>SLM:000000510 (sn1)</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3592487</th>
+      <td>swisslipids</td>
+      <td>SLM:000748036</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000853 (sn2)</td>
+    </tr>
+    <tr>
+      <th>3592488</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1)</td>
+    </tr>
+    <tr>
+      <th>3592489</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000001197 (sn2)</td>
+    </tr>
+    <tr>
+      <th>3592490</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047 (sn2)</td>
+    </tr>
+    <tr>
+      <th>3592491</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048 (sn1)</td>
+    </tr>
+  </tbody>
+</table>
+<p>3592492 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>Now let’s also parse the brackets from the parsed components so that these can be linked directly to the other SLMs if needed</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply transformation only for rows where target_layer equals &#39;sl_components_parsed&#39;</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">edges_with_multilinks2_split</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;sl_components_parsed&#39;</span>
+<span class="n">edges_with_multilinks2_split</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;target_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges_with_multilinks2_split</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">edges_with_multilinks2_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000422</td>
+      <td>sl_components</td>
+      <td>SLM:000000418 (sn2)</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000422</td>
+      <td>sl_components</td>
+      <td>SLM:000000510 (sn1)</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000498</td>
+      <td>sl_components</td>
+      <td>SLM:000000296 (sn2)</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000498</td>
+      <td>sl_components</td>
+      <td>SLM:000000826 (sn1)</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000557</td>
+      <td>sl_components</td>
+      <td>SLM:000000510 (sn1)</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3592487</th>
+      <td>swisslipids</td>
+      <td>SLM:000748036</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000853</td>
+    </tr>
+    <tr>
+      <th>3592488</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+    <tr>
+      <th>3592489</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000001197</td>
+    </tr>
+    <tr>
+      <th>3592490</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047</td>
+    </tr>
+    <tr>
+      <th>3592491</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+  </tbody>
+</table>
+<p>3592492 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>Now we need a way to change these original rows where they had multilinks and add back the corrected ones.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Identify rows with multilinks (either &#39;|&#39; or &#39;/&#39; with the specific target_layer condition)</span>
+<span class="n">mask_pipe</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">mask_slash</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">&amp;</span>
+    <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;sl_components&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">mask_problem</span> <span class="o">=</span> <span class="n">mask_pipe</span> <span class="o">|</span> <span class="n">mask_slash</span>
+
+<span class="c1"># Remove these rows from the original df</span>
+<span class="n">df_clean</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="o">~</span><span class="n">mask_problem</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1"># Now, combine the cleaned df with the corrected edges dataframes.</span>
+<span class="c1"># These corrected dataframes are assumed to be: </span>
+<span class="c1">#   - edges_with_multilinks_split</span>
+<span class="c1">#   - edges_with_multilinks2_split</span>
+<span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_clean</span><span class="p">,</span> <span class="n">edges_with_multilinks_split</span><span class="p">,</span> <span class="n">edges_with_multilinks2_split</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># (Optional) Drop any duplicate rows that might arise</span>
+<span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+<span class="c1"># df_final now contains the original &quot;good&quot; rows plus the corrected edges.</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_chebi</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000003</td>
+      <td>sl_chebi</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000006</td>
+      <td>sl_chebi</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+      <td>sl_chebi</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000035</td>
+      <td>sl_chebi</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>6890974</th>
+      <td>swisslipids</td>
+      <td>SLM:000748036</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000853</td>
+    </tr>
+    <tr>
+      <th>6890975</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+    <tr>
+      <th>6890976</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000001197</td>
+    </tr>
+    <tr>
+      <th>6890977</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047</td>
+    </tr>
+    <tr>
+      <th>6890978</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+  </tbody>
+</table>
+<p>6890979 rows × 4 columns</p>
+</div></div></div>
+</div>
+<p>Now we will determine whether the edge is within the same layer (intralayer) or between different layers (interlayer)</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">assess_edge_layertype</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="n">interlayer</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;source_layer&#39;</span><span class="p">]</span><span class="o">!=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;target_layer&#39;</span><span class="p">]</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;interlayer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interlayer</span>
+    <span class="k">return</span> <span class="n">df</span> 
+
+<span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">assess_edge_layertype</span><span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">)</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+      <th>interlayer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_chebi</td>
+      <td>70846</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000003</td>
+      <td>sl_chebi</td>
+      <td>70771</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000006</td>
+      <td>sl_chebi</td>
+      <td>70829</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+      <td>sl_chebi</td>
+      <td>70775</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000035</td>
+      <td>sl_chebi</td>
+      <td>57817</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>6890974</th>
+      <td>swisslipids</td>
+      <td>SLM:000748036</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000853</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>6890975</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>6890976</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000001197</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>6890977</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>6890978</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+<p>6890979 rows × 5 columns</p>
+</div></div></div>
+</div>
+<p>Now we will build the node df</p>
+</section>
+<section id="building-the-node-df">
+<h3>Building the node df<a class="headerlink" href="#building-the-node-df" title="Link to this heading">¶</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">create_nodedf_from_edgedf</span><span class="p">(</span><span class="n">edge_df</span><span class="o">=</span><span class="n">df_swisslipids_edges</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">cols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;node_id&#39;</span><span class="p">])</span>
+<span class="n">df_swisslipids_nodes</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>layer</th>
+      <th>node_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000003</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000000006</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>swisslipids</td>
+      <td>SLM:000000007</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000000035</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>13781953</th>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000853</td>
+    </tr>
+    <tr>
+      <th>13781954</th>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+    <tr>
+      <th>13781955</th>
+      <td>sl_components_parsed</td>
+      <td>SLM:000001197</td>
+    </tr>
+    <tr>
+      <th>13781956</th>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000047</td>
+    </tr>
+    <tr>
+      <th>13781957</th>
+      <td>sl_components_parsed</td>
+      <td>SLM:000000048</td>
+    </tr>
+  </tbody>
+</table>
+<p>13781958 rows × 2 columns</p>
+</div></div></div>
+</div>
+<p>Let’s also see how many are duplicates</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer        node_id      
+swisslipids  SLM:000000353    132660
+             SLM:000000377     98800
+             SLM:000000102     80218
+             SLM:000117148     46826
+             SLM:000000400     38525
+                               ...  
+sl_metanetx  MNXM311776            1
+             MNXM311777            1
+             MNXM311778            1
+             MNXM311779            1
+swisslipids  SLM:000782332         1
+Name: count, Length: 2783345, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let’s merge the nodes with the information from earlier to create richer node attributes</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">,</span> <span class="n">df_swisslipids</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">from_layer_col</span><span class="o">=</span><span class="s1">&#39;swisslipids&#39;</span><span class="p">),</span>
+                                <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span><span class="s1">&#39;node_id&#39;</span><span class="p">],</span> <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;from_layer_col&#39;</span><span class="p">,</span><span class="s1">&#39;Lipid ID&#39;</span><span class="p">],</span>
+                                <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+<span class="n">df_swisslipids_nodes</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>layer</th>
+      <th>node_id</th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>...</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+      <th>Components_parsed</th>
+      <th>from_layer_col</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>sl_abbreviation</td>
+      <td>(5S)-HpHEPE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>sl_abbreviation</td>
+      <td>15-KETE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>sl_abbreviation</td>
+      <td>(10,11S,12R)-TriHETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>sl_abbreviation</td>
+      <td>(10R)-H-(11S,12S)-EpETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>sl_abbreviation</td>
+      <td>(10R)-H-(8S,9S)-EpETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>13781953</th>
+      <td>swisslipids</td>
+      <td>SLM:000782330</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781954</th>
+      <td>swisslipids</td>
+      <td>SLM:000782331</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781955</th>
+      <td>swisslipids</td>
+      <td>SLM:000782331</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781956</th>
+      <td>swisslipids</td>
+      <td>SLM:000782331</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781957</th>
+      <td>swisslipids</td>
+      <td>SLM:000782332</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>13781958 rows × 33 columns</p>
+</div></div></div>
+</div>
+<p>This has a lot of duplicates in it, so lets remove them, along with the from_layer_col which means nothing in this case and is just a relic of our join back with the initial df we used to create the edges (which could probably be tidied up)</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+<span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;from_layer_col&#39;</span><span class="p">)</span>
+<span class="n">df_swisslipids_nodes</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>layer</th>
+      <th>node_id</th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>...</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+      <th>Components_parsed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>sl_abbreviation</td>
+      <td>(5S)-HpHEPE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>sl_abbreviation</td>
+      <td>15-KETE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>sl_abbreviation</td>
+      <td>(10,11S,12R)-TriHETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>sl_abbreviation</td>
+      <td>(10R)-H-(11S,12S)-EpETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>sl_abbreviation</td>
+      <td>(10R)-H-(8S,9S)-EpETrE</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>13781947</th>
+      <td>swisslipids</td>
+      <td>SLM:000782328</td>
+      <td>SLM:000782328</td>
+      <td>NaN</td>
+      <td>oxidized 2-acylglycerol</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000355</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>167117</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781950</th>
+      <td>swisslipids</td>
+      <td>SLM:000782329</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781953</th>
+      <td>swisslipids</td>
+      <td>SLM:000782330</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781954</th>
+      <td>swisslipids</td>
+      <td>SLM:000782331</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13781957</th>
+      <td>swisslipids</td>
+      <td>SLM:000782332</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>2783345 rows × 32 columns</p>
+</div></div></div>
+</div>
+<p>Now we have the nodes and edges dfs for swisslipids and understand how we have arrived at them. In reality you don’t have to go through this process every time, LipiNet offers a convenient function to do just this if you are interested in this same network setup.</p>
+</section>
+</section>
+<section id="using-the-lipinet-parse-swisslipids-function">
+<h2>Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function<a class="headerlink" href="#using-the-lipinet-parse-swisslipids-function" title="Link to this heading">¶</a></h2>
+<p>The LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function automatically runs through all of the same steps as we have just covered.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>
+
+<span class="n">sl_results</span> <span class="o">=</span> <span class="n">parse_swisslipids_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">df_sl_nodes</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_nodes&#39;</span><span class="p">]</span>
+<span class="n">df_sl_edges</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_edges&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can also check to make sure these are equal here for an individual entry</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                        sl_abbreviation
+node_id                          (5S)-HpHEPE
+Lipid ID                                 NaN
+Level                                    NaN
+Name                                     NaN
+Abbreviation*                            NaN
+Synonyms*                                NaN
+Lipid class*                             NaN
+Parent                                   NaN
+Components*                              NaN
+SMILES (pH7.3)                           NaN
+InChI (pH7.3)                            NaN
+InChI key (pH7.3)                        NaN
+Formula (pH7.3)                          NaN
+Charge (pH7.3)                           NaN
+Mass (pH7.3)                             NaN
+Exact Mass (neutral form)                NaN
+Exact m/z of [M.]+                       NaN
+Exact m/z of [M+H]+                      NaN
+Exact m/z of [M+K]+                      NaN
+Exact m/z of [M+Na]+                     NaN
+Exact m/z of [M+Li]+                     NaN
+Exact m/z of [M+NH4]+                    NaN
+Exact m/z of [M-H]-                      NaN
+Exact m/z of [M+Cl]-                     NaN
+Exact m/z of [M+OAc]-                    NaN
+CHEBI                                    NaN
+LIPID MAPS                               NaN
+HMDB                                     NaN
+MetaNetX                                 NaN
+PMID                                     NaN
+Components_parsed                        NaN
+Name: 0, dtype: object
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_sl_nodes</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                        sl_abbreviation
+node_id                          (5S)-HpHEPE
+Lipid ID                                 NaN
+Level                                    NaN
+Name                                     NaN
+Abbreviation*                            NaN
+Synonyms*                                NaN
+Lipid class*                             NaN
+Parent                                   NaN
+Components*                              NaN
+SMILES (pH7.3)                           NaN
+InChI (pH7.3)                            NaN
+InChI key (pH7.3)                        NaN
+Formula (pH7.3)                          NaN
+Charge (pH7.3)                           NaN
+Mass (pH7.3)                             NaN
+Exact Mass (neutral form)                NaN
+Exact m/z of [M.]+                       NaN
+Exact m/z of [M+H]+                      NaN
+Exact m/z of [M+K]+                      NaN
+Exact m/z of [M+Na]+                     NaN
+Exact m/z of [M+Li]+                     NaN
+Exact m/z of [M+NH4]+                    NaN
+Exact m/z of [M-H]-                      NaN
+Exact m/z of [M+Cl]-                     NaN
+Exact m/z of [M+OAc]-                    NaN
+CHEBI                                    NaN
+LIPID MAPS                               NaN
+HMDB                                     NaN
+MetaNetX                                 NaN
+PMID                                     NaN
+Components_parsed                        NaN
+Name: 0, dtype: object
+</pre></div>
+</div>
+</div>
+</div>
+<p>For the first entry it looks good, what about for the entire df? We can use the <code class="docutils literal notranslate"><span class="pre">pd.testing.assert_frame_equal</span></code> function to do this.</p>
+<p>First we will use a null test to test equality between <code class="docutils literal notranslate"><span class="pre">df_swisslipids_nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">df_swisslipids_edges</span></code>, which should obviously be <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">,</span> <span class="n">df_swisslipids_edges</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DataFrames are equal&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DataFrame are different
+
+DataFrame shape mismatch
+[left]:  (2783345, 32)
+[right]: (6890979, 5)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let’s test between <code class="docutils literal notranslate"><span class="pre">df_swisslipids_nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">df_sl_nodes</span></code>, which should hopefully be <code class="docutils literal notranslate"><span class="pre">True</span></code> and not throw an error. We will also test the edges df while we’re at it too.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">,</span> <span class="n">df_sl_nodes</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DataFrames for nodes are equal&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DataFrames for nodes are equal
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">,</span> <span class="n">df_sl_edges</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DataFrames for edges are equal&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DataFrames for edges are equal
+</pre></div>
+</div>
+</div>
+</div>
+<p>Great! It looks like both approaches achieve the same df. We will use these dfs in other parts of the package.</p>
+<p>If they are different, we can inspect the exact rows here</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">diff</span> <span class="o">=</span> <span class="n">df_sl_edges</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">diff_rows_edges</span> <span class="o">=</span> <span class="n">diff</span><span class="p">[</span><span class="n">diff</span><span class="p">[</span><span class="s1">&#39;_merge&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;both&#39;</span><span class="p">]</span>
+<span class="n">diff_rows_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+      <th>interlayer</th>
+      <th>_merge</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">diff</span> <span class="o">=</span> <span class="n">df_sl_nodes</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">diff_rows_nodes</span> <span class="o">=</span> <span class="n">diff</span><span class="p">[</span><span class="n">diff</span><span class="p">[</span><span class="s1">&#39;_merge&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;both&#39;</span><span class="p">]</span>
+<span class="n">diff_rows_nodes</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>layer</th>
+      <th>node_id</th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>...</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+      <th>Components_parsed</th>
+      <th>_merge</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+<p>0 rows × 33 columns</p>
+</div></div></div>
+</div>
+<p>These should also be the same</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_sl_edges</span><span class="p">[</span><span class="n">df_sl_edges</span><span class="p">[</span><span class="s1">&#39;source_id&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;SLM:000389145&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+      <th>interlayer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1640</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>sl_chebi</td>
+      <td>18059</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>429400</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>sl_metanetx</td>
+      <td>MNXM12117</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>549344</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000000436</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>549407</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000000525</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>549887</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000001193</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>665828</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000117142</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>936914</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000390054</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1046948</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000500463</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1055230</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000508860</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1328368</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000782283</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;source_id&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;SLM:000389145&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+      <th>interlayer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1640</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>sl_chebi</td>
+      <td>18059</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>429400</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>sl_metanetx</td>
+      <td>MNXM12117</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>549344</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000000436</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>549407</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000000525</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>549887</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000001193</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>665828</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000117142</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>936914</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000390054</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1046948</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000500463</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1055230</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000508860</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1328368</th>
+      <td>swisslipids</td>
+      <td>SLM:000389145</td>
+      <td>swisslipids</td>
+      <td>SLM:000782283</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/.lipinet_logo_v1_0051.png" alt="Logo of LipiNet"/>
+            </a></p>
+<h1 class="logo"><a href="../index.html">LipiNet</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Main:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">LipiNet API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsing SwissLipids into a network for LipiNet</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-the-manual-way">Parsing the manual way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="explore_swisslipids.html">Exploring SwissLipids from a network perspective</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../lipinet.html" title="previous chapter">lipinet package</a></li>
+      <li>Next: <a href="explore_swisslipids.html" title="next chapter">Exploring SwissLipids from a network perspective</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Macabe Daley et al..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/notebooks/parsing_swisslipids.ipynb.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

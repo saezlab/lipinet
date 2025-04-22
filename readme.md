@@ -1,5 +1,9 @@
 # LipiNet <img src="./.assets/.lipinet_logo_v1_0051.png" alt="OnionNet Logo" width="140" align="right" />
 
+<!-- badges: start -->
+[![Documentation Status](https://readthedocs.org/projects/lipinet/badge/?version=stable)](https://lipinet.readthedocs.io/en/stable/)
+<!-- badges: end -->
+
 ## Context
 
 The lipidomics field faces unique challenges in standardizing its nomenclature and measurement precision, unlike genomics, transcriptomics, and proteomics, which have relatively consistent units of measurement (genes, transcripts, proteins). In lipidomics, measurement limitations frequently prevent analysts from identifying lipids at precise structural or isomeric subspecies levels. Consequently, lipid identification often relies on generalized representations, such as abstract class or species names aligned with established ontologies. This, along with variations in database standards, creates a particularly fragmented and complex landscape for prior knowledge in lipidomics.
