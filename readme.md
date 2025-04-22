@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/lipinet/badge/?version=stable)]
+(https://lipinet.readthedocs.io/en/stable/)
+
 # LipiNet <img src="./.assets/.lipinet_logo_v1_0051.png" alt="OnionNet Logo" width="140" align="right" />
 
 ## Context
