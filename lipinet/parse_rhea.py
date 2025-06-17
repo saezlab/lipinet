@@ -218,7 +218,7 @@ def parse_rhea_data(verbose=False):
     # Reaction nodes with full metadata
     df_nodes_reaction = df_rhea[[
         'Reaction identifier', 'Equation', 'ChEBI identifier', 'ChEBI name',
-        'Participant identifier', 'Enzyme class', 'EC number', 'Enzymes',
+        'EC number', 'Enzymes', #note: dropped 'Participant identifier' and 'Enzyme class' bc not part of REST API (seems to be post-processed on client side), not immediately useful, could add downstream
         'Gene Ontology', 'Cross-reference (Reactome)'
     ]].rename(columns={'Reaction identifier':'node_id','ChEBI name':'chebi_name'}) \
       .assign(layer='rhea_reactionid') \
