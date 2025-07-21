@@ -20,6 +20,8 @@ caption: Notebooks:
 
 notebooks/parsing_swisslipids.ipynb
 notebooks/explore_swisslipids.ipynb
+notebooks/parsing_rhea.ipynb
+notebooks/explore_rhea.ipynb
 ```
 
 ```md

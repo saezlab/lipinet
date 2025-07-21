@@ -20,6 +20,14 @@ lipinet.parse\_swisslipids module
    :show-inheritance:
    :undoc-members:
 
+lipinet.parse\_rhea module
+---------------------------------
+
+.. automodule:: lipinet.parse_rhea
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 lipinet.utils module
 --------------------
 
