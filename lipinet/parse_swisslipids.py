@@ -30,7 +30,7 @@ def parse_swisslipids_data(verbose=False):
         dict: A dictionary with keys 'df_nodes' and 'df_edges'.
     """
     # Load the SwissLipids data and add a layer column
-    df_swisslipids = get_prior_knowledge('swisslipids')
+    df_swisslipids = get_prior_knowledge('swisslipids', verbose=verbose)
     df_swisslipids['from_layer_col'] = 'swisslipids'
     
     # Add a parsed version of the Components column

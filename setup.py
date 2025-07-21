@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='lipinet',
-    version='1.0.0',
+    version='1.1.0',
     author='Macabe Daley',
     packages=find_packages(),
 )
