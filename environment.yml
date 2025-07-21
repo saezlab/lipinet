@@ -1,4 +1,4 @@
-name: onionnet_docs_env
+name: lipinet_docs_env
 channels:
   - conda-forge
 dependencies:
@@ -9,8 +9,18 @@ dependencies:
   - numpy
   - pandas
   - matplotlib
-  - sphinx>=4.0         # For building your documentation
-  - myst-nb             # Enables MyST Markdown & notebook support in Sphinx
+
+  # Sphinx + theme + core extensions
+  - sphinx>=4.0
+  - sphinx-book-theme       # the sphinx_book_theme package
+  - myst-nb                 # MyST + notebook support
+  - sphinx-copybutton
+  - sphinx-autodoc-typehints
+  - sphinx-tabs
+  - sphinx-design
+  - sphinxcontrib-bibtex
+  - sphinxext-opengraph
+  - ipython                 # for IPython.sphinxext.ipython_console_highlighting
 
   - pip:
       - -e .
