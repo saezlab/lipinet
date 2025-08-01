@@ -6,7 +6,7 @@ import io
 import json
 import re
 
-def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', verbose=False):
+def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', verbose=False, force_download=False):
     """
     Checks if the specified file exists locally. If not, downloads it from the provided URL.
     Supports loading compressed files and handling different formats.
@@ -19,6 +19,7 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
     - sep (str): Separator to use if loading CSV/TSV data. Defaults to ','.
     - encoding (str): Encoding to use for reading files. Defaults to 'utf-8'.
     - verbose (bool): If True, prints additional information during the process. Defaults to False.
+    - force_download (bool): If True, download even if the file exists locally. Defaults to False.
 
     Returns:
     - data (DataFrame, dict, or list): The loaded data from the file, in the format specified.
@@ -26,63 +27,61 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
     # Set the directory relative to the script's location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(script_dir, '.data/downloaded')
-    os.makedirs(data_dir, exist_ok=True)  # Ensure the directory exists
-
-    # Define the full path to the file
+    os.makedirs(data_dir, exist_ok=True)
     filepath = os.path.join(data_dir, filename)
 
-    # Check if the file already exists
-    if not os.path.exists(filepath):
+    need_download = force_download or not os.path.exists(filepath)
+
+    if need_download:
         if verbose:
-            print(f"File not found locally. Downloading from {url}...")
+            if force_download and os.path.exists(filepath):
+                print(f"Override requested; re-downloading {filename} from {url} even though it exists locally.")
+            else:
+                print(f"File not found locally. Downloading from {url}...")
         response = requests.get(url)
-        response.raise_for_status()  # Raises an error if the download fails
-        
-        # Handle gzip-compressed files
+        response.raise_for_status()
+
         if compressed:
+            # Decompress in-memory and load
             with gzip.open(io.BytesIO(response.content), 'rt', encoding=encoding) as f:
-                if file_format == 'csv' or file_format == 'tsv':
+                if file_format in ('csv', 'tsv'):
                     data = pd.read_csv(f, sep=sep, low_memory=False)
                 else:
-                    raise ValueError("Unsupported file format with gzip compression. Only 'csv' is supported.")
+                    raise ValueError("Unsupported file format with gzip compression. Only 'csv'/'tsv' are supported.")
+            # Always overwrite the decompressed file on disk
+            data.to_csv(filepath, sep=sep, index=False)
         else:
-            # Save uncompressed content to local file
+            # Save raw content
             with open(filepath, 'wb') as f:
                 f.write(response.content)
 
-            # Load uncompressed content
-            if file_format == 'csv' or file_format == 'tsv':
-                data = pd.read_csv(filepath, sep=sep, low_memory=False) #, encoding=encoding)
+            # Load it
+            if file_format in ('csv', 'tsv'):
+                data = pd.read_csv(filepath, sep=sep, low_memory=False)
             elif file_format == 'json':
                 with open(filepath, 'r', encoding=encoding) as f:
                     data = json.load(f)
             else:
-                raise ValueError("Unsupported file format. Only 'json', 'csv' and 'tsv' are supported.")
+                raise ValueError("Unsupported file format. Only 'json', 'csv', and 'tsv' are supported.")
 
         if verbose:
             print(f"Data downloaded and saved to {filepath}.")
     else:
         if verbose:
             print(f"File found locally at {filepath}. Loading data...")
-
-        # Load the file from local storage
-        if file_format == 'csv' or file_format == 'tsv':
-            data = pd.read_csv(filepath, sep=sep, low_memory=False) #, encoding=encoding)
+        if file_format in ('csv', 'tsv'):
+            data = pd.read_csv(filepath, sep=sep, low_memory=False)
         elif file_format == 'json':
             with open(filepath, 'r', encoding=encoding) as f:
                 data = json.load(f)
         else:
-            raise ValueError("Unsupported file format. Only 'json', 'csv' and 'tsv' are supported.")
-    
-    # Save decompressed data locally if it was downloaded as gzip
-    if compressed and not os.path.exists(filepath):
-        data.to_csv(filepath, sep=sep, index=False) #, encoding=encoding) # if the original csv/tsv was encoded, we won't worry about that when we save it
-    
+            raise ValueError("Unsupported file format. Only 'json', 'csv', and 'tsv' are supported.")
+
     return data
 
 
 
-def get_prior_knowledge(name_of_resource, verbose=False):
+def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
     #note these will be added to the data dir (.data/databases)
     resources = {
         'swisslipids':
@@ -97,10 +96,10 @@ def get_prior_knowledge(name_of_resource, verbose=False):
         local_filename = resources[name_of_resource]['filename']
         data_url = resources[name_of_resource]['data_url']
         if name_of_resource=='swisslipids':
-            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', compressed=True, sep='\t', encoding='latin-1', verbose=verbose)
+            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', compressed=True, sep='\t', encoding='latin-1', verbose=verbose, force_download=force_download)
             fetched_data = clean(fetched_data, name_of_resource=name_of_resource, verbose=verbose)
         else:
-            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t', verbose=verbose)
+            fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t', verbose=verbose, force_download=force_download)
         return fetched_data
     except KeyError as e:
         raise e(f"KeyError encountered, probably because the resource you requested is not yet supported.")

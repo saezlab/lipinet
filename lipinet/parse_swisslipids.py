@@ -20,7 +20,7 @@ from lipinet.databases import get_prior_knowledge
 from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf
 
 
-def parse_swisslipids_data(verbose=False):
+def parse_swisslipids_data(verbose=False, force_download=False):
     """Core function to process SwissLipids data and return nodes and edges dataframes.
 
     Parameters:
@@ -30,7 +30,7 @@ def parse_swisslipids_data(verbose=False):
         dict: A dictionary with keys 'df_nodes' and 'df_edges'.
     """
     # Load the SwissLipids data and add a layer column
-    df_swisslipids = get_prior_knowledge('swisslipids', verbose=verbose)
+    df_swisslipids = get_prior_knowledge('swisslipids', verbose=verbose, force_download=force_download)
     df_swisslipids['from_layer_col'] = 'swisslipids'
     
     # Add a parsed version of the Components column
@@ -166,13 +166,14 @@ def parse_swisslipids_data(verbose=False):
 def main():
     """Thin wrapper for command-line execution."""
     parser = argparse.ArgumentParser(description="Process SwissLipids data using lipinet")
-    parser.add_argument('--quiet', action='store_true', help='Run in quiet mode (minimal output)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Run in verbose mode (maximal output from print statements)')
+    parser.add_argument('-f', '--force-download', action='store_true', help='Force resource download, even if file present locally already (WARNING: overwrites local copy)')
     args = parser.parse_args()
     
-    # Set verbose flag based on the --quiet argument
-    verbose = not args.quiet
+    verbose = args.verbose
+    force_download = args.force_download
     
-    results = parse_swisslipids_data(verbose=verbose)
+    results = parse_swisslipids_data(verbose=verbose, force_download=force_download)
     if verbose:
         print("\nProcessing complete. The data has been parsed into nodes and edges.")
 
