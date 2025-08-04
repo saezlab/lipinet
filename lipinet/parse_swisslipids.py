@@ -17,7 +17,7 @@ import lipinet.databases  # Import the module
 importlib.reload(lipinet)
 
 from lipinet.databases import get_prior_knowledge
-from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf
+from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf, clean_missing_strings
 
 
 def parse_swisslipids_data(verbose=False, force_download=False):
@@ -31,6 +31,7 @@ def parse_swisslipids_data(verbose=False, force_download=False):
     """
     # Load the SwissLipids data and add a layer column
     df_swisslipids = get_prior_knowledge('swisslipids', verbose=verbose, force_download=force_download)
+    df_swisslipids = clean_missing_strings(df_swisslipids)
     df_swisslipids['from_layer_col'] = 'swisslipids'
     
     # Add a parsed version of the Components column
@@ -89,6 +90,10 @@ def parse_swisslipids_data(verbose=False, force_download=False):
         expand_cols=['source_layer', 'source_id', 'target_layer'],
         delimiter='|'
     ).drop_duplicates()
+
+    # Set 'nan' string values to be proper pandas NaN values
+    # Turn any empty or all-whitespace string cell into actual NA
+    edges_with_multilinks_split = clean_missing_strings(edges_with_multilinks_split)
     
     # Handle multilinks for components: edges with '/' in target_id and target_layer contains 'sl_components'
     edges_with_multilinks2 = df_swisslipids_edges[
@@ -101,6 +106,7 @@ def parse_swisslipids_data(verbose=False, force_download=False):
         expand_cols=['source_layer', 'source_id', 'target_layer'],
         delimiter='/'
     ).drop_duplicates()
+    edges_with_multilinks2_split = clean_missing_strings(edges_with_multilinks2_split)
     
     # For parsed components, remove any parenthesized info (e.g., '(sn2)')
     mask = edges_with_multilinks2_split['target_layer'] == 'sl_components_parsed'
@@ -120,6 +126,7 @@ def parse_swisslipids_data(verbose=False, force_download=False):
         edges_with_multilinks_split, 
         edges_with_multilinks2_split
     ], ignore_index=True)
+    df_swisslipids_edges = clean_missing_strings(df_swisslipids_edges)
     df_swisslipids_edges = df_swisslipids_edges.drop_duplicates()
     
     # Add an 'interlayer' column indicating whether the edge is between different layers
@@ -141,6 +148,9 @@ def parse_swisslipids_data(verbose=False, force_download=False):
         print(df_swisslipids_nodes.head(), "\n")
         print("Duplicate counts in node DataFrame:")
         print(df_swisslipids_nodes.value_counts(dropna=True), "\n")
+
+    # Pre-emptively dropping duplicates before the merge
+    df_swisslipids_nodes = df_swisslipids_nodes.drop_duplicates()
     
     # Merge node information with additional details from the original SwissLipids dataframe
     df_swisslipids_nodes = pd.merge(
@@ -155,6 +165,9 @@ def parse_swisslipids_data(verbose=False, force_download=False):
     df_swisslipids_nodes = df_swisslipids_nodes.drop_duplicates()
     if 'from_layer_col' in df_swisslipids_nodes.columns:
         df_swisslipids_nodes = df_swisslipids_nodes.drop(columns='from_layer_col')
+
+    # Remove the odd case of the node_id or layer being null - they serve us no purpose anyway
+    df_swisslipids_nodes = df_swisslipids_nodes.dropna(subset=['layer','node_id'])
     
     if verbose:
         print("Final node DataFrame (first 5 rows):")

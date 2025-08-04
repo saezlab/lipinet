@@ -6,6 +6,8 @@ import io
 import json
 import re
 
+from lipinet.utils import clean_missing_strings, clean_columns
+
 def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', verbose=False, force_download=False):
     """
     Checks if the specified file exists locally. If not, downloads it from the provided URL.
@@ -105,64 +107,41 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
         raise e(f"KeyError encountered, probably because the resource you requested is not yet supported.")
     
 
-def clean(df, name_of_resource, verbose=False):
+def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.DataFrame:
     """
-    Some of the data sources need specialised cleaning to make them nicer to work with.
-    """    
-    if name_of_resource=='swisslipids':
-        # Note the swisslipids 'Lipid class*' column has some strings ending with an empty space, which can really screw with the hierarchy...
+    Dispatch per-resource specialized cleaning.
+    Returns a cleaned copy; original df is not mutated.
+    """
+    df = df.copy()
+    if name_of_resource == 'swisslipids':
         if verbose:
-            print("Before cleaning, number of values in lipid class column with trailing space:", df["Lipid class*"].str.endswith(" ").value_counts())
-        #df['Lipid class*'] = df['Lipid class*'].str.strip(' ')
-        df = clean_columns(df, cols=['Lipid class*','CHEBI'], strip_chars=' ', verbose=verbose)
-        df['CHEBI'] = df['CHEBI'].replace('CHEBI:', '', regex=True)  # remove 'CHEBI:' prefix
-        df['CHEBI'] = df['CHEBI'].replace(' ', '', regex=True)
+            trailing_before = df["Lipid class*"].str.endswith(" ").value_counts(dropna=False)
+            print("Before cleaning, trailing-space counts in 'Lipid class*':", trailing_before.to_dict())
+
+        # General whitespace stripping and removal of 'CHEBI:' prefix from CHEBI
+        df = clean_columns(
+            df,
+            cols=['Lipid class*', 'CHEBI'],
+            strip_chars=' ',
+            trim_substrings=['CHEBI:'],  # removes CHEBI: from ends (mostly prefix), only the case for a very few rows with CHEBI present
+            collapse_whitespace=True,
+            verbose=verbose,
+            ignore_missing=False  # fail early if expected column missing
+        )
+
+        # Additional CHEBI-specific normalization: remove internal spaces if any (e.g., " 12345 ")
+        if 'CHEBI' in df.columns:
+            df.loc[:, 'CHEBI'] = df['CHEBI'].astype("string").str.replace(r'\s+', '', regex=True)
+            # A very small number of rows have random CHEBI ids in their middle (e.g. 82731|CHEBI:82731). We want to handle this.
+            df.loc[:, 'CHEBI'] = df['CHEBI'].astype("string").str.replace('CHEBI:', '')
 
         if verbose:
-            print("After cleaning, number of values in lipid class column with trailing space:", df["Lipid class*"].str.endswith(" ").value_counts())
+            trailing_after = df["Lipid class*"].str.endswith(" ").value_counts(dropna=False)
+            print("After cleaning, trailing-space counts in 'Lipid class*':", trailing_after.to_dict())
+
         return df
-    
 
-def clean_columns(
-    df: pd.DataFrame,
-    cols: list[str],
-    strip_chars: str | None = None,
-    trim_substrings: list[str] | None = None,
-    verbose: bool = False
-) -> pd.DataFrame:
-    """
-    For each col in `cols`:
-      1. .str.strip(strip_chars)  — if strip_chars is None defaults to whitespace
-      2. remove any of the `trim_substrings` at start or end
-    
-    Args:
-        df:              your DataFrame
-        cols:            list of column names to clean (if empty, all columns)
-        strip_chars:     string of characters to strip from ends (None → whitespace)
-        trim_substrings: list of literal substrings to drop if they appear at start or end
-        verbose:         print before/after samples
-    """
-    if len(cols) == 0:
-        cols = df.columns.tolist()
-
-    for col in cols:
-        if verbose:
-            print(f"\n>> Cleaning “{col}”:")
-            print("   sample before:", df[col].astype(str).head().tolist())
-        # ensure strings
-        s = df[col].astype(str)
-
-        # 1) strip characters (whitespace if strip_chars is None)
-        s = s.str.strip(strip_chars)
-
-        # 2) trim any of the given substrings from either end
-        if trim_substrings:
-            # build a regex like '^(?:sub1|sub2)+|(?:sub1|sub2)+$'
-            esc = [re.escape(x) for x in trim_substrings]
-            pat = rf'^(?:{"|".join(esc)})+|(?:{"|".join(esc)})+$'
-            s = s.str.replace(pat, "", regex=True)
-
-        df[col] = s
-        if verbose:
-            print("   sample after: ", df[col].head().tolist())
-    return df.copy()
+    # fallback: no resource-specific rules, return copy with optional notice
+    if verbose:
+        print(f"No specialized cleaning defined for resource '{name_of_resource}'; returning original dataframe copy.")
+    return df
