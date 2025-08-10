@@ -2,8 +2,13 @@ import numpy as np
 import pandas as pd
 from IPython.display import display
 import re
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 import pandas.api.types as ptypes
+from pathlib import Path
+
+CACHE_ROOT = Path(__file__).parent / ".data" / "processed"
+CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+
 
 def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
@@ -225,3 +230,31 @@ def clean_columns(
             print("   sample after: ", sample_after)
 
     return df
+
+
+def _cache_paths(source: str) -> Dict[str, Path]:
+    """Return paths for nodes & edges cache for a given source name."""
+    base = CACHE_ROOT / source
+    return {
+        "nodes": base.with_name(f"{source}_nodes.pkl"),
+        "edges": base.with_name(f"{source}_edges.pkl"),
+    }
+
+def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> None:
+    """Pickle out nodes & edges DataFrames for this source."""
+    paths = _cache_paths(source)
+    df_nodes.to_pickle(paths["nodes"])
+    df_edges.to_pickle(paths["edges"])
+
+def load_cache(source: str) -> Dict[str, pd.DataFrame]:
+    """Load pickled nodes & edges; KeyError if missing."""
+    paths = _cache_paths(source)
+    return {
+        "df_nodes": pd.read_pickle(paths["nodes"]),
+        "df_edges": pd.read_pickle(paths["edges"]),
+    }
+
+def cache_exists(source: str) -> bool:
+    """True if both cache files exist for this source."""
+    paths = _cache_paths(source)
+    return paths["nodes"].exists() and paths["edges"].exists()

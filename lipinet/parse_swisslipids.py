@@ -17,18 +17,26 @@ import lipinet.databases  # Import the module
 importlib.reload(lipinet)
 
 from lipinet.databases import get_prior_knowledge
-from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf, clean_missing_strings
+from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf, clean_missing_strings, save_cache, load_cache, cache_exists
 
 
-def parse_swisslipids_data(verbose=False, force_download=False):
+def parse_swisslipids_data(verbose=False, force_download=False, use_cache=False):
     """Core function to process SwissLipids data and return nodes and edges dataframes.
 
     Parameters:
         verbose (bool): If True, prints detailed output. Defaults to False.
+        force_download (bool): If True, re-fetch raw data, skipping any cache.
+        use_cache (bool): If True, load/save the parsed nodes & edges after first run.
 
     Returns:
         dict: A dictionary with keys 'df_nodes' and 'df_edges'.
     """
+    # Cache check
+    if use_cache and not force_download and cache_exists("swisslipids"):
+        if verbose:
+            print("↪ Loading SwissLipids cache")
+        return load_cache("swisslipids")
+
     # Load the SwissLipids data and add a layer column
     df_swisslipids = get_prior_knowledge('swisslipids', verbose=verbose, force_download=force_download)
     df_swisslipids = clean_missing_strings(df_swisslipids)
@@ -172,8 +180,16 @@ def parse_swisslipids_data(verbose=False, force_download=False):
     if verbose:
         print("Final node DataFrame (first 5 rows):")
         print(df_swisslipids_nodes.head())
+
+    result = {"df_nodes": df_swisslipids_nodes, "df_edges": df_swisslipids_edges}
+
+    # Write cache if requested
+    if use_cache:
+        if verbose:
+            print("↪ Caching SwissLipids nodes & edges")
+        save_cache("swisslipids", **result)
     
-    return {"df_nodes": df_swisslipids_nodes, "df_edges": df_swisslipids_edges}
+    return result
 
 
 def main():
