@@ -1,6 +1,14 @@
 import numpy as np
 import pandas as pd
 from IPython.display import display
+import re
+from typing import Iterable, Optional, Dict
+import pandas.api.types as ptypes
+from pathlib import Path
+
+CACHE_ROOT = Path(__file__).parent / ".data" / "processed"
+CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+
 
 def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
@@ -65,3 +73,188 @@ def check_for_split_characters(df, delimiter='|'):
         except AttributeError:
             print('Not a string column\n')
     return cols_with_split_chars
+
+
+def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold=0.9) -> pd.DataFrame:
+    """
+    Strip whitespace from stringy values and normalize common placeholder "missing" strings
+    into real pandas NA. Operates on specified columns or all object/string columns by default.
+    
+    Args:
+        df: input DataFrame (modified in-place).
+        cols: list of columns to process; if None, uses all object/string dtype columns.
+        string_fraction_threshold: for object dtype columns, if >= this fraction of non-null
+            values are str, coerce to StringDtype and vectorize the strip; otherwise do per-element.
+    """
+    if cols is None:
+        cols = df.select_dtypes(include=["object", "string"]).columns.tolist()
+    for c in cols:
+        if c not in df.columns:
+            continue  # or warn
+
+        series = df[c]
+        # Fully vectorized path for dedicated string dtype
+        if ptypes.is_string_dtype(series.dtype):
+            df[c] = series.str.strip()
+        elif ptypes.is_object_dtype(series.dtype):
+            nonnull = series.dropna()
+            if len(nonnull) == 0:
+                continue  # nothing to do
+            # Heuristic: are most values strings? If so, cast to StringDtype and vectorize.
+            is_str_mask = nonnull.map(lambda x: isinstance(x, str))
+            frac = is_str_mask.mean()
+            if frac >= string_fraction_threshold:
+                # Safe to coerce: convert entire column to StringDtype, strip vectorially
+                s = series.astype("string")
+                df[c] = s.str.strip()
+            else:
+                # Mixed types: only strip actual python str values
+                cleaned = series.copy()
+                mask = series.map(lambda x: isinstance(x, str))
+                cleaned.loc[mask] = cleaned.loc[mask].str.strip()
+                df[c] = cleaned
+        else:
+            # non-string column: leave alone
+            continue
+
+    # Global placeholder normalization (works across dtypes; only affects matching string representations)
+    df = df.replace({
+        r'^(?i:nan|none|null)$': pd.NA,
+        r'^\s*$': pd.NA
+    }, regex=True)
+    return df
+
+
+def clean_columns(
+    df: pd.DataFrame,
+    cols: Optional[Iterable[str]] = None,
+    strip_chars: Optional[str] = None,
+    trim_substrings: Optional[Iterable[str]] = None,
+    lowercase: bool = False,
+    uppercase: bool = False,
+    collapse_whitespace: bool = False,
+    unicode_normalize: bool = False,
+    verbose: bool = False,
+    ignore_missing: bool = True
+) -> pd.DataFrame:
+    """
+    Clean specified string columns in a dataframe.
+
+    Steps applied to each column:
+      * Preserve missing values.
+      * Optionally strip characters from both ends (defaults to whitespace).
+      * Optionally remove any of the given trim_substrings from start or end.
+      * Optionally lowercase.
+      * Optionally collapse internal multiple whitespace to single space.
+      * (Future) Optionally normalize unicode.
+
+    Args:
+        df: pandas DataFrame to clean (not modified in-place; a copy is returned).
+        cols: columns to clean; if None or empty, all columns are considered.
+        strip_chars: characters to strip from ends (None means default whitespace).
+        trim_substrings: substrings to strip from start/end (literal, case-sensitive).
+        lowercase: whether to lowercase the result.
+        uppercase: whether to uppercae the result.
+        collapse_whitespace: collapse internal runs of whitespace to a single space.
+        unicode_normalize: if True, apply Unicode normalization (NFC).
+        verbose: print before/after for samples.
+        ignore_missing: if False, raise if a listed column is missing; if True, skip it.
+
+    Returns:
+        A cleaned copy of the dataframe.
+    """
+    df = df.copy()
+    if not cols:
+        cols_to_process = list(df.columns)
+    else:
+        cols_to_process = list(cols)
+
+    # prepare trim substrings, filtering out empties
+    trim_list = []
+    if trim_substrings:
+        trim_list = [s for s in trim_substrings if s]
+        if trim_substrings and not trim_list:
+            # all were empty; ignore
+            trim_list = []
+
+    for col in cols_to_process:
+        if col not in df.columns:
+            if ignore_missing:
+                if verbose:
+                    print(f"Warning: column '{col}' not in dataframe; skipping.")
+                continue
+            else:
+                raise KeyError(f"Column '{col}' not found in dataframe.")
+
+        if verbose:
+            print(f"\n>> Cleaning column '{col}':")
+            sample_before = df[col].head(5).tolist()
+            print("   sample before:", sample_before)
+
+        # Work on a string-aware series to preserve missingness
+        s = df[col].astype("string")  # pandas StringDtype, so <NA> stays as <NA>
+
+        # Strip ends
+        if strip_chars is not None:
+            s = s.str.strip(strip_chars)
+        else:
+            s = s.str.strip()
+
+        # Trim specified substrings from ends
+        if trim_list:
+            escaped = [re.escape(x) for x in trim_list]
+            pattern = rf'^(?:{"|".join(escaped)})+|(?:{"|".join(escaped)})+$'
+            s = s.str.replace(pattern, "", regex=True)
+
+        # Lowercase or uppercase if requested
+        if lowercase:
+            s = s.str.lower()
+
+        if uppercase:
+            s = s.str.upper()
+
+        # Collapse internal whitespace
+        if collapse_whitespace:
+            s = s.str.replace(r'\s+', ' ', regex=True)
+
+        # (Optional) Unicode normalization
+        if unicode_normalize:
+            import unicodedata
+            # apply only to non-missing
+            s = s.apply(lambda x: unicodedata.normalize("NFC", x) if pd.notna(x) else x)
+
+        df.loc[:, col] = s  # avoid chained assignment warning
+
+        if verbose:
+            sample_after = df[col].head(5).tolist()
+            print("   sample after: ", sample_after)
+
+    return df
+
+
+def _cache_paths(source: str) -> Dict[str, Path]:
+    """Return paths for nodes & edges cache for a given source name."""
+    base = CACHE_ROOT / source
+    return {
+        "nodes": base.with_name(f"{source}_nodes.pkl"),
+        "edges": base.with_name(f"{source}_edges.pkl"),
+    }
+
+def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> None:
+    """Pickle out nodes & edges DataFrames for this source."""
+    paths = _cache_paths(source)
+    df_nodes.to_pickle(paths["nodes"])
+    df_edges.to_pickle(paths["edges"])
+
+def load_cache(source: str) -> Dict[str, pd.DataFrame]:
+    """Load pickled nodes & edges; KeyError if missing."""
+    paths = _cache_paths(source)
+    return {
+        "df_nodes": pd.read_pickle(paths["nodes"]),
+        "df_edges": pd.read_pickle(paths["edges"]),
+    }
+
+def cache_exists(source: str) -> bool:
+    """True if both cache files exist for this source."""
+    paths = _cache_paths(source)
+    return paths["nodes"].exists() and paths["edges"].exists()
