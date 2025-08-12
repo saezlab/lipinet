@@ -6,12 +6,17 @@ A standalone module that loads and processes Rhea data into node and edge DataFr
 for LipiNet. Provides a helper function `parse_rhea_data` and a CLI entrypoint.
 """
 import argparse
-import importlib
 import pandas as pd
-import lipinet.databases
-importlib.reload(lipinet)
 from lipinet.databases import get_prior_knowledge
-from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf, check_for_split_characters
+from lipinet.utils import (
+    split_and_expand_large,
+    create_nodedf_from_edgedf,
+    check_for_split_characters,
+    save_cache,
+    load_cache,
+    cache_exists,
+    clean_missing_strings,
+)
 
 def process_ec_numbers(df):
     """
@@ -159,20 +164,29 @@ def explode_columns(df, columns, delimiter=";"):
         df[col] = df[col].str.split(delimiter)
     return df.explode(columns)
 
-def parse_rhea_data(verbose=False):
+def parse_rhea_data(verbose: bool=False, use_cache: bool=False, force_download: bool=False):
     """
     Core function to load and process Rhea data.
 
     Parameters:
         verbose (bool): If True, prints detailed status.
+        use_cache (bool): If True, load/save processed nodes & edges.
+        force_download (bool): If True, refetch raw Rhea and rebuild (ignore cache).
 
     Returns:
         dict: {'df_edges': DataFrame, 'df_nodes': DataFrame}
     """
+    # ---- processed cache (nodes/edges) ----
+    if use_cache and not force_download and cache_exists("rhea"):
+        if verbose:
+            print("↪ Loading Rhea (processed) from cache")
+        return load_cache("rhea")
+
     # Load Rhea data (use get_prior_knowledge if available)
     try:
-        df_rhea = get_prior_knowledge('rhea', verbose=verbose)
+        df_rhea = get_prior_knowledge('rhea', verbose=verbose, force_download=force_download)
     except Exception:
+        # fallback to local TSV if your helper isn't available
         df_rhea = pd.read_csv('../.data/Rhea-.tsv', sep='\t')
     if verbose:
         print(f"Loaded Rhea data: {df_rhea.shape[0]} rows, {df_rhea.shape[1]} columns")
@@ -235,18 +249,29 @@ def parse_rhea_data(verbose=False):
   
     # Combine all node types into a single DataFrame
     df_nodes = pd.concat([df_nodes_reaction, df_nodes_chebi, df_nodes_ec], ignore_index=True, sort=False)
-    df_nodes = df_nodes.drop_duplicates()
+    df_nodes = clean_missing_strings(df_nodes).drop_duplicates()
     if verbose:
         print(f"Built nodes: {df_nodes.shape[0]} nodes, {df_nodes.shape[1]} columns")
 
-    return {'df_edges': df_edges, 'df_nodes': df_nodes}
+    result = {'df_edges': df_edges, 'df_nodes': df_nodes}
+
+    # ---- write processed cache ----
+    if use_cache:
+        if verbose:
+            print("↪ Caching Rhea (processed) nodes & edges")
+        save_cache("rhea", df_nodes=result["df_nodes"], df_edges=result["df_edges"])
+
+    return result
 
 def main():
     parser = argparse.ArgumentParser(description="Process Rhea data using LipiNet")
     parser.add_argument('--quiet', action='store_true', help='Suppress detailed output')
+    parser.add_argument('--use-cache', action='store_true', help='Load/save processed nodes & edges cache')
+    parser.add_argument('--force-download', action='store_true', help='Force fresh raw download and rebuild')
     args = parser.parse_args()
+    
     verbose = not args.quiet
-    results = parse_rhea_data(verbose=verbose)
+    results = parse_rhea_data(verbose=verbose, use_cache=args.use_cache, force_download=args.force_download)
     if verbose:
         print("Rhea processing complete. DataFrames are ready.")
 
