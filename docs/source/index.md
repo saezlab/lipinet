@@ -22,6 +22,8 @@ notebooks/parsing_swisslipids.ipynb
 notebooks/explore_swisslipids.ipynb
 notebooks/parsing_rhea.ipynb
 notebooks/explore_rhea.ipynb
+notebooks/build_lipinet.ipynb
+notebooks/explore_lipinet.ipynb
 ```
 
 ```md

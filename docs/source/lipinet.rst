@@ -4,6 +4,14 @@ lipinet package
 Submodules
 ----------
 
+lipinet.build\_lipinet module
+-----------------------------
+
+.. automodule:: lipinet.build_lipinet
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 lipinet.databases module
 ------------------------
 
