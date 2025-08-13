@@ -1,0 +1,14 @@
+/* Keep notebook output PNGs proportional */
+div.nboutput img,
+.rst-content .figure img,
+.rst-content img {
+  max-width: 100%;
+  height: auto !important;   /* override any fixed height from attrs/metadata */
+}
+
+/* If you use nbsphinx gallery tiles (square boxes), don't stretch */
+.nbsphinx-gallery img {
+  width: 100%;
+  height: auto !important;
+  object-fit: contain;        /* letterbox inside the square instead of squashing */
+}

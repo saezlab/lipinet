@@ -77,6 +77,7 @@ nb_execution_timeout = 90  # Set timeout to 90 seconds
 
 html_theme = "sphinx_book_theme"
 html_static_path = ['_static']
+html_css_files = ['image-fixes.css']
 
 html_logo = '_static/.lipinet_logo_v1_0051.png'
 html_favicon = '_static/.lipinet_logo_v1_0051.png'
