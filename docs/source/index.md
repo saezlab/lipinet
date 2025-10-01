@@ -16,14 +16,28 @@ modules
 ---
 maxdepth: 2
 caption: Notebooks:
+<!-- caption: Use LipiNet -->
+:hidden:
 ---
+index_nb_use
+```
 
-notebooks/parsing_swisslipids.ipynb
-notebooks/explore_swisslipids.ipynb
-notebooks/parsing_rhea.ipynb
-notebooks/explore_rhea.ipynb
-notebooks/build_lipinet.ipynb
-notebooks/explore_lipinet.ipynb
+```{toctree}
+---
+maxdepth: 2
+<!-- caption: Build LipiNet -->
+:hidden:
+---
+index_nb_build
+```
+
+```{toctree}
+---
+maxdepth: 1
+<!-- caption: Sources -->
+:hidden:
+---
+index_nb_sources
 ```
 
 ```md

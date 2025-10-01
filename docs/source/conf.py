@@ -16,6 +16,7 @@ release = '1.1.0'
 
 extensions = [
     "myst_nb",                      # MyST + notebook support
+    # "myst_parser",
     "sphinx.ext.autodoc",           # pull in docstrings
     "sphinx.ext.napoleon",          # NumPy/Google style
     "sphinx.ext.autosummary",       # generate API tables

@@ -1,4 +1,5 @@
-lipinet.egg-info/*
+lipinet.egg-info/
+build/
 /lipinet/.data/*
 !lipinet/.data/.gitkeep
 __pycache__
