@@ -1,41 +1,455 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Parse SwissLipids" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="notebooks/parsing_swisslipids.html" />
+<meta property="og:site_name" content="LipiNet" />
+<meta property="og:description" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_notebooks_parsing_swisslipids_adbe117e.png" />
+<meta property="og:image:alt" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
+<meta name="description" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>Parsing SwissLipids into a network for LipiNet &#8212; LipiNet 1.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
-    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <title>Parse SwissLipids &#8212; LipiNet 1.1.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/image-fixes.css?v=3180a0b0" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=051bfb12"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../_static/.lipinet_logo_v1_0051.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Exploring SwissLipids from a network perspective" href="explore_swisslipids.html" />
-    <link rel="prev" title="lipinet package" href="../lipinet.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="next" title="Parse Rhea" href="parsing_rhea.html" />
+    <link rel="prev" title="Build LipiNet" href="build_lipinet.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
   
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
   
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
-  </head><body>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
 
-          <div class="body" role="main">
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/.lipinet_logo_v1_0051.png" class="logo__image only-light" alt="LipiNet 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../_static/.lipinet_logo_v1_0051.png" class="logo__image only-dark" alt="LipiNet 1.1.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Main:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../modules.html">LipiNet API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lipinet.html">lipinet package</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../index_nb_use.html">Use LipiNet</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="explore_lipinet.html">Explore LipiNet</a></li>
+</ul>
+</details></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index_nb_build.html">Build LipiNet</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="build_lipinet.html">Build LipiNet</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Parse SwissLipids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing_rhea.html">Parse Rhea</a></li>
+</ul>
+</details></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../index_nb_sources.html">Sources</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="explore_swisslipids.html">Explore SwissLipids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explore_rhea.html">Explore Rhea</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/saezlab/lipinet/blob/master/docs/source/notebooks/parsing_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/saezlab/lipinet" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/saezlab/lipinet/edit/main/docs/source/notebooks/parsing_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/notebooks/parsing_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Parse SwissLipids</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
             
-  <section id="parsing-swisslipids-into-a-network-for-lipinet">
-<h1>Parsing SwissLipids into a network for LipiNet<a class="headerlink" href="#parsing-swisslipids-into-a-network-for-lipinet" title="Link to this heading">¶</a></h1>
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parsing-the-manual-way">Parsing the manual way</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-edges-df">Building the edges df</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-node-df">Building the node df</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="parse-swisslipids">
+<h1>Parse SwissLipids<a class="headerlink" href="#parse-swisslipids" title="Link to this heading">#</a></h1>
+<p>Parsing SwissLipids into a network for LipiNet</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.databases</span>  <span class="c1"># Import the module</span>
@@ -43,10 +457,11 @@
 
 <span class="c1"># Reload the module to ensure changes are picked up</span>
 <span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="p">)</span>
+<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span>
 
 <span class="c1"># Now can use the functions after reloading the module</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.databases</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_prior_knowledge</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_and_expand_large</span><span class="p">,</span> <span class="n">create_nodedf_from_edgedf</span><span class="p">,</span> <span class="n">check_for_split_characters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_and_expand_large</span><span class="p">,</span> <span class="n">create_nodedf_from_edgedf</span><span class="p">,</span> <span class="n">check_for_split_characters</span><span class="p">,</span> <span class="n">clean_missing_strings</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 </pre></div>
@@ -54,26 +469,27 @@
 </div>
 </div>
 <section id="parsing-the-manual-way">
-<h2>Parsing the manual way<a class="headerlink" href="#parsing-the-manual-way" title="Link to this heading">¶</a></h2>
+<h2>Parsing the manual way<a class="headerlink" href="#parsing-the-manual-way" title="Link to this heading">#</a></h2>
 <p>LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening behind the scenes, this notebook goes through the data and each of the steps. Which may also be particularly helpful to you if you need to customise the networks in a way that is not yet supported by LipiNet directly.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span> <span class="o">=</span> <span class="n">get_prior_knowledge</span><span class="p">(</span><span class="s1">&#39;swisslipids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span> <span class="o">=</span> <span class="n">get_prior_knowledge</span><span class="p">(</span><span class="s1">&#39;swisslipids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1">#Previously set to True</span>
 <span class="n">df_swisslipids</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>File found locally at /Users/agjanyunlu/Documents/Metabolomics/lipinet/lipinet/.data/downloaded/swisslipids_lipids.tsv. Loading data...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Before cleaning, number of values in lipid class column with trailing space: Lipid class*
-False    779171
-True         76
-Name: count, dtype: int64
-After cleaning, number of values in lipid class column with trailing space: Lipid class*
-False    779247
-Name: count, dtype: int64
+Before cleaning, trailing-space counts in &#39;Lipid class*&#39;: {False: 779171, True: 76, nan: 2}
+
+&gt;&gt; Cleaning column &#39;Lipid class*&#39;:
+   sample before: [&#39;SLM:000399814&#39;, &#39;SLM:000390097&#39;, &#39;SLM:000390097&#39;, &#39;SLM:000001000&#39;, &#39;SLM:000390097&#39;]
+   sample after:  [&#39;SLM:000399814&#39;, &#39;SLM:000390097&#39;, &#39;SLM:000390097&#39;, &#39;SLM:000001000&#39;, &#39;SLM:000390097&#39;]
+
+&gt;&gt; Cleaning column &#39;CHEBI&#39;:
+   sample before: [&#39;70846&#39;, &#39;70771&#39;, &#39;70829&#39;, &#39;70775&#39;, &#39;57817&#39;]
+   sample after:  [&#39;70846&#39;, &#39;70771&#39;, &#39;70829&#39;, &#39;70775&#39;, &#39;57817&#39;]
+After cleaning, trailing-space counts in &#39;Lipid class*&#39;: {False: 779247, &lt;NA&gt;: 2}
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -387,6 +803,128 @@ Name: count, dtype: int64
 <p>779249 rows × 29 columns</p>
 </div></div></div>
 </div>
+<p>To be safe, we will start by removing leading and trailing whitespace from all object and string columns</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span><span class="p">[</span><span class="n">df_swisslipids</span><span class="p">[</span><span class="s1">&#39;Abbreviation*&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>SMILES (pH7.3)</th>
+      <th>InChI (pH7.3)</th>
+      <th>...</th>
+      <th>Exact m/z of [M+Li]+</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>116651</th>
+      <td>SLM:000117132</td>
+      <td>Class</td>
+      <td>1(3)-O-(alk-1-enyl)-glycerol</td>
+      <td>MG(P-) | MAG(P-)</td>
+      <td>Monoacylglycerol (P-)</td>
+      <td>SLM:000117137</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OCC(O)COC=C[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>77998</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM149874</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>116663</th>
+      <td>SLM:000117144</td>
+      <td>Class</td>
+      <td>1-O-(alk-1Z-enyl)-sn-glycerol</td>
+      <td>MG(P-) | MAG(P-)</td>
+      <td>Monoacylglycerol (P-)</td>
+      <td>SLM:000117132</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>OC[C@H](O)COC=C/[*]</td>
+      <td>InChI=none</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>77297</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>MNXM413498</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>2 rows × 29 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span> <span class="o">=</span> <span class="n">clean_missing_strings</span><span class="p">(</span><span class="n">df_swisslipids</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span><span class="p">[</span><span class="n">df_swisslipids</span><span class="p">[</span><span class="s1">&#39;Abbreviation*&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(0, 29)
+</pre></div>
+</div>
+</div>
+</div>
 <p>If we take a closer look into the data, especially the <code class="docutils literal notranslate"><span class="pre">Lipid</span> <span class="pre">class*</span></code> column, we will see that some of the values have multiple entries. For example Ceramide phosphoinositol is a Class level entry that itself belongs to both the SLM:000000834 and SLM:000399815 classes.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -647,7 +1185,7 @@ Name: count, dtype: int64
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>LMFA0314</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -671,7 +1209,7 @@ Name: count, dtype: int64
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>LMFA0403</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -724,9 +1262,7 @@ Checking split characters (|) in Name
 No rows found
 
 Checking split characters (|) in Abbreviation*
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 9768 rows with split characters
+Found 9768 rows with split characters
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -933,7 +1469,7 @@ Checking split characters (|) in Abbreviation*
       <td>481.293579</td>
       <td>517.270257</td>
       <td>541.314708</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>MNXM629334</td>
@@ -957,7 +1493,7 @@ Checking split characters (|) in Abbreviation*
       <td>453.262279</td>
       <td>489.238957</td>
       <td>513.283408</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>MNXM628940</td>
@@ -981,7 +1517,7 @@ Checking split characters (|) in Abbreviation*
       <td>425.230979</td>
       <td>461.207657</td>
       <td>485.252108</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>MNXM628548</td>
@@ -1246,7 +1782,7 @@ Found 19853 rows with split characters
       <td>924.475716</td>
       <td>960.452394</td>
       <td>984.496846</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116214</td>
       <td>NaN</td>
@@ -1270,7 +1806,7 @@ Found 19853 rows with split characters
       <td>952.507016</td>
       <td>988.483694</td>
       <td>1012.528146</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116216</td>
       <td>NaN</td>
@@ -1294,7 +1830,7 @@ Found 19853 rows with split characters
       <td>924.475716</td>
       <td>960.452394</td>
       <td>984.496846</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116248</td>
       <td>NaN</td>
@@ -1318,7 +1854,7 @@ Found 19853 rows with split characters
       <td>952.507016</td>
       <td>988.483694</td>
       <td>1012.528146</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116250</td>
       <td>NaN</td>
@@ -1342,7 +1878,7 @@ Found 19853 rows with split characters
       <td>980.538317</td>
       <td>1016.514994</td>
       <td>1040.559446</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116252</td>
       <td>NaN</td>
@@ -1607,7 +2143,7 @@ Found 119 rows with split characters
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>LMFA0314</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -1631,7 +2167,7 @@ Found 119 rows with split characters
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>LMFA0403</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -1665,34 +2201,22 @@ Found 119 rows with split characters
 </table>
 <p>119 rows × 29 columns</p>
 </div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in Parent
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in Components*
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in SMILES (pH7.3)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in InChI (pH7.3)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in InChI key (pH7.3)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in Formula (pH7.3)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in Charge (pH7.3)
 Not a string column
@@ -1794,7 +2318,7 @@ Found 3 rows with split characters
       <td>699.497009</td>
       <td>735.473694</td>
       <td>759.518188</td>
-      <td>74546 | 82922</td>
+      <td>74546|82922</td>
       <td>LMGP10010962</td>
       <td>HMDB07865</td>
       <td>MNXM51075</td>
@@ -1818,7 +2342,7 @@ Found 3 rows with split characters
       <td>469.405105</td>
       <td>505.381782</td>
       <td>529.426234</td>
-      <td>82731 | CHEBI:82731</td>
+      <td>82731|82731</td>
       <td>LMFA01030848</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -1842,7 +2366,7 @@ Found 3 rows with split characters
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>17336 | 83228</td>
+      <td>17336|83228</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -1852,22 +2376,16 @@ Found 3 rows with split characters
 </table>
 <p>3 rows × 29 columns</p>
 </div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (|) in LIPID MAPS
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in HMDB
 No rows found
 
 Checking split characters (|) in MetaNetX
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (|) in PMID
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 1318 rows with split characters
+Found 1318 rows with split characters
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -1934,7 +2452,7 @@ Checking split characters (|) in PMID
       <td>NaN</td>
       <td>NaN</td>
       <td>MNXM97012</td>
-      <td>| 11443131 | 14685263 | 18390550 | 21325339 |...</td>
+      <td>| 11443131 | 14685263 | 18390550 | 21325339 | ...</td>
     </tr>
     <tr>
       <th>3</th>
@@ -2074,7 +2592,7 @@ Checking split characters (|) in PMID
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>17336 | 83228</td>
+      <td>17336|83228</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -2203,29 +2721,19 @@ Checking split characters (|) in PMID
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking split characters (/) in Lipid ID
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (/) in Level
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (/) in Lipid class*
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (/) in Parent
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (/) in Components*
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 708725 rows with split characters
+Found 708725 rows with split characters
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -2432,7 +2940,7 @@ Checking split characters (/) in Components*
       <td>798.334866</td>
       <td>834.311543</td>
       <td>858.355995</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -2456,7 +2964,7 @@ Checking split characters (/) in Components*
       <td>826.366166</td>
       <td>862.342844</td>
       <td>886.387295</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -2480,7 +2988,7 @@ Checking split characters (/) in Components*
       <td>854.397466</td>
       <td>890.374144</td>
       <td>914.418595</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -2504,7 +3012,7 @@ Checking split characters (/) in Components*
       <td>924.475716</td>
       <td>960.452394</td>
       <td>984.496846</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116248</td>
       <td>NaN</td>
@@ -2528,7 +3036,7 @@ Checking split characters (/) in Components*
       <td>952.507016</td>
       <td>988.483694</td>
       <td>1012.528146</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>HMDB0116250</td>
       <td>NaN</td>
@@ -2583,9 +3091,7 @@ Checking split characters (/) in CHEBI
 No rows found
 
 Checking split characters (/) in LIPID MAPS
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No rows found
+No rows found
 
 Checking split characters (/) in HMDB
 No rows found
@@ -2614,7 +3120,7 @@ No rows found
 </div>
 <p>Now we can melt to start creating the edges df</p>
 <section id="building-the-edges-df">
-<h3>Building the edges df<a class="headerlink" href="#building-the-edges-df" title="Link to this heading">¶</a></h3>
+<h3>Building the edges df<a class="headerlink" href="#building-the-edges-df" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># # Split the &#39;Lipid class*&#39; column into multiple rows</span>
@@ -2635,6 +3141,134 @@ No rows found
                 <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Lipid ID&#39;</span><span class="p">],</span> 
                 <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CHEBI&#39;</span><span class="p">,</span><span class="s1">&#39;LIPID MAPS&#39;</span><span class="p">,</span><span class="s1">&#39;HMDB&#39;</span><span class="p">,</span><span class="s1">&#39;MetaNetX&#39;</span><span class="p">,</span><span class="s1">&#39;PMID&#39;</span><span class="p">,</span><span class="s1">&#39;Lipid class*&#39;</span><span class="p">,</span><span class="s1">&#39;Abbreviation*&#39;</span><span class="p">,</span><span class="s1">&#39;Synonyms*&#39;</span><span class="p">,</span><span class="s1">&#39;Parent&#39;</span><span class="p">,</span><span class="s1">&#39;Components*&#39;</span><span class="p">,</span><span class="s1">&#39;Components_parsed&#39;</span><span class="p">],</span> 
                 <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;melted_column&#39;</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+<span class="n">df_swisslipids_edges</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Lipid ID</th>
+      <th>melted_column</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>SLM:000000002</td>
+      <td>CHEBI</td>
+      <td>70846</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>SLM:000000003</td>
+      <td>CHEBI</td>
+      <td>70771</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>SLM:000000006</td>
+      <td>CHEBI</td>
+      <td>70829</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>SLM:000000007</td>
+      <td>CHEBI</td>
+      <td>70775</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>SLM:000000035</td>
+      <td>CHEBI</td>
+      <td>57817</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8571734</th>
+      <td>SLM:000782324</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571735</th>
+      <td>SLM:000782325</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571736</th>
+      <td>SLM:000782326</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571737</th>
+      <td>SLM:000782327</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8571738</th>
+      <td>SLM:000782328</td>
+      <td>Components_parsed</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>8571739 rows × 3 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>value
+SLM:000000353                                                 132652
+SLM:000000377                                                  98788
+SLM:000000102                                                  80209
+SLM:000117148                                                  46820
+SLM:000000400                                                  38514
+                                                               ...  
+TG(30:0/26:0/22:0)                                                 1
+TG(30:0/24:0/24:0)                                                 1
+TG(30:0/22:0/26:0)                                                 1
+TG(30:0/20:0/28:0)                                                 1
+NAPE (15:0-13me/34:5(16Z,19Z,22Z,25Z,28Z)/18:3(6Z,9Z,12Z))         1
+Name: count, Length: 2342278, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<p>Especially because we have so many nan values we should handle these by marking them explicitly as null values, not ‘nan’ strings</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">replace</span><span class="p">([</span><span class="s1">&#39;nan&#39;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">NA</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c1"># added here to drop &#39;nan&#39; strings, could also use .dropna(). directly instead of next step</span>
 <span class="n">df_swisslipids_edges</span>
 </pre></div>
 </div>
@@ -3150,28 +3784,28 @@ Name: count, dtype: int64
       <td>swisslipids</td>
       <td>SLM:000000784</td>
       <td>sl_chebi</td>
-      <td>74546 | 82922</td>
+      <td>74546|82922</td>
     </tr>
     <tr>
       <th>387185</th>
       <td>swisslipids</td>
       <td>SLM:000389154</td>
       <td>sl_chebi</td>
-      <td>82731 | CHEBI:82731</td>
+      <td>82731|82731</td>
     </tr>
     <tr>
       <th>595221</th>
       <td>swisslipids</td>
       <td>SLM:000598072</td>
       <td>sl_chebi</td>
-      <td>17336 | 83228</td>
+      <td>17336|83228</td>
     </tr>
     <tr>
       <th>3116996</th>
       <td>swisslipids</td>
       <td>SLM:000000002</td>
       <td>sl_pmid</td>
-      <td>| 11443131 | 14685263 | 18390550 | 21325339 |...</td>
+      <td>| 11443131 | 14685263 | 18390550 | 21325339 | ...</td>
     </tr>
     <tr>
       <th>3116999</th>
@@ -3302,18 +3936,18 @@ Name: count, dtype: int64
       <td>82731</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>swisslipids</td>
-      <td>SLM:000389154</td>
-      <td>sl_chebi</td>
-      <td>CHEBI:82731</td>
-    </tr>
-    <tr>
       <th>4</th>
       <td>swisslipids</td>
       <td>SLM:000598072</td>
       <td>sl_chebi</td>
       <td>17336</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>swisslipids</td>
+      <td>SLM:000598072</td>
+      <td>sl_chebi</td>
+      <td>83228</td>
     </tr>
     <tr>
       <th>...</th>
@@ -3359,8 +3993,267 @@ Name: count, dtype: int64
     </tr>
   </tbody>
 </table>
-<p>68380 rows × 4 columns</p>
+<p>68379 rows × 4 columns</p>
 </div></div></div>
+</div>
+<p>Now we also want to clean up the results and turn those empty spaces i.e. empty strings and things into NaN’s, as well as strip leading and trailing spaces that may have been between splitting characters</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks_split</span> <span class="o">=</span> <span class="n">clean_missing_strings</span><span class="p">(</span><span class="n">edges_with_multilinks_split</span><span class="p">)</span>
+<span class="n">edges_with_multilinks_split</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>swisslipids</td>
+      <td>SLM:000000784</td>
+      <td>sl_chebi</td>
+      <td>74546</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>swisslipids</td>
+      <td>SLM:000000784</td>
+      <td>sl_chebi</td>
+      <td>82922</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>swisslipids</td>
+      <td>SLM:000389154</td>
+      <td>sl_chebi</td>
+      <td>82731</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>swisslipids</td>
+      <td>SLM:000598072</td>
+      <td>sl_chebi</td>
+      <td>17336</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>swisslipids</td>
+      <td>SLM:000598072</td>
+      <td>sl_chebi</td>
+      <td>83228</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>68383</th>
+      <td>swisslipids</td>
+      <td>SLM:000748037</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:1(11Z))</td>
+    </tr>
+    <tr>
+      <th>68384</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_synonyms</td>
+      <td>1-(15-methylhexadecanoyl)-2-(13-methyltetradec...</td>
+    </tr>
+    <tr>
+      <th>68385</th>
+      <td>swisslipids</td>
+      <td>SLM:000748038</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:1(9Z))</td>
+    </tr>
+    <tr>
+      <th>68386</th>
+      <td>swisslipids</td>
+      <td>SLM:000748039</td>
+      <td>sl_synonyms</td>
+      <td>1,2-di-(15-methylhexadecanoyl)-sn-glycero-3-cy...</td>
+    </tr>
+    <tr>
+      <th>68387</th>
+      <td>swisslipids</td>
+      <td>SLM:000748039</td>
+      <td>sl_synonyms</td>
+      <td>CDP-DG(22:6(4Z,7Z,10Z,13Z,16Z,19Z)/18:2(9Z,12Z))</td>
+    </tr>
+  </tbody>
+</table>
+<p>68379 rows × 4 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks_split</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>target_id
+18390550                                                                      87
+23670529                                                                      86
+20431113                                                                      77
+19603071                                                                      70
+24068966                                                                      53
+                                                                              ..
+Phosphatidylcholine (O-18:1(11Z)/16:2(9Z,12Z))                                 1
+1-(11Z-octadecenyl)-2-(9Z,12Z-octadecadienoyl)-sn-glycero-3-phosphocholine     1
+Phosphatidylcholine (O-18:1(11Z)/18:2(9Z,12Z))                                 1
+1-(11Z-octadecenyl)-2-(9Z-hexadecenoyl)-sn-glycero-3-phosphocholine            1
+1,2-di-(15-methylhexadecanoyl)-sn-glycero-3-cytidine-5&#39;-diphosphate            1
+Name: count, Length: 59378, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks_split</span><span class="p">[</span><span class="n">edges_with_multilinks_split</span><span class="p">[</span><span class="s1">&#39;target_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>source_layer</th>
+      <th>source_id</th>
+      <th>target_layer</th>
+      <th>target_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>6</th>
+      <td>swisslipids</td>
+      <td>SLM:000000002</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>278</th>
+      <td>swisslipids</td>
+      <td>SLM:000000272</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4533</th>
+      <td>swisslipids</td>
+      <td>SLM:000001020</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4546</th>
+      <td>swisslipids</td>
+      <td>SLM:000001022</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4550</th>
+      <td>swisslipids</td>
+      <td>SLM:000001023</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4553</th>
+      <td>swisslipids</td>
+      <td>SLM:000001024</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4586</th>
+      <td>swisslipids</td>
+      <td>SLM:000001032</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <th>4646</th>
+      <td>swisslipids</td>
+      <td>SLM:000001036</td>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>So note there are only 8 instances where the target_id is missing. This is probably ok to handle downstream anyway</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># edges_with_multilinks_split = edges_with_multilinks_split[~edges_with_multilinks_split[&#39;target_id&#39;].isna()].copy()</span>
+<span class="n">edges_with_multilinks_split</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(68379, 4)
+</pre></div>
+</div>
+</div>
+</div>
+<p>What about source_id? Looks like it has no missing source_ids</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks_split</span><span class="p">[</span><span class="n">edges_with_multilinks_split</span><span class="p">[</span><span class="s1">&#39;source_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(0, 4)
+</pre></div>
+</div>
+</div>
 </div>
 <p>This is good, but we also need to remember the separators in the components column</p>
 <div class="cell docutils container">
@@ -3597,6 +4490,14 @@ Name: count, dtype: int64
 <p>3592492 rows × 4 columns</p>
 </div></div></div>
 </div>
+<p>Now let’s also clean this up in case we have whitespace or empty strings etc.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">edges_with_multilinks2_split</span> <span class="o">=</span> <span class="n">clean_missing_strings</span><span class="p">(</span><span class="n">edges_with_multilinks2_split</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
 <p>Now let’s also parse the brackets from the parsed components so that these can be linked directly to the other SLMs if needed</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3735,6 +4636,9 @@ Name: count, dtype: int64
 <span class="c1">#   - edges_with_multilinks2_split</span>
 <span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_clean</span><span class="p">,</span> <span class="n">edges_with_multilinks_split</span><span class="p">,</span> <span class="n">edges_with_multilinks2_split</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+<span class="c1"># Clean up empty strings again or leading/trailing spaces</span>
+<span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">clean_missing_strings</span><span class="p">(</span><span class="n">df_swisslipids_edges</span><span class="p">)</span>
+
 <span class="c1"># (Optional) Drop any duplicate rows that might arise</span>
 <span class="n">df_swisslipids_edges</span> <span class="o">=</span> <span class="n">df_swisslipids_edges</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
 
@@ -3812,35 +4716,35 @@ Name: count, dtype: int64
       <td>...</td>
     </tr>
     <tr>
-      <th>6890974</th>
+      <th>6890973</th>
       <td>swisslipids</td>
       <td>SLM:000748036</td>
       <td>sl_components_parsed</td>
       <td>SLM:000000853</td>
     </tr>
     <tr>
-      <th>6890975</th>
+      <th>6890974</th>
       <td>swisslipids</td>
       <td>SLM:000748037</td>
       <td>sl_components_parsed</td>
       <td>SLM:000000048</td>
     </tr>
     <tr>
-      <th>6890976</th>
+      <th>6890975</th>
       <td>swisslipids</td>
       <td>SLM:000748037</td>
       <td>sl_components_parsed</td>
       <td>SLM:000001197</td>
     </tr>
     <tr>
-      <th>6890977</th>
+      <th>6890976</th>
       <td>swisslipids</td>
       <td>SLM:000748038</td>
       <td>sl_components_parsed</td>
       <td>SLM:000000047</td>
     </tr>
     <tr>
-      <th>6890978</th>
+      <th>6890977</th>
       <td>swisslipids</td>
       <td>SLM:000748038</td>
       <td>sl_components_parsed</td>
@@ -3848,7 +4752,7 @@ Name: count, dtype: int64
     </tr>
   </tbody>
 </table>
-<p>6890979 rows × 4 columns</p>
+<p>6890966 rows × 4 columns</p>
 </div></div></div>
 </div>
 <p>Now we will determine whether the edge is within the same layer (intralayer) or between different layers (interlayer)</p>
@@ -3940,7 +4844,7 @@ Name: count, dtype: int64
       <td>...</td>
     </tr>
     <tr>
-      <th>6890974</th>
+      <th>6890973</th>
       <td>swisslipids</td>
       <td>SLM:000748036</td>
       <td>sl_components_parsed</td>
@@ -3948,7 +4852,7 @@ Name: count, dtype: int64
       <td>True</td>
     </tr>
     <tr>
-      <th>6890975</th>
+      <th>6890974</th>
       <td>swisslipids</td>
       <td>SLM:000748037</td>
       <td>sl_components_parsed</td>
@@ -3956,7 +4860,7 @@ Name: count, dtype: int64
       <td>True</td>
     </tr>
     <tr>
-      <th>6890976</th>
+      <th>6890975</th>
       <td>swisslipids</td>
       <td>SLM:000748037</td>
       <td>sl_components_parsed</td>
@@ -3964,7 +4868,7 @@ Name: count, dtype: int64
       <td>True</td>
     </tr>
     <tr>
-      <th>6890977</th>
+      <th>6890976</th>
       <td>swisslipids</td>
       <td>SLM:000748038</td>
       <td>sl_components_parsed</td>
@@ -3972,7 +4876,7 @@ Name: count, dtype: int64
       <td>True</td>
     </tr>
     <tr>
-      <th>6890978</th>
+      <th>6890977</th>
       <td>swisslipids</td>
       <td>SLM:000748038</td>
       <td>sl_components_parsed</td>
@@ -3981,13 +4885,13 @@ Name: count, dtype: int64
     </tr>
   </tbody>
 </table>
-<p>6890979 rows × 5 columns</p>
+<p>6890966 rows × 5 columns</p>
 </div></div></div>
 </div>
 <p>Now we will build the node df</p>
 </section>
 <section id="building-the-node-df">
-<h3>Building the node df<a class="headerlink" href="#building-the-node-df" title="Link to this heading">¶</a></h3>
+<h3>Building the node df<a class="headerlink" href="#building-the-node-df" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">create_nodedf_from_edgedf</span><span class="p">(</span><span class="n">edge_df</span><span class="o">=</span><span class="n">df_swisslipids_edges</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">cols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;node_id&#39;</span><span class="p">])</span>
@@ -4050,39 +4954,39 @@ Name: count, dtype: int64
       <td>...</td>
     </tr>
     <tr>
-      <th>13781953</th>
+      <th>13781927</th>
       <td>sl_components_parsed</td>
       <td>SLM:000000853</td>
     </tr>
     <tr>
-      <th>13781954</th>
+      <th>13781928</th>
       <td>sl_components_parsed</td>
       <td>SLM:000000048</td>
     </tr>
     <tr>
-      <th>13781955</th>
+      <th>13781929</th>
       <td>sl_components_parsed</td>
       <td>SLM:000001197</td>
     </tr>
     <tr>
-      <th>13781956</th>
+      <th>13781930</th>
       <td>sl_components_parsed</td>
       <td>SLM:000000047</td>
     </tr>
     <tr>
-      <th>13781957</th>
+      <th>13781931</th>
       <td>sl_components_parsed</td>
       <td>SLM:000000048</td>
     </tr>
   </tbody>
 </table>
-<p>13781958 rows × 2 columns</p>
+<p>13781932 rows × 2 columns</p>
 </div></div></div>
 </div>
 <p>Let’s also see how many are duplicates</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -4094,12 +4998,26 @@ swisslipids  SLM:000000353    132660
              SLM:000117148     46826
              SLM:000000400     38525
                                ...  
-sl_metanetx  MNXM311776            1
-             MNXM311777            1
-             MNXM311778            1
-             MNXM311779            1
+sl_metanetx  MNXM312433            1
+             MNXM312434            1
+             MNXM312435            1
+             MNXM312436            1
 swisslipids  SLM:000782332         1
-Name: count, Length: 2783345, dtype: int64
+Name: count, Length: 2779078, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pre-emptively dropping duplicates before the merge</span>
+<span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+<span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(2779078, 2)
 </pre></div>
 </div>
 </div>
@@ -4160,7 +5078,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>0</th>
       <td>sl_abbreviation</td>
-      <td>(5S)-HpHEPE</td>
+      <td>(10,11S,12R)-TriH-(5Z,8Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4184,7 +5102,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>1</th>
       <td>sl_abbreviation</td>
-      <td>15-KETE</td>
+      <td>(10,11S,12R)-TriHETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4208,7 +5126,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>2</th>
       <td>sl_abbreviation</td>
-      <td>(10,11S,12R)-TriHETrE</td>
+      <td>(10R)-H-(11S,12S)-Ep-(5Z,8Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4256,7 +5174,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>4</th>
       <td>sl_abbreviation</td>
-      <td>(10R)-H-(8S,9S)-EpETrE</td>
+      <td>(10R)-H-(8S,9S)-Ep-(5Z,11Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4302,7 +5220,55 @@ Name: count, Length: 2783345, dtype: int64
       <td>...</td>
     </tr>
     <tr>
-      <th>13781953</th>
+      <th>2779073</th>
+      <td>swisslipids</td>
+      <td>SLM:000782328</td>
+      <td>SLM:000782328</td>
+      <td>NaN</td>
+      <td>oxidized 2-acylglycerol</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>SLM:000000355</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>167117</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>swisslipids</td>
+    </tr>
+    <tr>
+      <th>2779074</th>
+      <td>swisslipids</td>
+      <td>SLM:000782329</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>2779075</th>
       <td>swisslipids</td>
       <td>SLM:000782330</td>
       <td>NaN</td>
@@ -4326,7 +5292,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781954</th>
+      <th>2779076</th>
       <td>swisslipids</td>
       <td>SLM:000782331</td>
       <td>NaN</td>
@@ -4350,55 +5316,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781955</th>
-      <td>swisslipids</td>
-      <td>SLM:000782331</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>13781956</th>
-      <td>swisslipids</td>
-      <td>SLM:000782331</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>13781957</th>
+      <th>2779077</th>
       <td>swisslipids</td>
       <td>SLM:000782332</td>
       <td>NaN</td>
@@ -4423,10 +5341,10 @@ Name: count, Length: 2783345, dtype: int64
     </tr>
   </tbody>
 </table>
-<p>13781958 rows × 33 columns</p>
+<p>2779078 rows × 33 columns</p>
 </div></div></div>
 </div>
-<p>This has a lot of duplicates in it, so lets remove them, along with the from_layer_col which means nothing in this case and is just a relic of our join back with the initial df we used to create the edges (which could probably be tidied up)</p>
+<p>If this has any more duplicates in it for some reason lets remove them, along with the from_layer_col which means nothing in this case and is just a relic of our join back with the initial df we used to create the edges (which could probably be tidied up)</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
@@ -4481,7 +5399,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>0</th>
       <td>sl_abbreviation</td>
-      <td>(5S)-HpHEPE</td>
+      <td>(10,11S,12R)-TriH-(5Z,8Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4505,7 +5423,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>1</th>
       <td>sl_abbreviation</td>
-      <td>15-KETE</td>
+      <td>(10,11S,12R)-TriHETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4529,7 +5447,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>2</th>
       <td>sl_abbreviation</td>
-      <td>(10,11S,12R)-TriHETrE</td>
+      <td>(10R)-H-(11S,12S)-Ep-(5Z,8Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4577,7 +5495,7 @@ Name: count, Length: 2783345, dtype: int64
     <tr>
       <th>4</th>
       <td>sl_abbreviation</td>
-      <td>(10R)-H-(8S,9S)-EpETrE</td>
+      <td>(10R)-H-(8S,9S)-Ep-(5Z,11Z,14Z)-ETrE</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -4623,7 +5541,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>...</td>
     </tr>
     <tr>
-      <th>13781947</th>
+      <th>2779073</th>
       <td>swisslipids</td>
       <td>SLM:000782328</td>
       <td>SLM:000782328</td>
@@ -4647,7 +5565,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781950</th>
+      <th>2779074</th>
       <td>swisslipids</td>
       <td>SLM:000782329</td>
       <td>NaN</td>
@@ -4671,7 +5589,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781953</th>
+      <th>2779075</th>
       <td>swisslipids</td>
       <td>SLM:000782330</td>
       <td>NaN</td>
@@ -4695,7 +5613,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781954</th>
+      <th>2779076</th>
       <td>swisslipids</td>
       <td>SLM:000782331</td>
       <td>NaN</td>
@@ -4719,7 +5637,7 @@ Name: count, Length: 2783345, dtype: int64
       <td>NaN</td>
     </tr>
     <tr>
-      <th>13781957</th>
+      <th>2779077</th>
       <td>swisslipids</td>
       <td>SLM:000782332</td>
       <td>NaN</td>
@@ -4744,15 +5662,180 @@ Name: count, Length: 2783345, dtype: int64
     </tr>
   </tbody>
 </table>
-<p>2783345 rows × 32 columns</p>
+<p>2779078 rows × 32 columns</p>
 </div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;node_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>layer</th>
+      <th>node_id</th>
+      <th>Lipid ID</th>
+      <th>Level</th>
+      <th>Name</th>
+      <th>Abbreviation*</th>
+      <th>Synonyms*</th>
+      <th>Lipid class*</th>
+      <th>Parent</th>
+      <th>Components*</th>
+      <th>...</th>
+      <th>Exact m/z of [M+NH4]+</th>
+      <th>Exact m/z of [M-H]-</th>
+      <th>Exact m/z of [M+Cl]-</th>
+      <th>Exact m/z of [M+OAc]-</th>
+      <th>CHEBI</th>
+      <th>LIPID MAPS</th>
+      <th>HMDB</th>
+      <th>MetaNetX</th>
+      <th>PMID</th>
+      <th>Components_parsed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1464984</th>
+      <td>sl_pmid</td>
+      <td>&lt;NA&gt;</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 32 columns</p>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;node_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(1, 32)
+(0, 32)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Even though onionnet can handle nan and remove them downstream, it is safer to now drop these cases where either the node_id or layer is missing - they serve us no purpose anyway!</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span> <span class="o">=</span> <span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span><span class="s1">&#39;node_id&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;node_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(2779077, 32)
+(0, 32)
+(0, 32)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer
+swisslipids             779312
+sl_abbreviation         736949
+sl_synonyms             534781
+sl_metanetx             504880
+sl_parent               184620
+sl_hmdb                  17232
+sl_lipidmaps             12112
+sl_chebi                  4277
+sl_components             1708
+sl_components_parsed      1677
+sl_pmid                   1529
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="p">[</span><span class="s1">&#39;Level&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Level
+Isomeric subspecies      592413
+Structural subspecies    111867
+Molecular subspecies      62516
+Species                   10347
+Class                       806
+Category                      7
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
 </div>
 <p>Now we have the nodes and edges dfs for swisslipids and understand how we have arrived at them. In reality you don’t have to go through this process every time, LipiNet offers a convenient function to do just this if you are interested in this same network setup.</p>
 </section>
 </section>
 <section id="using-the-lipinet-parse-swisslipids-function">
-<h2>Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function<a class="headerlink" href="#using-the-lipinet-parse-swisslipids-function" title="Link to this heading">¶</a></h2>
+<h2>Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function<a class="headerlink" href="#using-the-lipinet-parse-swisslipids-function" title="Link to this heading">#</a></h2>
 <p>The LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function automatically runs through all of the same steps as we have just covered.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span>
+
+<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="o">.</span><span class="n">parse_swisslipids</span><span class="p">)</span>  <span class="c1"># reload the module after edits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>  <span class="c1"># re-import the updated symbol</span>
+</pre></div>
+</div>
+</div>
+</div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>
@@ -4772,38 +5855,38 @@ Name: count, Length: 2783345, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                        sl_abbreviation
-node_id                          (5S)-HpHEPE
-Lipid ID                                 NaN
-Level                                    NaN
-Name                                     NaN
-Abbreviation*                            NaN
-Synonyms*                                NaN
-Lipid class*                             NaN
-Parent                                   NaN
-Components*                              NaN
-SMILES (pH7.3)                           NaN
-InChI (pH7.3)                            NaN
-InChI key (pH7.3)                        NaN
-Formula (pH7.3)                          NaN
-Charge (pH7.3)                           NaN
-Mass (pH7.3)                             NaN
-Exact Mass (neutral form)                NaN
-Exact m/z of [M.]+                       NaN
-Exact m/z of [M+H]+                      NaN
-Exact m/z of [M+K]+                      NaN
-Exact m/z of [M+Na]+                     NaN
-Exact m/z of [M+Li]+                     NaN
-Exact m/z of [M+NH4]+                    NaN
-Exact m/z of [M-H]-                      NaN
-Exact m/z of [M+Cl]-                     NaN
-Exact m/z of [M+OAc]-                    NaN
-CHEBI                                    NaN
-LIPID MAPS                               NaN
-HMDB                                     NaN
-MetaNetX                                 NaN
-PMID                                     NaN
-Components_parsed                        NaN
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                                           sl_abbreviation
+node_id                      (10,11S,12R)-TriH-(5Z,8Z,14Z)-ETrE
+Lipid ID                                                    NaN
+Level                                                       NaN
+Name                                                        NaN
+Abbreviation*                                               NaN
+Synonyms*                                                   NaN
+Lipid class*                                                NaN
+Parent                                                      NaN
+Components*                                                 NaN
+SMILES (pH7.3)                                              NaN
+InChI (pH7.3)                                               NaN
+InChI key (pH7.3)                                           NaN
+Formula (pH7.3)                                             NaN
+Charge (pH7.3)                                              NaN
+Mass (pH7.3)                                                NaN
+Exact Mass (neutral form)                                   NaN
+Exact m/z of [M.]+                                          NaN
+Exact m/z of [M+H]+                                         NaN
+Exact m/z of [M+K]+                                         NaN
+Exact m/z of [M+Na]+                                        NaN
+Exact m/z of [M+Li]+                                        NaN
+Exact m/z of [M+NH4]+                                       NaN
+Exact m/z of [M-H]-                                         NaN
+Exact m/z of [M+Cl]-                                        NaN
+Exact m/z of [M+OAc]-                                       NaN
+CHEBI                                                       NaN
+LIPID MAPS                                                  NaN
+HMDB                                                        NaN
+MetaNetX                                                    NaN
+PMID                                                        NaN
+Components_parsed                                           NaN
 Name: 0, dtype: object
 </pre></div>
 </div>
@@ -4816,38 +5899,38 @@ Name: 0, dtype: object
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                        sl_abbreviation
-node_id                          (5S)-HpHEPE
-Lipid ID                                 NaN
-Level                                    NaN
-Name                                     NaN
-Abbreviation*                            NaN
-Synonyms*                                NaN
-Lipid class*                             NaN
-Parent                                   NaN
-Components*                              NaN
-SMILES (pH7.3)                           NaN
-InChI (pH7.3)                            NaN
-InChI key (pH7.3)                        NaN
-Formula (pH7.3)                          NaN
-Charge (pH7.3)                           NaN
-Mass (pH7.3)                             NaN
-Exact Mass (neutral form)                NaN
-Exact m/z of [M.]+                       NaN
-Exact m/z of [M+H]+                      NaN
-Exact m/z of [M+K]+                      NaN
-Exact m/z of [M+Na]+                     NaN
-Exact m/z of [M+Li]+                     NaN
-Exact m/z of [M+NH4]+                    NaN
-Exact m/z of [M-H]-                      NaN
-Exact m/z of [M+Cl]-                     NaN
-Exact m/z of [M+OAc]-                    NaN
-CHEBI                                    NaN
-LIPID MAPS                               NaN
-HMDB                                     NaN
-MetaNetX                                 NaN
-PMID                                     NaN
-Components_parsed                        NaN
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>layer                                           sl_abbreviation
+node_id                      (10,11S,12R)-TriH-(5Z,8Z,14Z)-ETrE
+Lipid ID                                                    NaN
+Level                                                       NaN
+Name                                                        NaN
+Abbreviation*                                               NaN
+Synonyms*                                                   NaN
+Lipid class*                                                NaN
+Parent                                                      NaN
+Components*                                                 NaN
+SMILES (pH7.3)                                              NaN
+InChI (pH7.3)                                               NaN
+InChI key (pH7.3)                                           NaN
+Formula (pH7.3)                                             NaN
+Charge (pH7.3)                                              NaN
+Mass (pH7.3)                                                NaN
+Exact Mass (neutral form)                                   NaN
+Exact m/z of [M.]+                                          NaN
+Exact m/z of [M+H]+                                         NaN
+Exact m/z of [M+K]+                                         NaN
+Exact m/z of [M+Na]+                                        NaN
+Exact m/z of [M+Li]+                                        NaN
+Exact m/z of [M+NH4]+                                       NaN
+Exact m/z of [M-H]-                                         NaN
+Exact m/z of [M+Cl]-                                        NaN
+Exact m/z of [M+OAc]-                                       NaN
+CHEBI                                                       NaN
+LIPID MAPS                                                  NaN
+HMDB                                                        NaN
+MetaNetX                                                    NaN
+PMID                                                        NaN
+Components_parsed                                           NaN
 Name: 0, dtype: object
 </pre></div>
 </div>
@@ -4869,8 +5952,8 @@ Name: 0, dtype: object
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>DataFrame are different
 
 DataFrame shape mismatch
-[left]:  (2783345, 32)
-[right]: (6890979, 5)
+[left]:  (2779077, 32)
+[right]: (6890966, 5)
 </pre></div>
 </div>
 </div>
@@ -4949,6 +6032,22 @@ DataFrame shape mismatch
   </tbody>
 </table>
 </div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">diff_rows_edges</span><span class="p">[</span><span class="s1">&#39;_merge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>_merge
+left_only     0
+right_only    0
+both          0
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -5245,86 +6344,108 @@ DataFrame shape mismatch
 </section>
 
 
-          </div>
-          
-        </div>
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="build_lipinet.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Build LipiNet</p>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/.lipinet_logo_v1_0051.png" alt="Logo of LipiNet"/>
-            </a></p>
-<h1 class="logo"><a href="../index.html">LipiNet</a></h1>
+    </a>
+    <a class="right-next"
+       href="parsing_rhea.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Parse Rhea</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-
-
-
-
-
-
-
-<search id="searchbox" style="display: none" role="search">
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Main:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">LipiNet API</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsing SwissLipids into a network for LipiNet</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#parsing-the-manual-way">Parsing the manual way</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parsing-the-manual-way">Parsing the manual way</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-edges-df">Building the edges df</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-node-df">Building the node df</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="explore_swisslipids.html">Exploring SwissLipids from a network perspective</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
 </ul>
+  </nav></div>
 
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../lipinet.html" title="previous chapter">lipinet package</a></li>
-      <li>Next: <a href="explore_swisslipids.html" title="next chapter">Exploring SwissLipids from a network perspective</a></li>
-  </ul></li>
-</ul>
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Macabe Daley et al.
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Macabe Daley et al..
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
 </div>
+          </footer>
+        
 
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
+      </main>
     </div>
-    <div class="footer">
-      &#169;2025, Macabe Daley et al..
-      
-      |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
-      
-      |
-      <a href="../_sources/notebooks/parsing_swisslipids.ipynb.txt"
-          rel="nofollow">Page source</a>
-    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    
-
-    
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

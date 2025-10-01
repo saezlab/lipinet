@@ -1,47 +1,468 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Explore SwissLipids" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="notebooks/explore_swisslipids.html" />
+<meta property="og:site_name" content="LipiNet" />
+<meta property="og:description" content="Exploring SwissLipids from a network perspective Loading dependencies and data: Building the network with OnionNet: This has built the network, with about 2.7 million nodes and around 7 million edg..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="_images/social_previews/summary_notebooks_explore_swisslipids_68b44551.png" />
+<meta property="og:image:alt" content="Exploring SwissLipids from a network perspective Loading dependencies and data: Building the network with OnionNet: This has built the network, with about 2.7 million nodes and around 7 million edg..." />
+<meta name="description" content="Exploring SwissLipids from a network perspective Loading dependencies and data: Building the network with OnionNet: This has built the network, with about 2.7 million nodes and around 7 million edg..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>Exploring SwissLipids from a network perspective &#8212; LipiNet 1.0.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
-    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <title>Explore SwissLipids &#8212; LipiNet 1.1.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/image-fixes.css?v=3180a0b0" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=051bfb12"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../_static/.lipinet_logo_v1_0051.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Parsing SwissLipids into a network for LipiNet" href="parsing_swisslipids.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <link rel="next" title="Explore Rhea" href="explore_rhea.html" />
+    <link rel="prev" title="Sources" href="../index_nb_sources.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
   
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
   
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
-  </head><body>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
   
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
 
-          <div class="body" role="main">
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/.lipinet_logo_v1_0051.png" class="logo__image only-light" alt="LipiNet 1.1.0 documentation - Home"/>
+    <script>document.write(`<img src="../_static/.lipinet_logo_v1_0051.png" class="logo__image only-dark" alt="LipiNet 1.1.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Main:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../modules.html">LipiNet API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../lipinet.html">lipinet package</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../index_nb_use.html">Use LipiNet</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="explore_lipinet.html">Explore LipiNet</a></li>
+</ul>
+</details></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../index_nb_build.html">Build LipiNet</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="build_lipinet.html">Build LipiNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing_swisslipids.html">Parse SwissLipids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing_rhea.html">Parse Rhea</a></li>
+</ul>
+</details></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index_nb_sources.html">Sources</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Explore SwissLipids</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explore_rhea.html">Explore Rhea</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/saezlab/lipinet/blob/master/docs/source/notebooks/explore_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/saezlab/lipinet" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/saezlab/lipinet/edit/main/docs/source/notebooks/explore_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/notebooks/explore_swisslipids.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Explore SwissLipids</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
             
-  <section id="exploring-swisslipids-from-a-network-perspective">
-<h1>Exploring SwissLipids from a network perspective<a class="headerlink" href="#exploring-swisslipids-from-a-network-perspective" title="Link to this heading">¶</a></h1>
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-dependencies-and-data">Loading dependencies and data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-network-with-onionnet">Building the network with OnionNet</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-network">Filtering the network</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-bipartite-networks">Exploring bipartite networks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chebi">ChEBI</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pmid">PMID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hmdb">HMDB</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lipidmaps">LipidMaps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sl-components-parsed">SL Components (parsed)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sl-synonyms">SL Synonyms</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="explore-swisslipids">
+<h1>Explore SwissLipids<a class="headerlink" href="#explore-swisslipids" title="Link to this heading">#</a></h1>
+<p>Exploring SwissLipids from a network perspective</p>
 <section id="loading-dependencies-and-data">
-<h2>Loading dependencies and data<a class="headerlink" href="#loading-dependencies-and-data" title="Link to this heading">¶</a></h2>
+<h2>Loading dependencies and data<a class="headerlink" href="#loading-dependencies-and-data" title="Link to this heading">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>
 
-<span class="n">sl_results</span> <span class="o">=</span> <span class="n">parse_swisslipids_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">sl_results</span> <span class="o">=</span> <span class="n">parse_swisslipids_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">df_sl_nodes</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_nodes&#39;</span><span class="p">]</span>
 <span class="n">df_sl_edges</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_edges&#39;</span><span class="p">]</span> 
 </pre></div>
@@ -63,7 +484,7 @@
 </div>
 </section>
 <section id="building-the-network-with-onionnet">
-<h2>Building the network with OnionNet<a class="headerlink" href="#building-the-network-with-onionnet" title="Link to this heading">¶</a></h2>
+<h2>Building the network with OnionNet<a class="headerlink" href="#building-the-network-with-onionnet" title="Link to this heading">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">onion</span> <span class="o">=</span> <span class="n">OnionNet</span><span class="p">()</span>
@@ -77,6 +498,12 @@
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Nodes: in=2779077, dropped_na=0, deduped=0 → final=2779077
+Edges: in=6890966, dropped_invalid=8, deduped=0 → final=6890958
+</pre></div>
+</div>
+</div>
 </div>
 <p>This has built the network, with about 2.7 million nodes and around 7 million edges - within 30 seconds on a decent laptop!</p>
 <div class="cell docutils container">
@@ -86,7 +513,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Graph object, directed, with 2783345 vertices and 6890979 edges, 34 internal vertex properties, 5 internal edge properties, at 0x3407e1af0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Graph object, directed, with 2779077 vertices and 6890958 edges, 34 internal vertex properties, 5 internal edge properties, at 0x4032efad0&gt;
 </pre></div>
 </div>
 </div>
@@ -142,7 +569,7 @@
   </thead>
   <tbody>
     <tr>
-      <th>6569869</th>
+      <th>2000016</th>
       <td>swisslipids</td>
       <td>SLM:000000525</td>
       <td>SLM:000000525</td>
@@ -166,7 +593,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>6622257</th>
+      <th>2000508</th>
       <td>swisslipids</td>
       <td>SLM:000001193</td>
       <td>SLM:000001193</td>
@@ -190,7 +617,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>7681819</th>
+      <th>2116449</th>
       <td>swisslipids</td>
       <td>SLM:000117142</td>
       <td>SLM:000117142</td>
@@ -214,7 +641,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>10570513</th>
+      <th>2386968</th>
       <td>swisslipids</td>
       <td>SLM:000389145</td>
       <td>SLM:000389145</td>
@@ -222,7 +649,7 @@
       <td>Lipid</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>&lt;NA&gt;</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>...</td>
@@ -238,7 +665,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>10587719</th>
+      <th>2387551</th>
       <td>swisslipids</td>
       <td>SLM:000390054</td>
       <td>SLM:000390054</td>
@@ -262,7 +689,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>11503494</th>
+      <th>2497591</th>
       <td>swisslipids</td>
       <td>SLM:000500463</td>
       <td>SLM:000500463</td>
@@ -286,7 +713,7 @@
       <td>NaN</td>
     </tr>
     <tr>
-      <th>11579041</th>
+      <th>2505886</th>
       <td>swisslipids</td>
       <td>SLM:000508860</td>
       <td>SLM:000508860</td>
@@ -370,40 +797,22 @@
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;layer_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;node_id_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;lipidid_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;lipidclass_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;name_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;level_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;chebi_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;lipidmaps_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>V property &#39;hmdb_decoded&#39; created successfully.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>E property &#39;interlayer_decoded&#39; created successfully.
+V property &#39;node_id_decoded&#39; created successfully.
+V property &#39;lipidid_decoded&#39; created successfully.
+V property &#39;lipidclass_decoded&#39; created successfully.
+V property &#39;name_decoded&#39; created successfully.
+V property &#39;level_decoded&#39; created successfully.
+V property &#39;chebi_decoded&#39; created successfully.
+V property &#39;lipidmaps_decoded&#39; created successfully.
+V property &#39;hmdb_decoded&#39; created successfully.
+E property &#39;interlayer_decoded&#39; created successfully.
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="filtering-the-network">
-<h2>Filtering the network<a class="headerlink" href="#filtering-the-network" title="Link to this heading">¶</a></h2>
+<h2>Filtering the network<a class="headerlink" href="#filtering-the-network" title="Link to this heading">#</a></h2>
 <p>Now let’s use some filtering logic to only get those with the ‘Category’ level</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -414,7 +823,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 7 vertices and 6 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca3c0, at 0x3407e3980&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca3c0, at 0x15b7db890&gt;, at 0x1058ca3c0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 7 vertices and 6 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x40331d9a0, at 0x402efb6b0&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x40331d9a0, at 0x108489a60&gt;, False), at 0x40331d9a0&gt;
 </pre></div>
 </div>
 </div>
@@ -432,9 +841,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/5e7e8e6cb469041a2778811d870a70b43fc3aa1b1cb35191fa94f83c77009c25.png"><img alt="../_images/5e7e8e6cb469041a2778811d870a70b43fc3aa1b1cb35191fa94f83c77009c25.png" src="../_images/5e7e8e6cb469041a2778811d870a70b43fc3aa1b1cb35191fa94f83c77009c25.png" style="width: 600px; height: 511px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x1058ca3c0, at 0x1058c9220&gt;
+<img alt="../_images/9bb0e93b79d75fb97ac241a9f9ba8961f65eed0a9599be8e593dbf5462fa10cd.png" src="../_images/9bb0e93b79d75fb97ac241a9f9ba8961f65eed0a9599be8e593dbf5462fa10cd.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x40331d9a0, at 0x7525d69c0&gt;
 </pre></div>
 </div>
 </div>
@@ -450,7 +858,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 813 vertices and 491 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x487f238f0, at 0x17c652900&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x487f238f0, at 0x15b7db9b0&gt;, at 0x487f238f0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 813 vertices and 491 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x7525d5880, at 0x10848b860&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x7525d5880, at 0x7525d5a30&gt;, False), at 0x7525d5880&gt;
 </pre></div>
 </div>
 </div>
@@ -466,9 +874,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/ff9f3a5f847b95056500b0cc1a8d43c131e6f3dab94cceb3b632da0765cd0f70.png"><img alt="../_images/ff9f3a5f847b95056500b0cc1a8d43c131e6f3dab94cceb3b632da0765cd0f70.png" src="../_images/ff9f3a5f847b95056500b0cc1a8d43c131e6f3dab94cceb3b632da0765cd0f70.png" style="width: 589px; height: 600px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x487f238f0, at 0x48b3f2a20&gt;
+<img alt="../_images/797df93ecce9aec7e7325df6279781bc71ea04e4c514dcf6ca6f4129513604f6.png" src="../_images/797df93ecce9aec7e7325df6279781bc71ea04e4c514dcf6ca6f4129513604f6.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x7525d5880, at 0x40331c380&gt;
 </pre></div>
 </div>
 </div>
@@ -489,7 +896,7 @@
                       <span class="n">node_text_prop</span><span class="o">=</span><span class="s1">&#39;node_id_decoded&#39;</span><span class="p">,</span>
                       <span class="n">vertex_text_position</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
                       <span class="n">vertex_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-                      <span class="n">vertex_text_colour</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+                      <span class="n">vertex_text_color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -497,13 +904,8 @@
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Filtered graph contains 95 vertices and 94 edges.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/anaconda3/envs/onionnet_docs_env/lib/python3.12/site-packages/graph_tool/draw/cairo_draw.py:545: UserWarning: Unknown edge attribute: text_colour
-  warnings.warn(f&quot;Unknown {kind} attribute: &quot; + str(k), UserWarning)
-</pre></div>
-</div>
-<a class="reference internal image-reference" href="../_images/85abbb3e18b1a8b679d7a2c3fb5295fe8acbf6cec999603f028d970715e23bdb.png"><img alt="../_images/85abbb3e18b1a8b679d7a2c3fb5295fe8acbf6cec999603f028d970715e23bdb.png" src="../_images/85abbb3e18b1a8b679d7a2c3fb5295fe8acbf6cec999603f028d970715e23bdb.png" style="width: 600px; height: 591px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 95 vertices and 94 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca2d0, at 0x48b3f2f30&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca2d0, at 0x48b3f2e70&gt;, at 0x1058ca2d0&gt;
+<img alt="../_images/300f7ab79520d74178592046785456f84e244b051cceb2bfbfb5c01269a82e29.png" src="../_images/300f7ab79520d74178592046785456f84e244b051cceb2bfbfb5c01269a82e29.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 95 vertices and 94 edges, 43 internal vertex properties, 6 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x108488e90, at 0x7525e9ee0&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x108488e90, at 0x7525e9e20&gt;, False), at 0x108488e90&gt;
 </pre></div>
 </div>
 </div>
@@ -573,9 +975,8 @@
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Filtered graph contains 95 vertices and 94 edges.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/6246cc5b5a0ccbaa346a49dd7e998ee1f121e3311c23650d1414db2f6055b30c.png"><img alt="../_images/6246cc5b5a0ccbaa346a49dd7e998ee1f121e3311c23650d1414db2f6055b30c.png" src="../_images/6246cc5b5a0ccbaa346a49dd7e998ee1f121e3311c23650d1414db2f6055b30c.png" style="width: 600px; height: 588px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x3507101d0, at 0x3406eb020&gt;
+<img alt="../_images/470dac1898219811cd43acd981a976f44edf83e4d5898aed95ef9409f46a2131.png" src="../_images/470dac1898219811cd43acd981a976f44edf83e4d5898aed95ef9409f46a2131.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x40331d8b0, at 0x4032b5430&gt;
 </pre></div>
 </div>
 </div>
@@ -602,21 +1003,20 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Filtered graph contains 734 vertices and 749 edges.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Filtered graph contains 733 vertices and 766 edges.
 </pre></div>
 </div>
-<a class="reference internal image-reference" href="../_images/141e2da065e95ab202c02e35bf262ea76662fa91583b674f619e80c53c43f403.png"><img alt="../_images/141e2da065e95ab202c02e35bf262ea76662fa91583b674f619e80c53c43f403.png" src="../_images/141e2da065e95ab202c02e35bf262ea76662fa91583b674f619e80c53c43f403.png" style="width: 663px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x487f23e00, at 0x4299375c0&gt;
+<img alt="../_images/6acffca78a40e94a0b8ec95cba2ac225c37156a0ed99d8ac19f2487e0c1d7d7a.png" src="../_images/6acffca78a40e94a0b8ec95cba2ac225c37156a0ed99d8ac19f2487e0c1d7d7a.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x4032efce0, at 0x70f4c0680&gt;
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="exploring-bipartite-networks">
-<h2>Exploring bipartite networks<a class="headerlink" href="#exploring-bipartite-networks" title="Link to this heading">¶</a></h2>
+<h2>Exploring bipartite networks<a class="headerlink" href="#exploring-bipartite-networks" title="Link to this heading">#</a></h2>
 <section id="chebi">
-<h3>ChEBI<a class="headerlink" href="#chebi" title="Link to this heading">¶</a></h3>
+<h3>ChEBI<a class="headerlink" href="#chebi" title="Link to this heading">#</a></h3>
 <p>Now what if we want to look at how ChEBI’s map to SwissLipids, and whether there are overlaps?</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -628,7 +1028,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 8555 vertices and 4279 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x48b3f2ae0, at 0x429919430&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x48b3f2ae0, at 0x429919580&gt;, at 0x48b3f2ae0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 8553 vertices and 4278 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x70f4c2f90, at 0x70f4ccbf0&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x70f4c2f90, at 0x70f4ccbc0&gt;, False), at 0x70f4c2f90&gt;
 </pre></div>
 </div>
 </div>
@@ -643,9 +1043,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/5e6b57ff5783c3978215f8541a35fefbb7cebc4bcea8e085ea7ed15a831e9a9a.png"><img alt="../_images/5e6b57ff5783c3978215f8541a35fefbb7cebc4bcea8e085ea7ed15a831e9a9a.png" src="../_images/5e6b57ff5783c3978215f8541a35fefbb7cebc4bcea8e085ea7ed15a831e9a9a.png" style="width: 800px; height: 799px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x48b3f2ae0, at 0x340785850&gt;
+<img alt="../_images/41f8ea0b92ef3ba1a64fe2eba49cc3078d08a9faab470892654a7514067767f3.png" src="../_images/41f8ea0b92ef3ba1a64fe2eba49cc3078d08a9faab470892654a7514067767f3.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x70f4c2f90, at 0x402fd2540&gt;
 </pre></div>
 </div>
 </div>
@@ -674,9 +1073,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/16ee80270e1d1e527fb7ad62833387704d01333b95260b82c3a03f6a2caa1a15.png"><img alt="../_images/16ee80270e1d1e527fb7ad62833387704d01333b95260b82c3a03f6a2caa1a15.png" src="../_images/16ee80270e1d1e527fb7ad62833387704d01333b95260b82c3a03f6a2caa1a15.png" style="width: 800px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x48b3f2ae0, at 0x3405c4080&gt;
+<img alt="../_images/cbeaa98bc237e56b2ccca5e19be8e454c6bc7efe2d60d571fe75306b2687a49f.png" src="../_images/cbeaa98bc237e56b2ccca5e19be8e454c6bc7efe2d60d571fe75306b2687a49f.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x70f4c2f90, at 0x402fd09e0&gt;
 </pre></div>
 </div>
 </div>
@@ -685,7 +1083,7 @@
 <p>Now let’s try another layer</p>
 </section>
 <section id="pmid">
-<h3>PMID<a class="headerlink" href="#pmid" title="Link to this heading">¶</a></h3>
+<h3>PMID<a class="headerlink" href="#pmid" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layer_1</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
@@ -697,12 +1095,37 @@
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pos_sfdp_pmid_bipartite</span> <span class="o">=</span> <span class="n">onionnet</span><span class="o">.</span><span class="n">visualisation</span><span class="o">.</span><span class="n">load_or_compute_layout</span><span class="p">(</span><span class="n">gv2</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;.data/.explore_sl_pos_sfdp_pmid_bipartite.tsv&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gv2</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Loaded layout for 5770 vertices from .data/.explore_sl_pos_sfdp_pmid_bipartite.tsv
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 4595 vertices and 10101 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x70f4cfbf0, at 0x7525e9b80&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x70f4cfbf0, at 0x40331db20&gt;, False), at 0x70f4cfbf0&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pos_sfdp_pmid_bipartite</span> <span class="o">=</span> <span class="n">onionnet</span><span class="o">.</span><span class="n">visualisation</span><span class="o">.</span><span class="n">load_or_compute_layout</span><span class="p">(</span><span class="n">gv2</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;.data/.explore_sl_pos_sfdp_pmid_bipartite.tsv&#39;</span><span class="p">,</span> <span class="n">override</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[load]   Loaded layout for 4595 rows from .data/.explore_sl_pos_sfdp_pmid_bipartite.tsv
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">shape_result</span> <span class="o">=</span> <span class="n">onionnet</span><span class="o">.</span><span class="n">visualisation</span><span class="o">.</span><span class="n">shape_nodes</span><span class="p">(</span><span class="n">g</span><span class="o">=</span><span class="n">gv2</span><span class="p">,</span> <span class="n">prop_name</span><span class="o">=</span><span class="s2">&quot;layer_decoded&quot;</span><span class="p">,</span> <span class="n">shape_method</span><span class="o">=</span><span class="s2">&quot;categorical&quot;</span><span class="p">,</span> <span class="n">generate_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">shape_result</span><span class="p">[</span><span class="s1">&#39;v_shape&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;string&#39;, for Graph 0x70f4cfbf0, at 0x6d5a83500&gt;
 </pre></div>
 </div>
 </div>
@@ -716,7 +1139,7 @@
            <span class="n">output_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span>
            <span class="n">edge_pen_width</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
            <span class="n">vertex_fill_color</span><span class="o">=</span><span class="n">gv2</span><span class="o">.</span><span class="n">vp</span><span class="p">[</span><span class="s1">&#39;v_color_level&#39;</span><span class="p">],</span> 
-           <span class="n">vertex_shape</span><span class="o">=</span><span class="n">gv2</span><span class="o">.</span><span class="n">vp</span><span class="p">[</span><span class="s1">&#39;v_shape_layer&#39;</span><span class="p">],</span>
+           <span class="n">vertex_shape</span><span class="o">=</span><span class="n">shape_result</span><span class="p">[</span><span class="s1">&#39;v_shape&#39;</span><span class="p">],</span>
            <span class="n">nodesfirst</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">onionnet</span><span class="o">.</span><span class="n">visualisation</span><span class="o">.</span><span class="n">get_legend</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">graphic_styles</span><span class="p">[</span><span class="s1">&#39;legend_node_color&#39;</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Legend: SL Lipid Level&#39;</span><span class="p">,</span>
@@ -725,9 +1148,22 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/8f384e480726fb2b85b182722605ba97d24500b6d4fe9201dc6a391520353022.png"><img alt="../_images/8f384e480726fb2b85b182722605ba97d24500b6d4fe9201dc6a391520353022.png" src="../_images/8f384e480726fb2b85b182722605ba97d24500b6d4fe9201dc6a391520353022.png" style="width: 987px; height: 1000px;" />
-</a>
-<img alt="../_images/36153a61b471a29acaac227f084cba01653f4eb2aae41637d5213dead808bcd1.png" src="../_images/36153a61b471a29acaac227f084cba01653f4eb2aae41637d5213dead808bcd1.png" />
+<img alt="../_images/45b71f05911fefddc6f6bea98816cfcf0ef4abbf88d160fad9b1ffcd558454c3.png" src="../_images/45b71f05911fefddc6f6bea98816cfcf0ef4abbf88d160fad9b1ffcd558454c3.png" />
+<img alt="../_images/5bb386b478c19447bb35f08c8a8b487891a7b2ec68cce8efca82d1104ad7a697.png" src="../_images/5bb386b478c19447bb35f08c8a8b487891a7b2ec68cce8efca82d1104ad7a697.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">gv2</span><span class="o">.</span><span class="n">vp</span><span class="p">[</span><span class="s1">&#39;v_shape_layer&#39;</span><span class="p">]])</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>hexagon    3066
+circle     1529
+Name: count, dtype: Int64
+</pre></div>
+</div>
 </div>
 </div>
 <p>Finally, an interesting finding visually from a network perspective, because we can see the relationships between the SL IDs and the PMIDs, being the published literature. This shows:</p>
@@ -789,9 +1225,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/7677e96abea862101762d3691212b6a5881d97c6fb8963def8c9353fadc8a6d3.png"><img alt="../_images/7677e96abea862101762d3691212b6a5881d97c6fb8963def8c9353fadc8a6d3.png" src="../_images/7677e96abea862101762d3691212b6a5881d97c6fb8963def8c9353fadc8a6d3.png" style="width: 800px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x487f22570, at 0x340563aa0&gt;
+<img alt="../_images/d0377580d8b0be2b2401ea1bb27ec2c369a490ec51736a892759cafda8de2acb.png" src="../_images/d0377580d8b0be2b2401ea1bb27ec2c369a490ec51736a892759cafda8de2acb.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x70f4cfbf0, at 0x6d5b07ad0&gt;
 </pre></div>
 </div>
 </div>
@@ -823,16 +1258,15 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/ee7c0dc59a1f04de32f8ef10a9d272c944d1c081b6485657ecb7f48accca78b7.png"><img alt="../_images/ee7c0dc59a1f04de32f8ef10a9d272c944d1c081b6485657ecb7f48accca78b7.png" src="../_images/ee7c0dc59a1f04de32f8ef10a9d272c944d1c081b6485657ecb7f48accca78b7.png" style="width: 783px; height: 800px;" />
-</a>
-<img alt="../_images/36153a61b471a29acaac227f084cba01653f4eb2aae41637d5213dead808bcd1.png" src="../_images/36153a61b471a29acaac227f084cba01653f4eb2aae41637d5213dead808bcd1.png" />
+<img alt="../_images/e054ebdbf3dcd986e351e3d860f7bf56887ed37e495dbd5160bb73d9ff6d83bd.png" src="../_images/e054ebdbf3dcd986e351e3d860f7bf56887ed37e495dbd5160bb73d9ff6d83bd.png" />
+<img alt="../_images/5bb386b478c19447bb35f08c8a8b487891a7b2ec68cce8efca82d1104ad7a697.png" src="../_images/5bb386b478c19447bb35f08c8a8b487891a7b2ec68cce8efca82d1104ad7a697.png" />
 </div>
 </div>
 <p>From this we can now see that many of the nodes with the most connections to the literature are of the <code class="docutils literal notranslate"><span class="pre">Isomeric</span> <span class="pre">subspecies</span></code> level, and to a slightly lesser extent, in the <code class="docutils literal notranslate"><span class="pre">Class</span></code> level. So the most well studied lipids seem to be at these levels, at least qualitatively.</p>
 <p>In contrast, we can see that many of the lipids in the <code class="docutils literal notranslate"><span class="pre">Species</span></code> class have come from a very small number of papers.</p>
 </section>
 <section id="hmdb">
-<h3>HMDB<a class="headerlink" href="#hmdb" title="Link to this heading">¶</a></h3>
+<h3>HMDB<a class="headerlink" href="#hmdb" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layer_1</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
@@ -854,9 +1288,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/e610b23062d8f9397817a4a631ba51395042156312ba245661238de3c92590fb.png"><img alt="../_images/e610b23062d8f9397817a4a631ba51395042156312ba245661238de3c92590fb.png" src="../_images/e610b23062d8f9397817a4a631ba51395042156312ba245661238de3c92590fb.png" style="width: 800px; height: 797px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x17ba0bbc0, at 0x11af27980&gt;
+<img alt="../_images/0ee1e6b72363b8bcd51f1041f5c44f1cf47f9ae2750e8d9e9b97781a33602962.png" src="../_images/0ee1e6b72363b8bcd51f1041f5c44f1cf47f9ae2750e8d9e9b97781a33602962.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x6d5aec110, at 0x348b84c80&gt;
 </pre></div>
 </div>
 </div>
@@ -874,16 +1307,15 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/535feb039791734012dee89d1bec7d602c6cc3478cac9cf66e1bfc295225618b.png"><img alt="../_images/535feb039791734012dee89d1bec7d602c6cc3478cac9cf66e1bfc295225618b.png" src="../_images/535feb039791734012dee89d1bec7d602c6cc3478cac9cf66e1bfc295225618b.png" style="width: 800px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x17ba0bbc0, at 0x11b4e54f0&gt;
+<img alt="../_images/e064579988a4b17002f57231b876a9c674db022bfeffb3144544a6eca96e7976.png" src="../_images/e064579988a4b17002f57231b876a9c674db022bfeffb3144544a6eca96e7976.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x6d5aec110, at 0x6d5aecf50&gt;
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="lipidmaps">
-<h3>LipidMaps<a class="headerlink" href="#lipidmaps" title="Link to this heading">¶</a></h3>
+<h3>LipidMaps<a class="headerlink" href="#lipidmaps" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layer_1</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
@@ -894,7 +1326,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 24229 vertices and 12117 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca5d0, at 0x429934ec0&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x1058ca5d0, at 0x429937ad0&gt;, at 0x1058ca5d0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 24229 vertices and 12117 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5b53500, at 0x6d5b533b0&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5b53500, at 0x6d5b527b0&gt;, False), at 0x6d5b53500&gt;
 </pre></div>
 </div>
 </div>
@@ -911,9 +1343,24 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/c8a08f97dac5068ef0e7e440285b8b78df61d8b969c915e810bb7421a670295f.png"><img alt="../_images/c8a08f97dac5068ef0e7e440285b8b78df61d8b969c915e810bb7421a670295f.png" src="../_images/c8a08f97dac5068ef0e7e440285b8b78df61d8b969c915e810bb7421a670295f.png" style="width: 800px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x1058ca5d0, at 0x37fcc8500&gt;
+<img alt="../_images/e537d4766c5ec11a9a1fa56a08c9c0a6e9461811e6e1d9d1658600c997437350.png" src="../_images/e537d4766c5ec11a9a1fa56a08c9c0a6e9461811e6e1d9d1658600c997437350.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x6d5b53500, at 0x6d5b05940&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute in-degree centrality</span>
+<span class="n">deg</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">degree_property_map</span><span class="p">(</span><span class="s1">&#39;out&#39;</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">deg</span><span class="p">)</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>1    12117
+0    12112
+Name: count, dtype: int64
 </pre></div>
 </div>
 </div>
@@ -931,16 +1378,15 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../_images/017a9647394bd559656e53787468286e0b42a8024da88208a485c079836a6103.png"><img alt="../_images/017a9647394bd559656e53787468286e0b42a8024da88208a485c079836a6103.png" src="../_images/017a9647394bd559656e53787468286e0b42a8024da88208a485c079836a6103.png" style="width: 800px; height: 800px;" />
-</a>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x1058ca5d0, at 0x48b3f3a10&gt;
+<img alt="../_images/5c02207a0b37739c767131abf6c59b17eed7965f1c578b868a3c2460e66598ac.png" src="../_images/5c02207a0b37739c767131abf6c59b17eed7965f1c578b868a3c2460e66598ac.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;VertexPropertyMap object with value type &#39;vector&lt;double&gt;&#39;, for Graph 0x6d5b53500, at 0x6d5b53380&gt;
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="sl-components-parsed">
-<h3>SL Components (parsed)<a class="headerlink" href="#sl-components-parsed" title="Link to this heading">¶</a></h3>
+<h3>SL Components (parsed)<a class="headerlink" href="#sl-components-parsed" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layer_1</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
@@ -951,7 +1397,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 767000 vertices and 1852844 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x487f223c0, at 0x37fc4e510&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x487f223c0, at 0x37fc4c4a0&gt;, at 0x487f223c0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 767000 vertices and 1852844 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5b41400, at 0x6d5aecda0&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5b41400, at 0x6d5b06f60&gt;, False), at 0x6d5b41400&gt;
 </pre></div>
 </div>
 </div>
@@ -1019,7 +1465,7 @@ Name: count, dtype: int64
 <p>We won’t visualise this, because it would be far too large.</p>
 </section>
 <section id="sl-synonyms">
-<h3>SL Synonyms<a class="headerlink" href="#sl-synonyms" title="Link to this heading">¶</a></h3>
+<h3>SL Synonyms<a class="headerlink" href="#sl-synonyms" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">layer_1</span> <span class="o">=</span> <span class="s1">&#39;swisslipids&#39;</span>
@@ -1030,7 +1476,7 @@ Name: count, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 1083210 vertices and 568258 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by &lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x487f22210, at 0x37fc4e810&gt;, vertices filtered by &lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x487f22210, at 0x37fc4d9a0&gt;, at 0x487f22210&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;GraphView object, directed, with 1082944 vertices and 568257 edges, 45 internal vertex properties, 7 internal edge properties, edges filtered by (&lt;EdgePropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5a828a0, at 0x6d5b17f20&gt;, False), vertices filtered by (&lt;VertexPropertyMap object with value type &#39;bool&#39;, for Graph 0x6d5a828a0, at 0x6d5b169c0&gt;, False), at 0x6d5a828a0&gt;
 </pre></div>
 </div>
 </div>
@@ -1048,10 +1494,10 @@ Name: count, dtype: int64
 </div>
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0    548163
-1    504991
-2     28517
-4      1467
-3        38
+1    504547
+2     28627
+4      1486
+3        87
 8        27
 5         7
 Name: count, dtype: int64
@@ -1115,10 +1561,10 @@ Name: count, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0    535047
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0    534781
 1    528310
-2     19619
-3       227
+2     19620
+3       226
 4         6
 5         1
 Name: count, dtype: int64
@@ -1149,87 +1595,114 @@ Name: count, dtype: int64
 </section>
 
 
-          </div>
-          
-        </div>
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index_nb_sources.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Sources</p>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/.lipinet_logo_v1_0051.png" alt="Logo of LipiNet"/>
-            </a></p>
-<h1 class="logo"><a href="../index.html">LipiNet</a></h1>
+    </a>
+    <a class="right-next"
+       href="explore_rhea.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Explore Rhea</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-
-
-
-
-
-
-
-<search id="searchbox" style="display: none" role="search">
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Main:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">LipiNet API</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Notebooks:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="parsing_swisslipids.html">Parsing SwissLipids into a network for LipiNet</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Exploring SwissLipids from a network perspective</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#loading-dependencies-and-data">Loading dependencies and data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-the-network-with-onionnet">Building the network with OnionNet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#filtering-the-network">Filtering the network</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#exploring-bipartite-networks">Exploring bipartite networks</a></li>
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-dependencies-and-data">Loading dependencies and data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-network-with-onionnet">Building the network with OnionNet</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-the-network">Filtering the network</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-bipartite-networks">Exploring bipartite networks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#chebi">ChEBI</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pmid">PMID</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hmdb">HMDB</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lipidmaps">LipidMaps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sl-components-parsed">SL Components (parsed)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sl-synonyms">SL Synonyms</a></li>
 </ul>
 </li>
 </ul>
+  </nav></div>
 
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="parsing_swisslipids.html" title="previous chapter">Parsing SwissLipids into a network for LipiNet</a></li>
-  </ul></li>
-</ul>
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Macabe Daley et al.
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Macabe Daley et al..
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
 </div>
+          </footer>
+        
 
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
+      </main>
     </div>
-    <div class="footer">
-      &#169;2025, Macabe Daley et al..
-      
-      |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
-      
-      |
-      <a href="../_sources/notebooks/explore_swisslipids.ipynb.txt"
-          rel="nofollow">Page source</a>
-    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    
-
-    
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>
