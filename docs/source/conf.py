@@ -89,7 +89,12 @@ html_theme_options = {
    "use_edit_page_button":  True,
    "path_to_docs":          "docs/source",
    "home_page_in_toc":      False,
-   "show_navbar_depth":     2,
+   "show_navbar_depth":     1,          # top navbar depth (unchanged)
+   # ↓ Control the left sidebar expansion
+   "show_nav_level": 1,            # only show 1 level open by default
+   "navigation_depth": 3,          # how deep the sidebar can expand
+   "expand_nav_sections": True, # keep siblings collapsed
+   # "expand_sections": False,     # (older pydata versions) keep sections collapsed
    # if you want the “Launch in Binder/Colab” buttons:
    "launch_buttons": {
      "colab_url":     "https://colab.research.google.com",

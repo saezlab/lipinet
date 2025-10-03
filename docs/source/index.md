@@ -15,28 +15,11 @@ modules
 ```{toctree}
 ---
 maxdepth: 2
-caption: Notebooks:
-<!-- caption: Use LipiNet -->
-:hidden:
+caption: Notebooks
 ---
+
 index_nb_use
-```
-
-```{toctree}
----
-maxdepth: 2
-<!-- caption: Build LipiNet -->
-:hidden:
----
 index_nb_build
-```
-
-```{toctree}
----
-maxdepth: 1
-<!-- caption: Sources -->
-:hidden:
----
 index_nb_sources
 ```
 
