@@ -11,12 +11,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="notebooks/parsing_swisslipids.html" />
 <meta property="og:site_name" content="LipiNet" />
-<meta property="og:description" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
+<meta property="og:description" content="Parsing SwissLipids data into a network for LipiNet. LipiNet offers conventient functions to parse prior knowledge resources straight into networks. For instance, LipiNet can parse SwissLipids data..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="_images/social_previews/summary_notebooks_parsing_swisslipids_adbe117e.png" />
-<meta property="og:image:alt" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
-<meta name="description" content="Parsing SwissLipids into a network for LipiNet Parsing the manual way: LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening ..." />
+<meta property="og:image" content="_images/social_previews/summary_notebooks_parsing_swisslipids_9478a24b.png" />
+<meta property="og:image:alt" content="Parsing SwissLipids data into a network for LipiNet. LipiNet offers conventient functions to parse prior knowledge resources straight into networks. For instance, LipiNet can parse SwissLipids data..." />
+<meta name="description" content="Parsing SwissLipids data into a network for LipiNet. LipiNet offers conventient functions to parse prior knowledge resources straight into networks. For instance, LipiNet can parse SwissLipids data..." />
 <meta name="twitter:card" content="summary_large_image" />
 
     <title>Parse SwissLipids &#8212; LipiNet 1.1.0 documentation</title>
@@ -426,12 +426,16 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parsing-the-manual-way">Parsing the manual way</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-parse-swisslipids-data">Using <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-from-here">Where to from here?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-parsing">Manual parsing</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-edges-df">Building the edges df</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-node-df">Building the node df</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ensuring-equivalency">Ensuring equivalency</a></li>
 </ul>
             </nav>
         </div>
@@ -445,11 +449,43 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="parse-swisslipids">
 <h1>Parse SwissLipids<a class="headerlink" href="#parse-swisslipids" title="Link to this heading">#</a></h1>
-<p>Parsing SwissLipids into a network for LipiNet</p>
+<p><strong>Parsing SwissLipids data into a network for LipiNet.</strong></p>
+<p>LipiNet offers conventient functions to parse prior knowledge resources straight into networks. For instance, LipiNet can parse SwissLipids data into a network as easily as running: <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code></p>
+<p>However to show what is happening behind the scenes, this notebook will also go through the data and each of the steps that are made in the background of this function. This may be particularly helpful to users needing to customise the networks in a way that is not yet supported by LipiNet directly.</p>
+<section id="using-parse-swisslipids-data">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code><a class="headerlink" href="#using-parse-swisslipids-data" title="Link to this heading">#</a></h2>
+<p>Like already mentioned, the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code> function automatically parses SwissLipids into a network. This is what LipiNet uses as input to its overall combined network and for the majority of users this function will probably suffice if they wish to build sub-networks with just SwissLipids data.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span>
+<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="o">.</span><span class="n">parse_swisslipids</span><span class="p">)</span>  <span class="c1"># reload the module after edits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span> 
+
+<span class="n">sl_results</span> <span class="o">=</span> <span class="n">parse_swisslipids_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df_sl_nodes</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_nodes&#39;</span><span class="p">]</span>
+<span class="n">df_sl_edges</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_edges&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>To avoid repeatedly downloading the SwissLipids data (and choking up their server calls), set <code class="docutils literal notranslate"><span class="pre">use_cache=True</span></code>. If the cache has not been set yet, this will automatically save the download to cache. If there is already a cache, it will use that.</p>
+<p>To override the cache you can set <code class="docutils literal notranslate"><span class="pre">force_download=True</span></code>, but this is only recommended every few months when you want to update the source data in case of changes.</p>
+<section id="where-to-from-here">
+<h3>Where to from here?<a class="headerlink" href="#where-to-from-here" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Now to quickly start exploring SwissLipids, go to the <a class="reference internal" href="explore_swisslipids.html"><span class="std std-doc">Explore SwissLipids notebook</span></a>.</p></li>
+<li><p>To see how the combined LipiNet network uses SwissLipids, go to the <a class="reference internal" href="explore_lipinet.html"><span class="std std-doc">Explore LipiNet notebook</span></a>.</p></li>
+<li><p>Or to see how the <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code> function works behind the scenes, continue to the <a class="reference internal" href="#manual-parsing">Manual parsing</a> section below.</p></li>
+</ul>
+</section>
+</section>
+<section id="manual-parsing">
+<h2>Manual parsing<a class="headerlink" href="#manual-parsing" title="Link to this heading">#</a></h2>
+<p>For users wanting to better understand all the steps being undertaken behind the <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code> function, we will recreate the steps here.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.databases</span>  <span class="c1"># Import the module</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 
 <span class="c1"># Reload the module to ensure changes are picked up</span>
 <span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="p">)</span>
@@ -464,9 +500,6 @@ document.write(`
 </div>
 </div>
 </div>
-<section id="parsing-the-manual-way">
-<h2>Parsing the manual way<a class="headerlink" href="#parsing-the-manual-way" title="Link to this heading">#</a></h2>
-<p>LipiNet offers conventient functions to parse prior knowledge resources straight into networks. But to show what is happening behind the scenes, this notebook goes through the data and each of the steps. Which may also be particularly helpful to you if you need to customise the networks in a way that is not yet supported by LipiNet directly.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids</span> <span class="o">=</span> <span class="n">get_prior_knowledge</span><span class="p">(</span><span class="s1">&#39;swisslipids&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1">#Previously set to True</span>
@@ -475,7 +508,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>File found locally at /Users/agjanyunlu/Documents/Metabolomics/lipinet/lipinet/.data/downloaded/swisslipids_lipids.tsv. Loading data...
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>File found locally at /opt/anaconda3/envs/graphtool/lib/python3.12/site-packages/lipinet/.data/downloaded/swisslipids_lipids.tsv. Loading data...
 Before cleaning, trailing-space counts in &#39;Lipid class*&#39;: {False: 779171, True: 76, nan: 2}
 
 &gt;&gt; Cleaning column &#39;Lipid class*&#39;:
@@ -5818,32 +5851,10 @@ Name: count, dtype: int64
 <p>Now we have the nodes and edges dfs for swisslipids and understand how we have arrived at them. In reality you don’t have to go through this process every time, LipiNet offers a convenient function to do just this if you are interested in this same network setup.</p>
 </section>
 </section>
-<section id="using-the-lipinet-parse-swisslipids-function">
-<h2>Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function<a class="headerlink" href="#using-the-lipinet-parse-swisslipids-function" title="Link to this heading">#</a></h2>
-<p>The LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function automatically runs through all of the same steps as we have just covered.</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span>
-
-<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">lipinet</span><span class="o">.</span><span class="n">parse_swisslipids</span><span class="p">)</span>  <span class="c1"># reload the module after edits</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>  <span class="c1"># re-import the updated symbol</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lipinet.parse_swisslipids</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_swisslipids_data</span>
-
-<span class="n">sl_results</span> <span class="o">=</span> <span class="n">parse_swisslipids_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">df_sl_nodes</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_nodes&#39;</span><span class="p">]</span>
-<span class="n">df_sl_edges</span> <span class="o">=</span> <span class="n">sl_results</span><span class="p">[</span><span class="s1">&#39;df_edges&#39;</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-</div>
-<p>We can also check to make sure these are equal here for an individual entry</p>
+<section id="ensuring-equivalency">
+<h2>Ensuring equivalency<a class="headerlink" href="#ensuring-equivalency" title="Link to this heading">#</a></h2>
+<p>We can also check to make sure that the output of the autmatic <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code> function and our manually processed data are equivalent.</p>
+<p>We start by checking this for a single entry of the dataframe.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_swisslipids_nodes</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -6384,12 +6395,16 @@ Name: count, dtype: int64
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parsing-the-manual-way">Parsing the manual way</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-parse-swisslipids-data">Using <code class="docutils literal notranslate"><span class="pre">parse_swisslipids_data()</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-from-here">Where to from here?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-parsing">Manual parsing</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-edges-df">Building the edges df</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-the-node-df">Building the node df</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-the-lipinet-parse-swisslipids-function">Using the LipiNet <code class="docutils literal notranslate"><span class="pre">parse_swisslipids</span></code> function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ensuring-equivalency">Ensuring equivalency</a></li>
 </ul>
   </nav></div>
 
