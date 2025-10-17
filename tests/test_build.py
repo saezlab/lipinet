@@ -43,12 +43,12 @@ def test_build_lipinet_data_combines_and_links(monkeypatch):
     monkeypatch.setattr(
         bl,
         "parse_swisslipids_data",
-        lambda **kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
+        lambda **_kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
     )
     monkeypatch.setattr(
         bl,
         "parse_rhea_data",
-        lambda **kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
+        lambda **_kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
     )
 
     res = bl.build_lipinet_data(verbose=True, use_cache=False, force_download=False)
@@ -66,9 +66,9 @@ def test_build_lipinet_data_combines_and_links(monkeypatch):
 
 def test_build_lipinet_uses_cache(monkeypatch):
     # Ensure builder early cache path
-    monkeypatch.setattr(bl, "cache_exists", lambda name: True)
+    monkeypatch.setattr(bl, "cache_exists", lambda _name: True)
     cached = {"df_nodes": pd.DataFrame(), "df_edges": pd.DataFrame()}
-    monkeypatch.setattr(bl, "load_cache", lambda name: cached)
+    monkeypatch.setattr(bl, "load_cache", lambda _name: cached)
     out = bl.build_lipinet_data(verbose=True, use_cache=True, force_download=False)
     assert out is cached
 
@@ -97,15 +97,17 @@ def test_build_lipinet_saves_cache(monkeypatch):
     monkeypatch.setattr(
         bl,
         "parse_swisslipids_data",
-        lambda **kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
+        lambda **_kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
     )
     monkeypatch.setattr(
         bl,
         "parse_rhea_data",
-        lambda **kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
+        lambda **_kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
     )
     called = {"n": 0}
-    monkeypatch.setattr(bl, "save_cache", lambda *a, **k: called.__setitem__("n", called["n"] + 1))
+    monkeypatch.setattr(
+        bl, "save_cache", lambda *_a, **_k: called.__setitem__("n", called["n"] + 1)
+    )
     res = bl.build_lipinet_data(verbose=True, use_cache=True, force_download=True)
     assert set(res.keys()) == {"df_nodes", "df_edges"}
     assert called["n"] == 1
@@ -135,18 +137,18 @@ def test_build_lipinet_main_save(monkeypatch):
     monkeypatch.setattr(
         bl,
         "parse_swisslipids_data",
-        lambda **kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
+        lambda **_kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
     )
     monkeypatch.setattr(
         bl,
         "parse_rhea_data",
-        lambda **kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
+        lambda **_kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
     )
     # Avoid requiring pyarrow/fastparquet
     monkeypatch.setattr(
         pd.DataFrame,
         "to_parquet",
-        lambda self, p, index=False: None,
+        lambda *_args, **_kwargs: None,
         raising=False,
     )
 
@@ -183,17 +185,17 @@ def test_build_lipinet_main_saves_and_prints(monkeypatch, capsys):
     monkeypatch.setattr(
         bl,
         "parse_swisslipids_data",
-        lambda **kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
+        lambda **_kw: {"df_nodes": sl_nodes, "df_edges": sl_edges},
     )
     monkeypatch.setattr(
         bl,
         "parse_rhea_data",
-        lambda **kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
+        lambda **_kw: {"df_nodes": rh_nodes, "df_edges": rh_edges},
     )
     monkeypatch.setattr(
         pd.DataFrame,
         "to_parquet",
-        lambda self, p, index=False: None,
+        lambda *_args, **_kwargs: None,
         raising=False,
     )
 

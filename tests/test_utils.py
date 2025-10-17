@@ -99,7 +99,7 @@ def test_clean_columns_all_options_and_missing_handling():
         raise AssertionError("Expected KeyError when ignore_missing=False and column absent")
 
 
-def test_check_for_split_characters_returns_cols(capsys):
+def test_check_for_split_characters_returns_cols(_capsys=None):
     df = pd.DataFrame(
         {
             "a": ["x|y", "z"],

@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 """
-lipinet.build_lipinet
+Build the combined LipiNet graph.
 
-Builds the combined LipiNet graph (nodes & edges) from parsed sources
-(SwissLipids, Rhea), including cross-source linking (e.g., ChEBI).
+From parsed sources (SwissLipids, Rhea), including cross-source linking (e.g., ChEBI).
 
 Provides:
   - build_lipinet_data(verbose=False, use_cache=False, force_download=False)
@@ -54,8 +52,9 @@ def _link_chebi_edges(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Create interlayer edges between SwissLipids sl_chebi and Rhea rhea_chebiid
-    by matching identical ChEBI IDs (SwissLipids uses plain IDs, Rhea uses 'CHEBI:ID').
+    Create interlayer edges between SwissLipids sl_chebi and Rhea rhea_chebiid.
+
+    Match identical ChEBI IDs (SwissLipids uses plain IDs, Rhea uses 'CHEBI:ID').
     """
     sl_chebi = df_sl_nodes[df_sl_nodes["layer"] == "sl_chebi"].copy()
     rhea_chebi = df_rhea_nodes[df_rhea_nodes["layer"] == "rhea_chebiid"].copy()
@@ -94,8 +93,9 @@ def _link_chebi_edges(
 
 def _join_node_dfs(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame) -> pd.DataFrame:
     """
-    Combine node frames from SwissLipids and Rhea, tagging origin and
-    prefixing source-unique columns.
+    Combine node frames from SwissLipids and Rhea.
+
+    Tag origin and prefix source-unique columns.
     """
     df_sl = df_sl_nodes.copy()
     df_rh = df_rhea_nodes.copy()
@@ -121,9 +121,8 @@ def _join_node_dfs(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame) -> pd
 
     # Basic cleanup
     df_nodes = clean_missing_strings(df_nodes)
-    df_nodes = df_nodes.drop_duplicates(subset=["layer", "node_id"])
 
-    return df_nodes
+    return df_nodes.drop_duplicates(subset=["layer", "node_id"])
 
 
 def _join_edge_dfs(
@@ -131,9 +130,7 @@ def _join_edge_dfs(
     df_rhea_edges: pd.DataFrame,
     df_chebi_linked: pd.DataFrame,
 ) -> pd.DataFrame:
-    """
-    Stack edges from sources and the cross-source links; add origin labels.
-    """
+    """Stack edges from sources and cross-source links; add origin labels."""
     sl = df_sl_edges.copy().assign(origin_edge="swisslipids")
     rh = df_rhea_edges.copy().assign(origin_edge="rhea")
 
@@ -154,9 +151,8 @@ def _join_edge_dfs(
         ]
         if c in df_edges.columns
     ]
-    df_edges = df_edges[front + [c for c in df_edges.columns if c not in front]]
 
-    return df_edges
+    return df_edges[front + [c for c in df_edges.columns if c not in front]]
 
 
 # ---------------------------
@@ -221,6 +217,7 @@ def build_lipinet_data(
 
 
 def main():
+    """CLI entry point for building the combined LipiNet graph."""
     parser = argparse.ArgumentParser(description="Build combined LipiNet (SwissLipids + Rhea)")
     parser.add_argument(
         "--use-cache",

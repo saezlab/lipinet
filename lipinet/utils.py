@@ -1,3 +1,5 @@
+"""Utility functions for LipiNet data processing."""
+
 from collections.abc import Iterable
 from pathlib import Path
 import re
@@ -13,7 +15,7 @@ CACHE_ROOT.mkdir(parents=True, exist_ok=True)
 
 def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
-    Splits a column by a delimiter and expands specified columns for large DataFrames, handling None/NaN values.
+    Split a column by a delimiter and expand specified columns.
 
     Parameters
     ----------
@@ -64,22 +66,15 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
         )
     expanded_data[split_col] = np.concatenate(split_data.values)
 
-    # Step 5: Create the expanded DataFrame
-    expanded_df = pd.DataFrame(expanded_data)
-
-    return expanded_df
-
-    # # Example usage for large DataFrames with None or NaN values
-    # data = {'col1': ['word|smith', None, 'apple|banana|cherry', np.nan], 'col2': ['john', 'doe', 'alice', 'bob']}
-    # df = pd.DataFrame(data)
-    # result = split_and_expand_large(df, split_col='col1', delimiter='|', expand_cols=['col2'])
-    # print(result)
+    # Step 5: Create and return the expanded DataFrame
+    return pd.DataFrame(expanded_data)
 
 
 def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
     """
-    Create a node DataFrame from an edge DataFrame by stacking source/target
-    columns for the given properties.
+    Create a node DataFrame from an edge DataFrame.
+
+    Stack source/target columns for the given properties.
 
     Parameters
     ----------
@@ -112,11 +107,12 @@ def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
     tgt = edge_df[[f"target_{props[0]}", f"target_{props[1]}"]].rename(
         columns={f"target_{props[0]}": cols[0], f"target_{props[1]}": cols[1]},
     )
-    node_df = pd.concat([src, tgt], ignore_index=True).drop_duplicates()
-    return node_df
+    # Combine source and target DataFrames and drop duplicates
+    return pd.concat([src, tgt], ignore_index=True).drop_duplicates()
 
 
 def check_for_split_characters(df, delimiter="|"):
+    """Print columns that contain the delimiter and return their names."""
     cols_with_split_chars = []
     for col in df.columns:
         print(f"Checking split characters ({delimiter}) in " + col)
@@ -139,8 +135,9 @@ def clean_missing_strings(
     string_fraction_threshold=0.9,
 ) -> pd.DataFrame:
     """
-    Strip whitespace from stringy values and normalize common placeholder "missing" strings
-    into real pandas NA. Operates on specified columns or all object/string columns by default.
+    Strip whitespace and normalize placeholder strings to missing values.
+
+    Operate on specified columns or all object/string columns by default.
 
     Args:
         df: input DataFrame (modified in-place).
@@ -337,6 +334,6 @@ def load_cache(source: str) -> dict[str, pd.DataFrame]:
 
 
 def cache_exists(source: str) -> bool:
-    """True if both cache files exist for this source."""
+    """Return whether both cache files exist for this source."""
     paths = _cache_paths(source)
     return paths["nodes"].exists() and paths["edges"].exists()

@@ -22,7 +22,7 @@ def test_download_csv_then_load_no_redownload(monkeypatch):
     csv_text = "a,b\n1,2\n"
     calls = {"count": 0}
 
-    def fake_get(url):
+    def fake_get(_url):
         calls["count"] += 1
         return DummyResp(csv_text.encode("utf-8"))
 
@@ -55,7 +55,7 @@ def test_download_gzip_tsv(monkeypatch):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(content))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(content))}),
     )
 
     df = download_and_load_data(
@@ -76,7 +76,7 @@ def test_download_json(monkeypatch):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(content))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(content))}),
     )
 
     out = download_and_load_data(
@@ -103,7 +103,7 @@ def test_get_prior_knowledge_swisslipids_gz(monkeypatch):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(content))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(content))}),
     )
 
     df = db.get_prior_knowledge("swisslipids", verbose=True, force_download=True)
@@ -123,7 +123,7 @@ def test_get_prior_knowledge_rhea_tsv(monkeypatch):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(content))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(content))}),
     )
     df = db.get_prior_knowledge("rhea", force_download=True)
     assert isinstance(df, pd.DataFrame)
@@ -139,14 +139,14 @@ def test_get_prior_knowledge_unsupported_resource():
         raise AssertionError("Expected KeyError for unsupported resource")
 
 
-def test_download_and_load_data_verbose_and_errors(monkeypatch, tmp_path):
+def test_download_and_load_data_verbose_and_errors(monkeypatch, _tmp_path=None):
     # Exercise verbose branches and error paths
     # Unsupported file format
     # Ensure no network by mocking requests.get
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(b""))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(b""))}),
     )
     try:
         download_and_load_data(
@@ -165,7 +165,7 @@ def test_download_and_load_data_verbose_and_errors(monkeypatch, tmp_path):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(b"junk"))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(b"junk"))}),
     )
     try:
         download_and_load_data(
@@ -186,7 +186,7 @@ def test_download_and_load_data_verbose_and_errors(monkeypatch, tmp_path):
     monkeypatch.setattr(
         db,
         "requests",
-        type("R", (), {"get": staticmethod(lambda u: DummyResp(csv_text.encode("utf-8")))}),
+        type("R", (), {"get": staticmethod(lambda _u: DummyResp(csv_text.encode("utf-8")))}),
     )
     _ = download_and_load_data(
         "exists.csv",

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 A standalone module that loads and processes SwissLipids data into a df_nodes using lipinet.
 

@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 """
-lipinet.parse_rhea
+Process Rhea data into LipiNet nodes and edges.
 
-A standalone module that loads and processes Rhea data into node and edge DataFrames
-for LipiNet. Provides a helper function `parse_rhea_data` and a CLI entrypoint.
+Provides a helper function `parse_rhea_data` and a CLI entrypoint.
 """
 
 import argparse
@@ -72,12 +70,11 @@ def process_ec_numbers(df):
 
 def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
     """
-    Given a DataFrame with EC hierarchy columns:
-        Main_Class, Subclass, Subsubclass, EC_number,
-    this function creates:
+    Given a DataFrame with EC hierarchy columns.
+
+    Main_Class, Subclass, Subsubclass, EC_number; create:
       - A DataFrame of edges linking each hierarchical level.
-      - A DataFrame of unique nodes with a 'ec_level' column
-        indicating the node's level in the hierarchy.
+      - A DataFrame of unique nodes with a 'ec_level' column indicating the node's level.
     """
     # -- Make a copy so we don't modify the original df in-place
     df = df_ec.copy()
@@ -231,7 +228,6 @@ def parse_rhea_data(verbose: bool = False, use_cache: bool = False, force_downlo
     )
 
     # Combine edges
-    # df_edges = pd.concat([df_edges_ec, df_edges_reaction_chebi, df_edges_reaction_ec], ignore_index=True).drop_duplicates()
     df_edges_ec = df_edges_ec.assign(edge_type="ec_hierarchy")
     df_edges_reaction_chebi = df_edges_reaction_chebi.assign(edge_type="reaction_chebi")
     df_edges_reaction_ec = df_edges_reaction_ec.assign(edge_type="reaction_ec")
@@ -296,6 +292,7 @@ def parse_rhea_data(verbose: bool = False, use_cache: bool = False, force_downlo
 
 
 def main():
+    """CLI entry point for processing Rhea data."""
     parser = argparse.ArgumentParser(description="Process Rhea data using LipiNet")
     parser.add_argument("--quiet", action="store_true", help="Suppress detailed output")
     parser.add_argument(

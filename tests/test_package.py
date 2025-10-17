@@ -14,7 +14,7 @@ def test_package_version_fallback(monkeypatch):
     monkeypatch.setattr(
         im,
         "version",
-        lambda name: (_ for _ in ()).throw(im.PackageNotFoundError()),
+        lambda _name: (_ for _ in ()).throw(im.PackageNotFoundError()),
         raising=False,
     )
     # Remove module to hit import-time branch

@@ -63,14 +63,16 @@ exclude_patterns = [
 ]
 
 import os
+from pathlib import Path
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
+# Add project root to sys.path using pathlib
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Detect RTD build
 on_rtd = os.environ.get("READTHEDOCS") == "True"
 
-# If we’re on RTD, never re‑execute; just render committed outputs.
+# If we're on RTD, never re-execute; just render committed outputs.
 # Otherwise (e.g. local dev) use cache mode so missing outputs still run.
 nb_execution_mode = "off" if on_rtd else "cache"
 nb_execution_timeout = 90  # Set timeout to 90 seconds
@@ -96,9 +98,4 @@ html_theme_options = {
     "show_nav_level": 1,  # only show 1 level open by default
     "navigation_depth": 3,  # how deep the sidebar can expand
     "expand_nav_sections": True,  # keep siblings collapsed
-    # "expand_sections": False,     # (older pydata versions) keep sections collapsed
-    # if you want the “Launch in Binder/Colab” buttons:
-    "launch_buttons": {
-        "colab_url": "https://colab.research.google.com",
-    },
 }

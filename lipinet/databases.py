@@ -1,7 +1,20 @@
+"""
+Small helpers to download, load, and lightly clean external reference data.
+
+This module provides utilities for downloading remote datasets with local
+caching, optional gzip decompression, and loading into pandas or native
+Python structures.
+
+Notes
+-----
+- compressed=True expects gzip-compressed CSV/TSV (not JSON).
+- Network and I/O errors are propagated to callers.
+"""
+
 import gzip
 import io
 import json
-import os
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -20,8 +33,9 @@ def download_and_load_data(
     force_download=False,
 ):
     """
-    Checks if the specified file exists locally. If not, downloads it from the provided URL.
-    Supports loading compressed files and handling different formats.
+    Check if a file exists locally and optionally download it.
+
+    Support loading compressed files and handling different formats.
 
     Parameters
     ----------
@@ -38,17 +52,17 @@ def download_and_load_data(
     -------
     - data (DataFrame, dict, or list): The loaded data from the file, in the format specified.
     """
-    # Set the directory relative to the script's location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(script_dir, ".data/downloaded")
-    os.makedirs(data_dir, exist_ok=True)
-    filepath = os.path.join(data_dir, filename)
+    # Set the directory relative to the script's location (pathlib)
+    script_dir = Path(__file__).resolve().parent
+    data_dir = script_dir / ".data" / "downloaded"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    filepath = data_dir / filename
 
-    need_download = force_download or not os.path.exists(filepath)
+    need_download = force_download or not filepath.exists()
 
     if need_download:
         if verbose:
-            if force_download and os.path.exists(filepath):
+            if force_download and filepath.exists():
                 print(
                     f"Override requested; re-downloading {filename} from {url} even though it exists locally.",
                 )
@@ -70,14 +84,14 @@ def download_and_load_data(
             data.to_csv(filepath, sep=sep, index=False)
         else:
             # Save raw content
-            with open(filepath, "wb") as f:
+            with filepath.open("wb") as f:
                 f.write(response.content)
 
             # Load it
             if file_format in ("csv", "tsv"):
                 data = pd.read_csv(filepath, sep=sep, low_memory=False)
             elif file_format == "json":
-                with open(filepath, encoding=encoding) as f:
+                with filepath.open(encoding=encoding) as f:
                     data = json.load(f)
             else:
                 raise ValueError(
@@ -92,7 +106,7 @@ def download_and_load_data(
         if file_format in ("csv", "tsv"):
             data = pd.read_csv(filepath, sep=sep, low_memory=False)
         elif file_format == "json":
-            with open(filepath, encoding=encoding) as f:
+            with filepath.open(encoding=encoding) as f:
                 data = json.load(f)
         else:
             raise ValueError(
@@ -103,6 +117,7 @@ def download_and_load_data(
 
 
 def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
+    """Return a DataFrame for a known resource, downloading if needed."""
     # note these will be added to the data dir (.data/databases)
     resources = {
         "swisslipids": {
@@ -149,7 +164,8 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
 def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.DataFrame:
     """
     Dispatch per-resource specialized cleaning.
-    Returns a cleaned copy; original df is not mutated.
+
+    Return a cleaned copy; original df is not mutated.
     """
     df = df.copy()
     if name_of_resource == "swisslipids":
@@ -194,3 +210,15 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.
             f"No specialized cleaning defined for resource '{name_of_resource}'; returning original dataframe copy.",
         )
     return df
+
+
+"""Download and load external reference data for LipiNet.
+
+Utilities for downloading remote datasets with local caching, optional gzip
+decompression, and loading into pandas or native Python structures.
+
+Notes
+-----
+- ``compressed=True`` expects gzip-compressed CSV/TSV (not JSON).
+- Network and I/O errors are propagated to callers.
+"""

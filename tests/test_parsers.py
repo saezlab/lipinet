@@ -24,7 +24,7 @@ def test_parse_swisslipids_data_basic(monkeypatch):
         },
     )
 
-    monkeypatch.setattr(ps, "get_prior_knowledge", lambda name, **kw: df)
+    monkeypatch.setattr(ps, "get_prior_knowledge", lambda _name, **_kw: df)
 
     res = ps.parse_swisslipids_data(verbose=True, force_download=False, use_cache=False)
     nodes, edges = res["df_nodes"], res["df_edges"]
@@ -68,7 +68,7 @@ def test_explode_columns_and_parse_rhea_data(monkeypatch):
             "Cross-reference (Reactome)": ["RXN:1"],
         },
     )
-    monkeypatch.setattr(pr, "get_prior_knowledge", lambda name, **kw: df)
+    monkeypatch.setattr(pr, "get_prior_knowledge", lambda _name, **_kw: df)
     res = pr.parse_rhea_data(verbose=True, use_cache=False, force_download=False)
     edges, nodes = res["df_edges"], res["df_nodes"]
     # Edge types present
@@ -79,34 +79,34 @@ def test_explode_columns_and_parse_rhea_data(monkeypatch):
 
 def test_parse_swisslipids_uses_cache(monkeypatch):
     # Force cache branch
-    monkeypatch.setattr(ps, "cache_exists", lambda name: True)
+    monkeypatch.setattr(ps, "cache_exists", lambda _name: True)
     cached = {"df_nodes": pd.DataFrame(), "df_edges": pd.DataFrame()}
-    monkeypatch.setattr(ps, "load_cache", lambda name: cached)
+    monkeypatch.setattr(ps, "load_cache", lambda _name: cached)
     out = ps.parse_swisslipids_data(verbose=True, use_cache=True, force_download=False)
     assert out is cached
 
 
 def test_parse_rhea_fallback_and_cache(monkeypatch):
     # First exercise the early cache branch
-    monkeypatch.setattr(pr, "cache_exists", lambda name: True)
+    monkeypatch.setattr(pr, "cache_exists", lambda _name: True)
     cached = {"df_nodes": pd.DataFrame(), "df_edges": pd.DataFrame()}
-    monkeypatch.setattr(pr, "load_cache", lambda name: cached)
+    monkeypatch.setattr(pr, "load_cache", lambda _name: cached)
     out = pr.parse_rhea_data(verbose=True, use_cache=True, force_download=False)
     assert out is cached
 
     # Now exercise the fallback path by raising in get_prior_knowledge
-    monkeypatch.setattr(pr, "cache_exists", lambda name: False)
+    monkeypatch.setattr(pr, "cache_exists", lambda _name: False)
     monkeypatch.setattr(
         pr,
         "get_prior_knowledge",
-        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")),
+        lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("boom")),
     )
 
     # Monkeypatch pandas.read_csv for the fallback path
     monkeypatch.setattr(
         pr.pd,
         "read_csv",
-        lambda *a, **k: pd.DataFrame(
+        lambda *_a, **_k: pd.DataFrame(
             {
                 "Reaction identifier": ["R1"],
                 "Equation": ["A=B"],
@@ -137,7 +137,7 @@ def test_parse_rhea_main_quiet(monkeypatch):
             "Cross-reference (Reactome)": ["RXN:1"],
         },
     )
-    monkeypatch.setattr(pr, "get_prior_knowledge", lambda *a, **k: df)
+    monkeypatch.setattr(pr, "get_prior_knowledge", lambda *_a, **_k: df)
     argv = sys.argv
     try:
         sys.argv = ["prog", "--quiet"]
@@ -163,9 +163,11 @@ def test_parse_swisslipids_saves_cache(monkeypatch):
             "Components*": ["FA(16:0)/FA(18:1)"],
         },
     )
-    monkeypatch.setattr(ps, "get_prior_knowledge", lambda *a, **k: df)
+    monkeypatch.setattr(ps, "get_prior_knowledge", lambda *_a, **_k: df)
     called = {"n": 0}
-    monkeypatch.setattr(ps, "save_cache", lambda *a, **k: called.__setitem__("n", called["n"] + 1))
+    monkeypatch.setattr(
+        ps, "save_cache", lambda *_a, **_k: called.__setitem__("n", called["n"] + 1)
+    )
     ps.parse_swisslipids_data(verbose=True, use_cache=True, force_download=True)
     assert called["n"] == 1
 
@@ -183,8 +185,10 @@ def test_parse_rhea_saves_cache(monkeypatch):
             "Cross-reference (Reactome)": ["RXN:1"],
         },
     )
-    monkeypatch.setattr(pr, "get_prior_knowledge", lambda *a, **k: df)
+    monkeypatch.setattr(pr, "get_prior_knowledge", lambda *_a, **_k: df)
     called = {"n": 0}
-    monkeypatch.setattr(pr, "save_cache", lambda *a, **k: called.__setitem__("n", called["n"] + 1))
+    monkeypatch.setattr(
+        pr, "save_cache", lambda *_a, **_k: called.__setitem__("n", called["n"] + 1)
+    )
     pr.parse_rhea_data(verbose=True, use_cache=True, force_download=True)
     assert called["n"] == 1
