@@ -7,7 +7,8 @@ Python structures.
 
 Notes
 -----
-- compressed=True expects gzip-compressed CSV/TSV (not JSON).
+- compressed : bool
+    If True, expects gzip-compressed CSV/TSV (not JSON).
 - Network and I/O errors are propagated to callers.
 """
 
@@ -39,18 +40,34 @@ def download_and_load_data(
 
     Parameters
     ----------
-    - filename (str): The name of the file to be saved within the data directory.
-    - url (str): The URL to download the file from if it's not found locally.
-    - file_format (str): The format of the file ('json' or 'csv'). Defaults to 'csv'.
-    - compressed (bool): If True, expects the downloaded file to be in gzip format. Defaults to False.
-    - sep (str): Separator to use if loading CSV/TSV data. Defaults to ','.
-    - encoding (str): Encoding to use for reading files. Defaults to 'utf-8'.
-    - verbose (bool): If True, prints additional information during the process. Defaults to False.
-    - force_download (bool): If True, download even if the file exists locally. Defaults to False.
+    filename : str
+        The name of the file to be saved within the data directory.
+    url : str
+        The URL to download the file from if it's not found locally.
+    file_format : str, optional
+        The format of the file ('json' or 'csv'). Defaults to 'csv'.
+    compressed : bool, optional
+        If True, expects the downloaded file to be in gzip format.
+        Defaults to False.
+    sep : str, optional
+        Separator to use if loading CSV/TSV data. Defaults to ','.
+    encoding : str, optional
+        Encoding to use for reading files. Defaults to 'utf-8'.
+    verbose : bool, optional
+        If True, prints additional information during the process.
+        Defaults to False.
+    force_download : bool, optional
+        If True, download even if the file exists locally. Defaults to False.
 
     Returns
     -------
-    - data (DataFrame, dict, or list): The loaded data from the file, in the format specified.
+    data : pandas.DataFrame or dict or list
+        The loaded data from the file, in the format specified.
+
+    Notes
+    -----
+    - compressed expects gzip-compressed CSV/TSV (not JSON).
+    - Network and I/O errors are propagated to callers.
     """
     # Set the directory relative to the script's location (pathlib)
     script_dir = Path(__file__).resolve().parent
@@ -117,7 +134,29 @@ def download_and_load_data(
 
 
 def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
-    """Return a DataFrame for a known resource, downloading if needed."""
+    """
+    Return a DataFrame for a known resource, downloading if needed.
+
+    Parameters
+    ----------
+    name_of_resource : str
+        Key identifying the resource to fetch (e.g., 'swisslipids', 'rhea').
+    verbose : bool, optional
+        If True, print progress and diagnostic messages. Defaults to False.
+    force_download : bool, optional
+        If True, re-download resources even if they exist locally.
+        Defaults to False.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The fetched and cleaned DataFrame for the requested resource.
+
+    Raises
+    ------
+    KeyError
+        If the requested resource is not supported.
+    """
     # note these will be added to the data dir (.data/databases)
     resources = {
         "swisslipids": {
@@ -166,6 +205,20 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.
     Dispatch per-resource specialized cleaning.
 
     Return a cleaned copy; original df is not mutated.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame to clean.
+    name_of_resource : str
+        Identifier of the resource whose cleaning rules should be applied.
+    verbose : bool, optional
+        If True, print diagnostic information. Defaults to False.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A cleaned copy of the input DataFrame.
     """
     df = df.copy()
     if name_of_resource == "swisslipids":
@@ -210,15 +263,3 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.
             f"No specialized cleaning defined for resource '{name_of_resource}'; returning original dataframe copy.",
         )
     return df
-
-
-"""Download and load external reference data for LipiNet.
-
-Utilities for downloading remote datasets with local caching, optional gzip
-decompression, and loading into pandas or native Python structures.
-
-Notes
------
-- ``compressed=True`` expects gzip-compressed CSV/TSV (not JSON).
-- Network and I/O errors are propagated to callers.
-"""

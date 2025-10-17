@@ -1,4 +1,6 @@
 """
+SwissLipids data parsing module.
+
 A standalone module that loads and processes SwissLipids data into a df_nodes using lipinet.
 
 This module provides a helper function `parse_swisslipids_data` that can be imported into notebooks or other scripts.
@@ -26,13 +28,17 @@ def parse_swisslipids_data(verbose=False, force_download=False, use_cache=False)
 
     Parameters
     ----------
-        verbose (bool): If True, prints detailed output. Defaults to False.
-        force_download (bool): If True, re-fetch raw data, skipping any cache.
-        use_cache (bool): If True, load/save the parsed nodes & edges after first run.
+    verbose : bool
+        If True, prints detailed output. Defaults to False.
+    force_download : bool
+        If True, re-fetch raw data, skipping any cache.
+    use_cache : bool
+        If True, load/save the parsed nodes & edges after first run.
 
     Returns
     -------
-        dict: A dictionary with keys 'df_nodes' and 'df_edges'.
+    dict
+        A dictionary with keys 'df_nodes' and 'df_edges'.
     """
     # Cache check
     if use_cache and not force_download and cache_exists("swisslipids"):

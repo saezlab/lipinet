@@ -3,18 +3,21 @@ Build the combined LipiNet graph.
 
 From parsed sources (SwissLipids, Rhea), including cross-source linking (e.g., ChEBI).
 
-Provides:
-  - build_lipinet_data(verbose=False, use_cache=False, force_download=False)
-  - CLI entrypoint: python -m lipinet.build_lipinet [--use-cache] [--force-download] [--quiet] [--save]
+Provides
+--------
+- build_lipinet_data(verbose=False, use_cache=False, force_download=False)
+- CLI entrypoint: ``python -m lipinet.build_lipinet [--use-cache] [--force-download] [--quiet] [--save]``
 
-Cache semantics:
-  - If use_cache is True and cache for 'lipinet' exists (and not force_download),
+Cache semantics
+---------------
+- If use_cache is True and cache for 'lipinet' exists (and not force_download),
     load and return.
-  - Otherwise build fresh; if use_cache True, write cache at the end.
+- Otherwise build fresh; if use_cache True, write cache at the end.
 
-Output (when --save given):
-  - .data/processed/lipinet_nodes.parquet
-  - .data/processed/lipinet_edges.parquet
+Output (when --save given)
+--------------------------
+- ``.data/processed/lipinet_nodes.parquet``
+- ``.data/processed/lipinet_edges.parquet``
 """
 
 from __future__ import annotations
@@ -41,7 +44,19 @@ DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
 
 def _trim_chebi(series: pd.Series) -> pd.Series:
-    """Return numeric/ID part by stripping a leading 'CHEBI:' if present."""
+    """
+    Return numeric/ID part by stripping a leading 'CHEBI:' if present.
+
+    Parameters
+    ----------
+    series : pandas.Series
+            Series containing ChEBI identifiers (may include a leading 'CHEBI:').
+
+    Returns
+    -------
+    pandas.Series
+            Series with leading 'CHEBI:' removed where present.
+    """
     s = series.astype(str).str.strip()
     return s.str.replace("CHEBI:", "", regex=False)
 
@@ -55,6 +70,20 @@ def _link_chebi_edges(
     Create interlayer edges between SwissLipids sl_chebi and Rhea rhea_chebiid.
 
     Match identical ChEBI IDs (SwissLipids uses plain IDs, Rhea uses 'CHEBI:ID').
+
+    Parameters
+    ----------
+    df_sl_nodes : pandas.DataFrame
+            Nodes DataFrame from SwissLipids.
+    df_rhea_nodes : pandas.DataFrame
+            Nodes DataFrame from Rhea.
+    verbose : bool, optional
+            If True, print summary information.
+
+    Returns
+    -------
+    pandas.DataFrame
+            DataFrame of interlayer edges linking matching ChEBI identifiers.
     """
     sl_chebi = df_sl_nodes[df_sl_nodes["layer"] == "sl_chebi"].copy()
     rhea_chebi = df_rhea_nodes[df_rhea_nodes["layer"] == "rhea_chebiid"].copy()
@@ -96,6 +125,18 @@ def _join_node_dfs(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame) -> pd
     Combine node frames from SwissLipids and Rhea.
 
     Tag origin and prefix source-unique columns.
+
+    Parameters
+    ----------
+    df_sl_nodes : pandas.DataFrame
+            Nodes DataFrame from SwissLipids.
+    df_rhea_nodes : pandas.DataFrame
+            Nodes DataFrame from Rhea.
+
+    Returns
+    -------
+    pandas.DataFrame
+            Combined and cleaned nodes DataFrame with prefixed source-specific columns.
     """
     df_sl = df_sl_nodes.copy()
     df_rh = df_rhea_nodes.copy()
@@ -130,7 +171,23 @@ def _join_edge_dfs(
     df_rhea_edges: pd.DataFrame,
     df_chebi_linked: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Stack edges from sources and cross-source links; add origin labels."""
+    """
+    Stack edges from sources and cross-source links; add origin labels.
+
+    Parameters
+    ----------
+    df_sl_edges : pandas.DataFrame
+            Edges DataFrame from SwissLipids.
+    df_rhea_edges : pandas.DataFrame
+            Edges DataFrame from Rhea.
+    df_chebi_linked : pandas.DataFrame
+            Cross-source ChEBI linking edges.
+
+    Returns
+    -------
+    pandas.DataFrame
+            Combined edges DataFrame with origins and standardized column ordering.
+    """
     sl = df_sl_edges.copy().assign(origin_edge="swisslipids")
     rh = df_rhea_edges.copy().assign(origin_edge="rhea")
 
@@ -169,8 +226,23 @@ def build_lipinet_data(
     Build combined LipiNet nodes & edges from SwissLipids and Rhea.
 
     Cache behavior mirrors parse_* modules:
-      - If use_cache and not force_download and cache exists('lipinet'): load & return.
-      - Else build; if use_cache, save to cache before returning.
+        - If use_cache and not force_download and cache exists('lipinet'): load & return.
+        - Else build; if use_cache, save to cache before returning.
+
+    Parameters
+    ----------
+    verbose : bool, optional
+            If True, print progress messages.
+    use_cache : bool, optional
+            If True, attempt to load/save combined result from cache.
+    force_download : bool, optional
+            If True, force fresh fetch/parse of source datasets.
+
+    Returns
+    -------
+    dict of (str, pandas.DataFrame)
+            Dictionary with keys 'df_nodes' and 'df_edges' containing the combined
+            LipiNet nodes and edges DataFrames.
     """
     # Load from cache?
     if use_cache and not force_download and cache_exists("lipinet"):
@@ -217,7 +289,11 @@ def build_lipinet_data(
 
 
 def main():
-    """CLI entry point for building the combined LipiNet graph."""
+    """
+    CLI entry point for building the combined LipiNet graph.
+
+    Usage: ``python -m lipinet.build_lipinet [--use-cache] [--force-download] [--quiet] [--save]``
+    """
     parser = argparse.ArgumentParser(description="Build combined LipiNet (SwissLipids + Rhea)")
     parser.add_argument(
         "--use-cache",

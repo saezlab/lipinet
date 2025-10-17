@@ -23,11 +23,13 @@ def process_ec_numbers(df):
 
     Parameters
     ----------
-        df (pd.DataFrame): A DataFrame containing an 'EC number' column.
+    df : pandas.DataFrame
+        DataFrame containing an 'EC number' column.
 
     Returns
     -------
-        pd.DataFrame: A new DataFrame with the following columns:
+    pandas.DataFrame
+        DataFrame with columns:
             - 'EC_number': The reassembled EC number in the format 'EC:Main_Class.Subclass.Subsubclass.Serial_Number'
             - 'Main_Class': The first part of the EC number.
             - 'Subclass': The second part of the EC number.
@@ -70,11 +72,21 @@ def process_ec_numbers(df):
 
 def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
     """
-    Given a DataFrame with EC hierarchy columns.
+    Build EC hierarchy edges and nodes from an EC DataFrame.
 
-    Main_Class, Subclass, Subsubclass, EC_number; create:
-      - A DataFrame of edges linking each hierarchical level.
-      - A DataFrame of unique nodes with a 'ec_level' column indicating the node's level.
+    Parameters
+    ----------
+    df_ec : pandas.DataFrame
+        DataFrame containing EC hierarchy columns: 'Main_Class', 'Subclass', 'Subsubclass', 'EC_number'.
+
+    Returns
+    -------
+    tuple of (pandas.DataFrame, pandas.DataFrame)
+        edges_df : DataFrame
+            Edges linking each hierarchical level with columns including 'source_id', 'target_id',
+            'ec_level', 'source_layer', 'target_layer', and 'interlayer'.
+        nodes_df : DataFrame
+            Unique nodes with columns 'node_id', 'layer', and 'ec_level' indicating the node's level.
     """
     # -- Make a copy so we don't modify the original df in-place
     df = df_ec.copy()
@@ -155,16 +167,21 @@ def explode_columns(df, columns, delimiter=";"):
 
     Parameters
     ----------
-        df (pd.DataFrame): Input DataFrame.
-        columns (list of str): List of column names to split by the delimiter.
-        delimiter (str): The delimiter to use when splitting the column values.
+    df : pandas.DataFrame
+        Input DataFrame.
+    columns : list of str
+        List of column names to split by the delimiter.
+    delimiter : str, optional
+        The delimiter to use when splitting the column values (default is ";").
 
     Returns
     -------
-        pd.DataFrame: A new DataFrame with the specified columns exploded.
+    pandas.DataFrame
+        A new DataFrame with the specified columns exploded.
 
-    Note:
-        Each row in the specified columns must produce lists of the same length.
+    Notes
+    -----
+    Each row in the specified columns must produce lists of the same length.
     """
     df = df.copy()
     for col in columns:
@@ -180,13 +197,17 @@ def parse_rhea_data(verbose: bool = False, use_cache: bool = False, force_downlo
 
     Parameters
     ----------
-        verbose (bool): If True, prints detailed status.
-        use_cache (bool): If True, load/save processed nodes & edges.
-        force_download (bool): If True, refetch raw Rhea and rebuild (ignore cache).
+    verbose : bool, optional
+        If True, prints detailed status (default False).
+    use_cache : bool, optional
+        If True, load/save processed nodes & edges (default False).
+    force_download : bool, optional
+        If True, refetch raw Rhea and rebuild (ignore cache) (default False).
 
     Returns
     -------
-        dict: {'df_edges': DataFrame, 'df_nodes': DataFrame}
+    dict
+        Dictionary with keys 'df_edges' and 'df_nodes' containing the processed DataFrames.
     """
     # ---- processed cache (nodes/edges) ----
     if use_cache and not force_download and cache_exists("rhea"):
@@ -267,22 +288,16 @@ def parse_rhea_data(verbose: bool = False, use_cache: bool = False, force_downlo
         .drop_duplicates()
     )
 
-    # EC nodes (from earlier helper)
-    # df_nodes_ec already has 'node_id', 'layer', 'ec_level'
+    # EC nodes are already built in df_nodes_ec
 
     # Combine all node types into a single DataFrame
     df_nodes = pd.concat(
-        [df_nodes_reaction, df_nodes_chebi, df_nodes_ec],
-        ignore_index=True,
-        sort=False,
+        [df_nodes_reaction, df_nodes_chebi, df_nodes_ec], ignore_index=True, sort=False
     )
     df_nodes = clean_missing_strings(df_nodes).drop_duplicates()
-    if verbose:
-        print(f"Built nodes: {df_nodes.shape[0]} nodes, {df_nodes.shape[1]} columns")
 
     result = {"df_edges": df_edges, "df_nodes": df_nodes}
 
-    # ---- write processed cache ----
     if use_cache:
         if verbose:
             print("↪ Caching Rhea (processed) nodes & edges")

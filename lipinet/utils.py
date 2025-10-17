@@ -1,4 +1,8 @@
-"""Utility functions for LipiNet data processing."""
+"""Utility functions for LipiNet data processing.
+
+This module provides helpers for dataframe manipulation, string cleaning,
+and simple caching of node/edge dataframes.
+"""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -19,14 +23,19 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
 
     Parameters
     ----------
-    df (pd.DataFrame): The original DataFrame.
-    split_col (str): The name of the column to split.
-    delimiter (str): The delimiter to split the column by.
-    expand_cols (list): List of column names to be expanded with the split column.
+    df : pandas.DataFrame
+        The original DataFrame.
+    split_col : str
+        The name of the column to split.
+    delimiter : str
+        The delimiter to split the column by.
+    expand_cols : list of str
+        List of column names to be expanded with the split column.
 
     Returns
     -------
-    pd.DataFrame: A new DataFrame with the split and expanded rows.
+    pandas.DataFrame
+        A new DataFrame with the split and expanded rows.
     """
     # Edge case: empty input
     if df is None or len(df) == 0:
@@ -72,26 +81,29 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
 
 def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
     """
-    Create a node DataFrame from an edge DataFrame.
-
-    Stack source/target columns for the given properties.
+    Create a node DataFrame from an edge DataFrame by stacking source/target.
 
     Parameters
     ----------
-    edge_df : pd.DataFrame
+    edge_df : pandas.DataFrame
         Edge dataframe with columns like 'source_layer','source_id',
         'target_layer','target_id'.
-    props : list[str]
+    props : list of str, optional
         Two-element list specifying the property suffixes to pull from
-        the edge dataframe (default ['layer','id']).
-    cols : list[str]
+        the edge dataframe (default is ['layer', 'id']).
+    cols : list of str, optional
         Output column names for the resulting node dataframe
-        (default ['layer','node_id']).
+        (default is ['layer', 'node_id']).
 
     Returns
     -------
-    pd.DataFrame
-        Unique nodes with columns named per `cols`.
+    pandas.DataFrame
+        Unique nodes with columns named per ``cols``.
+
+    Raises
+    ------
+    ValueError
+        If ``props`` or ``cols`` are not length-2 lists.
     """
     if props is None:
         props = ["layer", "id"]
@@ -112,7 +124,21 @@ def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
 
 
 def check_for_split_characters(df, delimiter="|"):
-    """Print columns that contain the delimiter and return their names."""
+    """
+    Print columns that contain the delimiter and return their names.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame to scan.
+    delimiter : str, optional
+        Delimiter character to search for (default is "|").
+
+    Returns
+    -------
+    list of str
+        List of column names that contain the delimiter in at least one row.
+    """
     cols_with_split_chars = []
     for col in df.columns:
         print(f"Checking split characters ({delimiter}) in " + col)
@@ -139,11 +165,20 @@ def clean_missing_strings(
 
     Operate on specified columns or all object/string columns by default.
 
-    Args:
-        df: input DataFrame (modified in-place).
-        cols: list of columns to process; if None, uses all object/string dtype columns.
-        string_fraction_threshold: for object dtype columns, if >= this fraction of non-null
-            values are str, coerce to StringDtype and vectorize the strip; otherwise do per-element.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame (modified in-place).
+    cols : list, optional
+        List of columns to process; if None, uses all object/string dtype columns.
+    string_fraction_threshold : float, optional
+        For object dtype columns, if >= this fraction of non-null values are str,
+        coerce to StringDtype and vectorize the strip (default 0.9).
+
+    Returns
+    -------
+    pandas.DataFrame
+        The processed DataFrame (same object mutated and returned).
     """
     if cols is None:
         cols = df.select_dtypes(include=["object", "string"]).columns.tolist()
@@ -229,20 +264,32 @@ def clean_columns(
       * Optionally collapse internal multiple whitespace to single space.
       * (Future) Optionally normalize unicode.
 
-    Args:
-        df: pandas DataFrame to clean (not modified in-place; a copy is returned).
-        cols: columns to clean; if None or empty, all columns are considered.
-        strip_chars: characters to strip from ends (None means default whitespace).
-        trim_substrings: substrings to strip from start/end (literal, case-sensitive).
-        lowercase: whether to lowercase the result.
-        uppercase: whether to uppercae the result.
-        collapse_whitespace: collapse internal runs of whitespace to a single space.
-        unicode_normalize: if True, apply Unicode normalization (NFC).
-        verbose: print before/after for samples.
-        ignore_missing: if False, raise if a listed column is missing; if True, skip it.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        pandas DataFrame to clean (not modified in-place; a copy is returned).
+    cols : Iterable of str or None, optional
+        Columns to clean; if None or empty, all columns are considered.
+    strip_chars : str or None, optional
+        Characters to strip from ends (None means default whitespace).
+    trim_substrings : Iterable of str or None, optional
+        Substrings to strip from start/end (literal, case-sensitive).
+    lowercase : bool, optional
+        Whether to lowercase the result.
+    uppercase : bool, optional
+        Whether to uppercase the result.
+    collapse_whitespace : bool, optional
+        Collapse internal runs of whitespace to a single space.
+    unicode_normalize : bool, optional
+        If True, apply Unicode normalization (NFC).
+    verbose : bool, optional
+        Print before/after for samples.
+    ignore_missing : bool, optional
+        If False, raise if a listed column is missing; if True, skip it.
 
     Returns
     -------
+    pandas.DataFrame
         A cleaned copy of the dataframe.
     """
     df = df.copy()
@@ -309,7 +356,19 @@ def clean_columns(
 
 
 def _cache_paths(source: str) -> dict[str, Path]:
-    """Return paths for nodes & edges cache for a given source name."""
+    """
+    Return paths for nodes & edges cache for a given source name.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to name cache files.
+
+    Returns
+    -------
+    dict of (str, Path)
+        Dictionary with keys 'nodes' and 'edges' pointing to Path objects.
+    """
     base = CACHE_ROOT / source
     return {
         "nodes": base.with_name(f"{source}_nodes.pkl"),
@@ -318,14 +377,41 @@ def _cache_paths(source: str) -> dict[str, Path]:
 
 
 def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> None:
-    """Pickle out nodes & edges DataFrames for this source."""
+    """
+    Pickle out nodes & edges DataFrames for this source.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to name cache files.
+    df_nodes : pandas.DataFrame
+        Node dataframe to save.
+    df_edges : pandas.DataFrame
+        Edge dataframe to save.
+
+    Returns
+    -------
+    None
+    """
     paths = _cache_paths(source)
     df_nodes.to_pickle(paths["nodes"])
     df_edges.to_pickle(paths["edges"])
 
 
 def load_cache(source: str) -> dict[str, pd.DataFrame]:
-    """Load pickled nodes & edges; KeyError if missing."""
+    """
+    Load pickled nodes & edges; KeyError if missing.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to locate cache files.
+
+    Returns
+    -------
+    dict of (str, pandas.DataFrame)
+        Dictionary with keys 'df_nodes' and 'df_edges' containing the loaded dataframes.
+    """
     paths = _cache_paths(source)
     return {
         "df_nodes": pd.read_pickle(paths["nodes"]),
@@ -334,6 +420,18 @@ def load_cache(source: str) -> dict[str, pd.DataFrame]:
 
 
 def cache_exists(source: str) -> bool:
-    """Return whether both cache files exist for this source."""
+    """
+    Return whether both cache files exist for this source.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to locate cache files.
+
+    Returns
+    -------
+    bool
+        True if both node and edge cache files exist, False otherwise.
+    """
     paths = _cache_paths(source)
     return paths["nodes"].exists() and paths["edges"].exists()
