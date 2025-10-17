@@ -104,7 +104,9 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
             fetched_data = download_and_load_data(local_filename, data_url, file_format='tsv', sep='\t', verbose=verbose, force_download=force_download)
         return fetched_data
     except KeyError as e:
-        raise e(f"KeyError encountered, probably because the resource you requested is not yet supported.")
+        raise KeyError(
+            "KeyError encountered, probably because the resource you requested is not yet supported."
+        ) from e
     
 
 def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.DataFrame:

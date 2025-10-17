@@ -7,14 +7,10 @@ A thin wrapper in the `main()` function allows command-line execution.
 """
 
 import argparse
-import importlib
 import pandas as pd
 
 # Import lipinet module and related functions
-import lipinet.databases  # Import the module
-
-# Reload the module to ensure changes are picked up
-importlib.reload(lipinet)
+import lipinet.databases  # ensure module is importable during tests
 
 from lipinet.databases import get_prior_knowledge
 from lipinet.utils import split_and_expand_large, create_nodedf_from_edgedf, clean_missing_strings, save_cache, load_cache, cache_exists

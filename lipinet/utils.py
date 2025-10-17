@@ -23,6 +23,12 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     Returns:
     pd.DataFrame: A new DataFrame with the split and expanded rows.
     """
+    # Edge case: empty input
+    if df is None or len(df) == 0:
+        # Return an empty frame with expected columns
+        return pd.DataFrame({**{c: pd.Series(dtype=df[c].dtype if c in df.columns else object) for c in expand_cols},
+                             split_col: pd.Series(dtype=object)})
+
     # Step 1: Split the split_col into lists, handling None/NaN as empty lists
     split_data = df[split_col].apply(lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan])
     
@@ -33,6 +39,10 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     expanded_data = {col: np.repeat(df[col].values, repeat_counts) for col in expand_cols}
     
     # Step 4: Flatten the split_data and assign to the expanded split_col
+    # If there are no splits (shouldn't happen due to early return), guard
+    if len(split_data.values) == 0:
+        return pd.DataFrame({**{c: pd.Series(dtype=df[c].dtype if c in df.columns else object) for c in expand_cols},
+                             split_col: pd.Series(dtype=object)})
     expanded_data[split_col] = np.concatenate(split_data.values)
     
     # Step 5: Create the expanded DataFrame
@@ -47,15 +57,37 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     # print(result)
 
 def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'node_id']):
-    dfs = []
-    for prop in props:
-        df = pd.melt(edge_df, 
-                    value_vars=[f'source_{prop}',f'target_{prop}'], 
-                    var_name='type', value_name='value')
-        dfs.append(df)
-    node_df = pd.concat(dfs, axis=1)
-    node_df = node_df['value']
-    node_df.columns = cols
+    """
+    Create a node DataFrame from an edge DataFrame by stacking source/target
+    columns for the given properties.
+
+    Parameters
+    ----------
+    edge_df : pd.DataFrame
+        Edge dataframe with columns like 'source_layer','source_id',
+        'target_layer','target_id'.
+    props : list[str]
+        Two-element list specifying the property suffixes to pull from
+        the edge dataframe (default ['layer','id']).
+    cols : list[str]
+        Output column names for the resulting node dataframe
+        (default ['layer','node_id']).
+
+    Returns
+    -------
+    pd.DataFrame
+        Unique nodes with columns named per `cols`.
+    """
+    if len(props) != 2 or len(cols) != 2:
+        raise ValueError("props and cols must be length-2 lists")
+
+    src = edge_df[[f"source_{props[0]}", f"source_{props[1]}"]].rename(
+        columns={f"source_{props[0]}": cols[0], f"source_{props[1]}": cols[1]}
+    )
+    tgt = edge_df[[f"target_{props[0]}", f"target_{props[1]}"]].rename(
+        columns={f"target_{props[0]}": cols[0], f"target_{props[1]}": cols[1]}
+    )
+    node_df = pd.concat([src, tgt], ignore_index=True).drop_duplicates()
     return node_df
 
 def check_for_split_characters(df, delimiter='|'):
@@ -88,6 +120,9 @@ def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold
     """
     if cols is None:
         cols = df.select_dtypes(include=["object", "string"]).columns.tolist()
+
+    # Preserve original values for non-string entries so we never coerce them away
+    _orig = {c: df[c].copy() for c in cols if c in df.columns}
     for c in cols:
         if c not in df.columns:
             continue  # or warn
@@ -117,11 +152,30 @@ def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold
             # non-string column: leave alone
             continue
 
-    # Global placeholder normalization (works across dtypes; only affects matching string representations)
-    df = df.replace({
-        r'^(?i:nan|none|null)$': pd.NA,
-        r'^\s*$': pd.NA
-    }, regex=True)
+    # Global placeholder normalization on string-like columns only.
+    # Use pandas StringDtype and .str.replace to avoid numpy vectorize issues
+    # on empty object blocks.
+    for col in df.columns:
+        s = df[col]
+        if ptypes.is_string_dtype(s.dtype) or ptypes.is_object_dtype(s.dtype):
+            # Only consider original string entries for normalization
+            is_str = s.map(lambda x: isinstance(x, str))
+            if is_str.any():
+                s_str = s.astype("string")
+                mask_placeholder = s_str.str.match(r'(?i)^(nan|none|null)$', na=False)
+                mask_empty = s_str.str.fullmatch(r"\s*", na=False)
+                apply_mask = is_str & (mask_placeholder | mask_empty)
+                res = s.copy()
+                # Use Python None to avoid coercing non-strings; tests treat None as missing
+                res.loc[apply_mask] = None
+                df[col] = res
+
+    # Restore any non-string entries from the original to ensure they remain unchanged
+    for c, orig in _orig.items():
+        if c in df.columns:
+            non_str_mask = orig.map(lambda x: not isinstance(x, str))
+            if non_str_mask.any():
+                df.loc[non_str_mask, c] = orig.loc[non_str_mask]
     return df
 
 
