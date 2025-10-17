@@ -1,5 +1,5 @@
-graph-tool # not pip installable so could cause issues, should use env.yml instead probably...
-onionnet
+# graph-tool # not pip installable so could cause issues, should use env.yml instead probably...
+# onionnet
 
 numpy
 pandas
