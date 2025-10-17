@@ -1,8 +1,9 @@
 import sys
+
 import pandas as pd
 
-import lipinet.parse_swisslipids as ps
 import lipinet.parse_rhea as pr
+import lipinet.parse_swisslipids as ps
 
 
 def test_parse_swisslipids_data_basic(monkeypatch):

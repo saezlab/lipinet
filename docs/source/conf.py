@@ -55,11 +55,12 @@ intersphinx_mapping = {
 
 templates_path = ['_templates']
 exclude_patterns = [
-    "notebooks/.wip/*"
+    "notebooks/.wip/*",
 ]
 
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 
 # Detect RTD build

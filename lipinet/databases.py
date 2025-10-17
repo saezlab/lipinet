@@ -1,19 +1,21 @@
-import os
-import requests
-import pandas as pd
 import gzip
 import io
 import json
-import re
+import os
 
-from lipinet.utils import clean_missing_strings, clean_columns
+import pandas as pd
+import requests
+
+from lipinet.utils import clean_columns
+
 
 def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', verbose=False, force_download=False):
     """
     Checks if the specified file exists locally. If not, downloads it from the provided URL.
     Supports loading compressed files and handling different formats.
 
-    Parameters:
+    Parameters
+    ----------
     - filename (str): The name of the file to be saved within the data directory.
     - url (str): The URL to download the file from if it's not found locally.
     - file_format (str): The format of the file ('json' or 'csv'). Defaults to 'csv'.
@@ -23,7 +25,8 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
     - verbose (bool): If True, prints additional information during the process. Defaults to False.
     - force_download (bool): If True, download even if the file exists locally. Defaults to False.
 
-    Returns:
+    Returns
+    -------
     - data (DataFrame, dict, or list): The loaded data from the file, in the format specified.
     """
     # Set the directory relative to the script's location
@@ -61,7 +64,7 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
             if file_format in ('csv', 'tsv'):
                 data = pd.read_csv(filepath, sep=sep, low_memory=False)
             elif file_format == 'json':
-                with open(filepath, 'r', encoding=encoding) as f:
+                with open(filepath, encoding=encoding) as f:
                     data = json.load(f)
             else:
                 raise ValueError("Unsupported file format. Only 'json', 'csv', and 'tsv' are supported.")
@@ -74,7 +77,7 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
         if file_format in ('csv', 'tsv'):
             data = pd.read_csv(filepath, sep=sep, low_memory=False)
         elif file_format == 'json':
-            with open(filepath, 'r', encoding=encoding) as f:
+            with open(filepath, encoding=encoding) as f:
                 data = json.load(f)
         else:
             raise ValueError("Unsupported file format. Only 'json', 'csv', and 'tsv' are supported.")
@@ -87,14 +90,14 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
     #note these will be added to the data dir (.data/databases)
     resources = {
         'swisslipids':
-            {'filename': 'swisslipids_lipids.tsv', 
+            {'filename': 'swisslipids_lipids.tsv',
             'data_url': "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv"},
-        'rhea': 
+        'rhea':
             {'filename': 'rhea.tsv',
-            'data_url': 'https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000'}
+            'data_url': 'https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000'},
     }
 
-    try: 
+    try:
         local_filename = resources[name_of_resource]['filename']
         data_url = resources[name_of_resource]['data_url']
         if name_of_resource=='swisslipids':
@@ -105,9 +108,9 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
         return fetched_data
     except KeyError as e:
         raise KeyError(
-            "KeyError encountered, probably because the resource you requested is not yet supported."
+            "KeyError encountered, probably because the resource you requested is not yet supported.",
         ) from e
-    
+
 
 def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.DataFrame:
     """
@@ -128,7 +131,7 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.
             trim_substrings=['CHEBI:'],  # removes CHEBI: from ends (mostly prefix), only the case for a very few rows with CHEBI present
             collapse_whitespace=True,
             verbose=verbose,
-            ignore_missing=False  # fail early if expected column missing
+            ignore_missing=False,  # fail early if expected column missing
         )
 
         # Additional CHEBI-specific normalization: remove internal spaces if any (e.g., " 12345 ")

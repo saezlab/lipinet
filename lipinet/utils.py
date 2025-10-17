@@ -1,10 +1,11 @@
+from collections.abc import Iterable
+from pathlib import Path
+import re
+
+from IPython.display import display
 import numpy as np
 import pandas as pd
-from IPython.display import display
-import re
-from typing import Iterable, Optional, Dict
 import pandas.api.types as ptypes
-from pathlib import Path
 
 CACHE_ROOT = Path(__file__).parent / ".data" / "processed"
 CACHE_ROOT.mkdir(parents=True, exist_ok=True)
@@ -14,13 +15,15 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
     Splits a column by a delimiter and expands specified columns for large DataFrames, handling None/NaN values.
 
-    Parameters:
+    Parameters
+    ----------
     df (pd.DataFrame): The original DataFrame.
     split_col (str): The name of the column to split.
     delimiter (str): The delimiter to split the column by.
     expand_cols (list): List of column names to be expanded with the split column.
 
-    Returns:
+    Returns
+    -------
     pd.DataFrame: A new DataFrame with the split and expanded rows.
     """
     # Edge case: empty input
@@ -31,23 +34,23 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
 
     # Step 1: Split the split_col into lists, handling None/NaN as empty lists
     split_data = df[split_col].apply(lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan])
-    
+
     # Step 2: Calculate the number of splits for each row to repeat other columns
     repeat_counts = split_data.apply(len)
-    
+
     # Step 3: Create a DataFrame with repeated values for expand_cols
     expanded_data = {col: np.repeat(df[col].values, repeat_counts) for col in expand_cols}
-    
+
     # Step 4: Flatten the split_data and assign to the expanded split_col
     # If there are no splits (shouldn't happen due to early return), guard
     if len(split_data.values) == 0:
         return pd.DataFrame({**{c: pd.Series(dtype=df[c].dtype if c in df.columns else object) for c in expand_cols},
                              split_col: pd.Series(dtype=object)})
     expanded_data[split_col] = np.concatenate(split_data.values)
-    
+
     # Step 5: Create the expanded DataFrame
     expanded_df = pd.DataFrame(expanded_data)
-    
+
     return expanded_df
 
     # # Example usage for large DataFrames with None or NaN values
@@ -82,10 +85,10 @@ def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'no
         raise ValueError("props and cols must be length-2 lists")
 
     src = edge_df[[f"source_{props[0]}", f"source_{props[1]}"]].rename(
-        columns={f"source_{props[0]}": cols[0], f"source_{props[1]}": cols[1]}
+        columns={f"source_{props[0]}": cols[0], f"source_{props[1]}": cols[1]},
     )
     tgt = edge_df[[f"target_{props[0]}", f"target_{props[1]}"]].rename(
-        columns={f"target_{props[0]}": cols[0], f"target_{props[1]}": cols[1]}
+        columns={f"target_{props[0]}": cols[0], f"target_{props[1]}": cols[1]},
     )
     node_df = pd.concat([src, tgt], ignore_index=True).drop_duplicates()
     return node_df
@@ -181,15 +184,15 @@ def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold
 
 def clean_columns(
     df: pd.DataFrame,
-    cols: Optional[Iterable[str]] = None,
-    strip_chars: Optional[str] = None,
-    trim_substrings: Optional[Iterable[str]] = None,
+    cols: Iterable[str] | None = None,
+    strip_chars: str | None = None,
+    trim_substrings: Iterable[str] | None = None,
     lowercase: bool = False,
     uppercase: bool = False,
     collapse_whitespace: bool = False,
     unicode_normalize: bool = False,
     verbose: bool = False,
-    ignore_missing: bool = True
+    ignore_missing: bool = True,
 ) -> pd.DataFrame:
     """
     Clean specified string columns in a dataframe.
@@ -214,7 +217,8 @@ def clean_columns(
         verbose: print before/after for samples.
         ignore_missing: if False, raise if a listed column is missing; if True, skip it.
 
-    Returns:
+    Returns
+    -------
         A cleaned copy of the dataframe.
     """
     df = df.copy()
@@ -237,8 +241,7 @@ def clean_columns(
                 if verbose:
                     print(f"Warning: column '{col}' not in dataframe; skipping.")
                 continue
-            else:
-                raise KeyError(f"Column '{col}' not found in dataframe.")
+            raise KeyError(f"Column '{col}' not found in dataframe.")
 
         if verbose:
             print(f"\n>> Cleaning column '{col}':")
@@ -286,7 +289,7 @@ def clean_columns(
     return df
 
 
-def _cache_paths(source: str) -> Dict[str, Path]:
+def _cache_paths(source: str) -> dict[str, Path]:
     """Return paths for nodes & edges cache for a given source name."""
     base = CACHE_ROOT / source
     return {
@@ -300,7 +303,7 @@ def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> N
     df_nodes.to_pickle(paths["nodes"])
     df_edges.to_pickle(paths["edges"])
 
-def load_cache(source: str) -> Dict[str, pd.DataFrame]:
+def load_cache(source: str) -> dict[str, pd.DataFrame]:
     """Load pickled nodes & edges; KeyError if missing."""
     paths = _cache_paths(source)
     return {

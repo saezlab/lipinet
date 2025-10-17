@@ -1,10 +1,11 @@
-import io
 import gzip
+import io
 import json
+
 import pandas as pd
 
-from lipinet.databases import download_and_load_data
 import lipinet.databases as db
+from lipinet.databases import download_and_load_data
 
 
 class DummyResp:

@@ -20,16 +20,17 @@ Output (when --save given):
 """
 
 from __future__ import annotations
+
 import argparse
 from pathlib import Path
+
 import pandas as pd
 
-from lipinet.parse_swisslipids import parse_swisslipids_data
 from lipinet.parse_rhea import parse_rhea_data
-from lipinet.utils import clean_missing_strings
+from lipinet.parse_swisslipids import parse_swisslipids_data
 
 # Reuse the generic cache helpers you added earlier
-from lipinet.utils import save_cache, load_cache, cache_exists
+from lipinet.utils import cache_exists, clean_missing_strings, load_cache, save_cache
 
 # Where to write optional outputs
 DATA_PROCESSED = Path(__file__).parent / ".data" / "processed"
@@ -152,7 +153,7 @@ def build_lipinet_data(verbose: bool=False, use_cache: bool=False, force_downloa
 
     # Parse source datasets (these can use their own cache settings)
     sl = parse_swisslipids_data(verbose=verbose, use_cache=use_cache, force_download=force_download)
-    rhea = parse_rhea_data(verbose=verbose, use_cache=use_cache, force_download=force_download) 
+    rhea = parse_rhea_data(verbose=verbose, use_cache=use_cache, force_download=force_download)
 
     df_sl_nodes = sl["df_nodes"].copy()
     df_sl_edges = sl["df_edges"].copy()

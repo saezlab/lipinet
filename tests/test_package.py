@@ -1,6 +1,7 @@
-import lipinet
 import importlib
 import sys
+
+import lipinet
 
 
 def test_package_version_fallback(monkeypatch):

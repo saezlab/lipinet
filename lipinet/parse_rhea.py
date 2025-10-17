@@ -6,26 +6,28 @@ A standalone module that loads and processes Rhea data into node and edge DataFr
 for LipiNet. Provides a helper function `parse_rhea_data` and a CLI entrypoint.
 """
 import argparse
+
 import pandas as pd
+
 from lipinet.databases import get_prior_knowledge
 from lipinet.utils import (
-    split_and_expand_large,
-    create_nodedf_from_edgedf,
-    check_for_split_characters,
-    save_cache,
-    load_cache,
     cache_exists,
     clean_missing_strings,
+    load_cache,
+    save_cache,
 )
+
 
 def process_ec_numbers(df):
     """
     Process the 'EC number' column of the input DataFrame.
 
-    Parameters:
+    Parameters
+    ----------
         df (pd.DataFrame): A DataFrame containing an 'EC number' column.
 
-    Returns:
+    Returns
+    -------
         pd.DataFrame: A new DataFrame with the following columns:
             - 'EC_number': The reassembled EC number in the format 'EC:Main_Class.Subclass.Subsubclass.Serial_Number'
             - 'Main_Class': The first part of the EC number.
@@ -40,18 +42,18 @@ def process_ec_numbers(df):
                         .dropna()\
                         .str.strip('EC:')\
                         .str.split('.')
-    
+
     # Convert the Series of lists into a DataFrame with named columns.
-    df_ec = pd.DataFrame(ec_num_series.tolist(), 
+    df_ec = pd.DataFrame(ec_num_series.tolist(),
                          columns=["Main_Class", "Subclass", "Subsubclass", "Serial_Number"])
-    
+
     # Create a new column with the reassembled EC number in the original format.
-    df_ec.insert(0, 'EC_number', 
+    df_ec.insert(0, 'EC_number',
                  'EC:' + df_ec["Main_Class"].astype(str) + '.' +
                  df_ec["Subclass"].astype(str) + '.' +
                  df_ec["Subsubclass"].astype(str) + '.' +
                  df_ec["Serial_Number"].astype(str))
-    
+
     return df_ec
 
 def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
@@ -63,7 +65,6 @@ def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
       - A DataFrame of unique nodes with a 'ec_level' column 
         indicating the node's level in the hierarchy.
     """
-
     # -- Make a copy so we don't modify the original df in-place
     df = df_ec.copy()
 
@@ -71,28 +72,28 @@ def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
     #    (convert to string just in case they're numeric)
     df["main_node"] = "EC:" + df["Main_Class"].astype(str)
     df["subclass_node"] = (
-        "EC:" + df["Main_Class"].astype(str) 
+        "EC:" + df["Main_Class"].astype(str)
         + "." + df["Subclass"].astype(str)
     )
     df["subsubclass_node"] = (
-        "EC:" + df["Main_Class"].astype(str) 
+        "EC:" + df["Main_Class"].astype(str)
         + "." + df["Subclass"].astype(str)
         + "." + df["Subsubclass"].astype(str)
     )
 
     # 2) Create edges for each hierarchical link and label them
     edges1 = df[["main_node", "subclass_node"]].rename(
-        columns={"main_node": "source_id", "subclass_node": "target_id"}
+        columns={"main_node": "source_id", "subclass_node": "target_id"},
     )
     edges1["ec_level"] = "main_class->subclass"
 
     edges2 = df[["subclass_node", "subsubclass_node"]].rename(
-        columns={"subclass_node": "source_id", "subsubclass_node": "target_id"}
+        columns={"subclass_node": "source_id", "subsubclass_node": "target_id"},
     )
     edges2["ec_level"] = "subclass->subsubclass"
 
     edges3 = df[["subsubclass_node", "EC_number"]].rename(
-        columns={"subsubclass_node": "source_id", "EC_number": "target_id"}
+        columns={"subsubclass_node": "source_id", "EC_number": "target_id"},
     )
     edges3["ec_level"] = "subsubclass->EC_number"
 
@@ -107,7 +108,7 @@ def build_rhea_ec_edges_and_nodes(df_ec: pd.DataFrame):
     # 3) Build a node DataFrame from all unique source/target IDs
     nodes_df = pd.DataFrame(
         pd.concat([edges_df["source_id"], edges_df["target_id"]]).unique(),
-        columns=["node_id"]
+        columns=["node_id"],
     )
     nodes_df["layer"] = "rhea_ec"  # same layer for all
 
@@ -146,12 +147,14 @@ def explode_columns(df, columns, delimiter=";"):
     """
     Split and explode the specified columns of a DataFrame.
 
-    Parameters:
+    Parameters
+    ----------
         df (pd.DataFrame): Input DataFrame.
         columns (list of str): List of column names to split by the delimiter.
         delimiter (str): The delimiter to use when splitting the column values.
 
-    Returns:
+    Returns
+    -------
         pd.DataFrame: A new DataFrame with the specified columns exploded.
 
     Note:
@@ -168,12 +171,14 @@ def parse_rhea_data(verbose: bool=False, use_cache: bool=False, force_download: 
     """
     Core function to load and process Rhea data.
 
-    Parameters:
+    Parameters
+    ----------
         verbose (bool): If True, prints detailed status.
         use_cache (bool): If True, load/save processed nodes & edges.
         force_download (bool): If True, refetch raw Rhea and rebuild (ignore cache).
 
-    Returns:
+    Returns
+    -------
         dict: {'df_edges': DataFrame, 'df_nodes': DataFrame}
     """
     # ---- processed cache (nodes/edges) ----
@@ -223,7 +228,7 @@ def parse_rhea_data(verbose: bool=False, use_cache: bool=False, force_download: 
 
     df_edges = pd.concat(
         [df_edges_ec, df_edges_reaction_chebi, df_edges_reaction_ec],
-        ignore_index=True
+        ignore_index=True,
     ).drop_duplicates()
     if verbose:
         print(f"Combined edges: {df_edges.shape[0]} unique edges")
@@ -233,7 +238,7 @@ def parse_rhea_data(verbose: bool=False, use_cache: bool=False, force_download: 
     df_nodes_reaction = df_rhea[[
         'Reaction identifier', 'Equation', 'ChEBI identifier', 'ChEBI name',
         'EC number', 'Enzymes', #note: dropped 'Participant identifier' and 'Enzyme class' bc not part of REST API (seems to be post-processed on client side), not immediately useful, could add downstream
-        'Gene Ontology', 'Cross-reference (Reactome)'
+        'Gene Ontology', 'Cross-reference (Reactome)',
     ]].rename(columns={'Reaction identifier':'node_id','ChEBI name':'chebi_name'}) \
       .assign(layer='rhea_reactionid') \
       .drop_duplicates()
@@ -246,7 +251,7 @@ def parse_rhea_data(verbose: bool=False, use_cache: bool=False, force_download: 
 
     # EC nodes (from earlier helper)
     # df_nodes_ec already has 'node_id', 'layer', 'ec_level'
-  
+
     # Combine all node types into a single DataFrame
     df_nodes = pd.concat([df_nodes_reaction, df_nodes_chebi, df_nodes_ec], ignore_index=True, sort=False)
     df_nodes = clean_missing_strings(df_nodes).drop_duplicates()
@@ -269,7 +274,7 @@ def main():
     parser.add_argument('--use-cache', action='store_true', help='Load/save processed nodes & edges cache')
     parser.add_argument('--force-download', action='store_true', help='Force fresh raw download and rebuild')
     args = parser.parse_args()
-    
+
     verbose = not args.quiet
     results = parse_rhea_data(verbose=verbose, use_cache=args.use_cache, force_download=args.force_download)
     if verbose:

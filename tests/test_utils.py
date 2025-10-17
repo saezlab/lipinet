@@ -1,14 +1,15 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 import lipinet.utils as U
 from lipinet.utils import (
-    split_and_expand_large,
-    create_nodedf_from_edgedf,
-    clean_missing_strings,
-    clean_columns,
     check_for_split_characters,
+    clean_columns,
+    clean_missing_strings,
+    create_nodedf_from_edgedf,
+    split_and_expand_large,
 )
 
 
