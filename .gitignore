@@ -177,6 +177,7 @@ cython_debug/
 .DS_Store 
 lipinet.egg-info/
 build/
+docs/build/*
 /lipinet/.data/*
 !lipinet/.data/.gitkeep
 __pycache__
