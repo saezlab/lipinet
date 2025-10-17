@@ -29,11 +29,20 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     # Edge case: empty input
     if df is None or len(df) == 0:
         # Return an empty frame with expected columns
-        return pd.DataFrame({**{c: pd.Series(dtype=df[c].dtype if c in df.columns else object) for c in expand_cols},
-                             split_col: pd.Series(dtype=object)})
+        return pd.DataFrame(
+            {
+                **{
+                    c: pd.Series(dtype=df[c].dtype if c in df.columns else object)
+                    for c in expand_cols
+                },
+                split_col: pd.Series(dtype=object),
+            },
+        )
 
     # Step 1: Split the split_col into lists, handling None/NaN as empty lists
-    split_data = df[split_col].apply(lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan])
+    split_data = df[split_col].apply(
+        lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan],
+    )
 
     # Step 2: Calculate the number of splits for each row to repeat other columns
     repeat_counts = split_data.apply(len)
@@ -44,8 +53,15 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     # Step 4: Flatten the split_data and assign to the expanded split_col
     # If there are no splits (shouldn't happen due to early return), guard
     if len(split_data.values) == 0:
-        return pd.DataFrame({**{c: pd.Series(dtype=df[c].dtype if c in df.columns else object) for c in expand_cols},
-                             split_col: pd.Series(dtype=object)})
+        return pd.DataFrame(
+            {
+                **{
+                    c: pd.Series(dtype=df[c].dtype if c in df.columns else object)
+                    for c in expand_cols
+                },
+                split_col: pd.Series(dtype=object),
+            },
+        )
     expanded_data[split_col] = np.concatenate(split_data.values)
 
     # Step 5: Create the expanded DataFrame
@@ -59,7 +75,8 @@ def split_and_expand_large(df, split_col, delimiter, expand_cols):
     # result = split_and_expand_large(df, split_col='col1', delimiter='|', expand_cols=['col2'])
     # print(result)
 
-def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'node_id']):
+
+def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
     """
     Create a node DataFrame from an edge DataFrame by stacking source/target
     columns for the given properties.
@@ -81,6 +98,11 @@ def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'no
     pd.DataFrame
         Unique nodes with columns named per `cols`.
     """
+    if props is None:
+        props = ["layer", "id"]
+    if cols is None:
+        cols = ["layer", "node_id"]
+
     if len(props) != 2 or len(cols) != 2:
         raise ValueError("props and cols must be length-2 lists")
 
@@ -93,28 +115,33 @@ def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'no
     node_df = pd.concat([src, tgt], ignore_index=True).drop_duplicates()
     return node_df
 
-def check_for_split_characters(df, delimiter='|'):
+
+def check_for_split_characters(df, delimiter="|"):
     cols_with_split_chars = []
     for col in df.columns:
-        print(f'Checking split characters ({delimiter}) in ' + col)
+        print(f"Checking split characters ({delimiter}) in " + col)
         try:
             temp = df[df[col].str.contains(delimiter, regex=False, na=False)]
             if len(temp) > 0:
-                print(f'Found {len(temp)} rows with split characters')
+                print(f"Found {len(temp)} rows with split characters")
                 display(temp)
                 cols_with_split_chars.append(col)
             else:
-                print('No rows found\n')
+                print("No rows found\n")
         except AttributeError:
-            print('Not a string column\n')
+            print("Not a string column\n")
     return cols_with_split_chars
 
 
-def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold=0.9) -> pd.DataFrame:
+def clean_missing_strings(
+    df: pd.DataFrame,
+    cols=None,
+    string_fraction_threshold=0.9,
+) -> pd.DataFrame:
     """
     Strip whitespace from stringy values and normalize common placeholder "missing" strings
     into real pandas NA. Operates on specified columns or all object/string columns by default.
-    
+
     Args:
         df: input DataFrame (modified in-place).
         cols: list of columns to process; if None, uses all object/string dtype columns.
@@ -165,7 +192,7 @@ def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold
             is_str = s.map(lambda x: isinstance(x, str))
             if is_str.any():
                 s_str = s.astype("string")
-                mask_placeholder = s_str.str.match(r'(?i)^(nan|none|null)$', na=False)
+                mask_placeholder = s_str.str.match(r"(?i)^(nan|none|null)$", na=False)
                 mask_empty = s_str.str.fullmatch(r"\s*", na=False)
                 apply_mask = is_str & (mask_placeholder | mask_empty)
                 res = s.copy()
@@ -222,10 +249,7 @@ def clean_columns(
         A cleaned copy of the dataframe.
     """
     df = df.copy()
-    if not cols:
-        cols_to_process = list(df.columns)
-    else:
-        cols_to_process = list(cols)
+    cols_to_process = list(df.columns) if not cols else list(cols)
 
     # prepare trim substrings, filtering out empties
     trim_list = []
@@ -252,15 +276,12 @@ def clean_columns(
         s = df[col].astype("string")  # pandas StringDtype, so <NA> stays as <NA>
 
         # Strip ends
-        if strip_chars is not None:
-            s = s.str.strip(strip_chars)
-        else:
-            s = s.str.strip()
+        s = s.str.strip(strip_chars) if strip_chars is not None else s.str.strip()
 
         # Trim specified substrings from ends
         if trim_list:
             escaped = [re.escape(x) for x in trim_list]
-            pattern = rf'^(?:{"|".join(escaped)})+|(?:{"|".join(escaped)})+$'
+            pattern = rf"^(?:{'|'.join(escaped)})+|(?:{'|'.join(escaped)})+$"
             s = s.str.replace(pattern, "", regex=True)
 
         # Lowercase or uppercase if requested
@@ -272,11 +293,12 @@ def clean_columns(
 
         # Collapse internal whitespace
         if collapse_whitespace:
-            s = s.str.replace(r'\s+', ' ', regex=True)
+            s = s.str.replace(r"\s+", " ", regex=True)
 
         # (Optional) Unicode normalization
         if unicode_normalize:
             import unicodedata
+
             # apply only to non-missing
             s = s.apply(lambda x: unicodedata.normalize("NFC", x) if pd.notna(x) else x)
 
@@ -297,11 +319,13 @@ def _cache_paths(source: str) -> dict[str, Path]:
         "edges": base.with_name(f"{source}_edges.pkl"),
     }
 
+
 def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> None:
     """Pickle out nodes & edges DataFrames for this source."""
     paths = _cache_paths(source)
     df_nodes.to_pickle(paths["nodes"])
     df_edges.to_pickle(paths["edges"])
+
 
 def load_cache(source: str) -> dict[str, pd.DataFrame]:
     """Load pickled nodes & edges; KeyError if missing."""
@@ -310,6 +334,7 @@ def load_cache(source: str) -> dict[str, pd.DataFrame]:
         "df_nodes": pd.read_pickle(paths["nodes"]),
         "df_edges": pd.read_pickle(paths["edges"]),
     }
+
 
 def cache_exists(source: str) -> bool:
     """True if both cache files exist for this source."""

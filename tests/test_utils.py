@@ -14,10 +14,12 @@ from lipinet.utils import (
 
 
 def test_split_and_expand_large_mixed_values():
-    df = pd.DataFrame({
-        "col1": ["a|b", None, "c", np.nan, "d|e|f", ""],
-        "keep": [1, 2, 3, 4, 5, 6],
-    })
+    df = pd.DataFrame(
+        {
+            "col1": ["a|b", None, "c", np.nan, "d|e|f", ""],
+            "keep": [1, 2, 3, 4, 5, 6],
+        },
+    )
     out = split_and_expand_large(df, split_col="col1", delimiter="|", expand_cols=["keep"])
     # Expect: None/NaN each produce a single NaN entry; empty string becomes one empty string
     assert len(out) == (2 + 1 + 1 + 1 + 3 + 1)  # a,b + None + c + NaN + d,e,f + ""
@@ -32,12 +34,14 @@ def test_split_and_expand_large_empty_df():
 
 
 def test_create_nodedf_from_edgedf_basic():
-    edges = pd.DataFrame({
-        "source_layer": ["A", "A"],
-        "source_id": ["s1", "s2"],
-        "target_layer": ["B", "A"],
-        "target_id": ["t1", "s1"],
-    })
+    edges = pd.DataFrame(
+        {
+            "source_layer": ["A", "A"],
+            "source_id": ["s1", "s2"],
+            "target_layer": ["B", "A"],
+            "target_id": ["t1", "s1"],
+        },
+    )
     nodes = create_nodedf_from_edgedf(edges)
     # Should include unique pairs from both ends
     assert set(nodes.columns) == {"layer", "node_id"}
@@ -45,10 +49,12 @@ def test_create_nodedf_from_edgedf_basic():
 
 
 def test_clean_missing_strings_various_placeholders_and_whitespace():
-    df = pd.DataFrame({
-        "a": ["  x  ", "NaN", "null", " ", None, 1],
-        "b": pd.Series([" y\t", None, "NONE", "z", " w ", "v"], dtype="string"),
-    })
+    df = pd.DataFrame(
+        {
+            "a": ["  x  ", "NaN", "null", " ", None, 1],
+            "b": pd.Series([" y\t", None, "NONE", "z", " w ", "v"], dtype="string"),
+        },
+    )
     out = clean_missing_strings(df.copy())
     # Stripped values
     assert out.loc[0, "a"] == "x"
@@ -62,10 +68,12 @@ def test_clean_missing_strings_various_placeholders_and_whitespace():
 
 
 def test_clean_columns_all_options_and_missing_handling():
-    df = pd.DataFrame({
-        "x": ["  Hello--world  ", pd.NA, "Foo   Bar"],
-        "y": [" CHEBI:123 ", "chebi:456", None],
-    })
+    df = pd.DataFrame(
+        {
+            "x": ["  Hello--world  ", pd.NA, "Foo   Bar"],
+            "y": [" CHEBI:123 ", "chebi:456", None],
+        },
+    )
     out = clean_columns(
         df,
         cols=["x", "y"],
@@ -92,11 +100,13 @@ def test_clean_columns_all_options_and_missing_handling():
 
 
 def test_check_for_split_characters_returns_cols(capsys):
-    df = pd.DataFrame({
-        "a": ["x|y", "z"],
-        "b": [1, 2],
-        "c": ["no", "split"],
-    })
+    df = pd.DataFrame(
+        {
+            "a": ["x|y", "z"],
+            "b": [1, 2],
+            "c": ["no", "split"],
+        },
+    )
     cols = check_for_split_characters(df, delimiter="|")
     assert "a" in cols
     assert "c" not in cols
@@ -121,12 +131,14 @@ def test_cache_save_load_and_exists(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(U, "CACHE_ROOT", tmp_path, raising=True)
 
     nodes = pd.DataFrame({"node_id": ["n1", "n2"], "layer": ["L", "L"]})
-    edges = pd.DataFrame({
-        "source_layer": ["L"],
-        "source_id": ["n1"],
-        "target_layer": ["L"],
-        "target_id": ["n2"],
-    })
+    edges = pd.DataFrame(
+        {
+            "source_layer": ["L"],
+            "source_id": ["n1"],
+            "target_layer": ["L"],
+            "target_id": ["n2"],
+        },
+    )
 
     assert not U.cache_exists("demo")
     U.save_cache("demo", nodes, edges)

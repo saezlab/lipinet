@@ -17,4 +17,3 @@ def test_cache_paths_helper(tmp_path, monkeypatch):
     p = U._cache_paths("sourceX")
     assert isinstance(p["nodes"], Path) and str(p["nodes"]).endswith("sourceX_nodes.pkl")
     assert isinstance(p["edges"], Path) and str(p["edges"]).endswith("sourceX_edges.pkl")
-

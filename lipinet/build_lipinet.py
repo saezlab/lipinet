@@ -41,12 +41,18 @@ DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 # Helpers
 # ---------------------------
 
+
 def _trim_chebi(series: pd.Series) -> pd.Series:
     """Return numeric/ID part by stripping a leading 'CHEBI:' if present."""
     s = series.astype(str).str.strip()
     return s.str.replace("CHEBI:", "", regex=False)
 
-def _link_chebi_edges(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame, verbose: bool=False) -> pd.DataFrame:
+
+def _link_chebi_edges(
+    df_sl_nodes: pd.DataFrame,
+    df_rhea_nodes: pd.DataFrame,
+    verbose: bool = False,
+) -> pd.DataFrame:
     """
     Create interlayer edges between SwissLipids sl_chebi and Rhea rhea_chebiid
     by matching identical ChEBI IDs (SwissLipids uses plain IDs, Rhea uses 'CHEBI:ID').
@@ -64,8 +70,12 @@ def _link_chebi_edges(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame, ve
     rhea_chebi["node_id_trimmed"] = _trim_chebi(rhea_chebi["node_id"])
 
     # Build a tidy edge table
-    df_sl = sl_chebi[["layer", "node_id"]].rename(columns={"layer":"source_layer", "node_id":"source_id"})
-    df_rh = rhea_chebi[["layer", "node_id", "node_id_trimmed"]].rename(columns={"layer":"target_layer", "node_id":"target_id"})
+    df_sl = sl_chebi[["layer", "node_id"]].rename(
+        columns={"layer": "source_layer", "node_id": "source_id"},
+    )
+    df_rh = rhea_chebi[["layer", "node_id", "node_id_trimmed"]].rename(
+        columns={"layer": "target_layer", "node_id": "target_id"},
+    )
 
     merged = df_sl.merge(df_rh, left_on="source_id", right_on="node_id_trimmed", how="inner")
     edges = merged[["source_layer", "source_id", "target_layer", "target_id"]].drop_duplicates()
@@ -116,7 +126,11 @@ def _join_node_dfs(df_sl_nodes: pd.DataFrame, df_rhea_nodes: pd.DataFrame) -> pd
     return df_nodes
 
 
-def _join_edge_dfs(df_sl_edges: pd.DataFrame, df_rhea_edges: pd.DataFrame, df_chebi_linked: pd.DataFrame) -> pd.DataFrame:
+def _join_edge_dfs(
+    df_sl_edges: pd.DataFrame,
+    df_rhea_edges: pd.DataFrame,
+    df_chebi_linked: pd.DataFrame,
+) -> pd.DataFrame:
     """
     Stack edges from sources and the cross-source links; add origin labels.
     """
@@ -127,7 +141,19 @@ def _join_edge_dfs(df_sl_edges: pd.DataFrame, df_rhea_edges: pd.DataFrame, df_ch
     df_edges = clean_missing_strings(df_edges).drop_duplicates()
 
     # Reorder a few key columns to the front if they exist
-    front = [c for c in ["source_layer","source_id","target_layer","target_id","interlayer","edge_type","origin_edge"] if c in df_edges.columns]
+    front = [
+        c
+        for c in [
+            "source_layer",
+            "source_id",
+            "target_layer",
+            "target_id",
+            "interlayer",
+            "edge_type",
+            "origin_edge",
+        ]
+        if c in df_edges.columns
+    ]
     df_edges = df_edges[front + [c for c in df_edges.columns if c not in front]]
 
     return df_edges
@@ -137,7 +163,12 @@ def _join_edge_dfs(df_sl_edges: pd.DataFrame, df_rhea_edges: pd.DataFrame, df_ch
 # Public API
 # ---------------------------
 
-def build_lipinet_data(verbose: bool=False, use_cache: bool=False, force_download: bool=False) -> dict[str, pd.DataFrame]:
+
+def build_lipinet_data(
+    verbose: bool = False,
+    use_cache: bool = False,
+    force_download: bool = False,
+) -> dict[str, pd.DataFrame]:
     """
     Build combined LipiNet nodes & edges from SwissLipids and Rhea.
 
@@ -188,16 +219,33 @@ def build_lipinet_data(verbose: bool=False, use_cache: bool=False, force_downloa
 # CLI
 # ---------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(description="Build combined LipiNet (SwissLipids + Rhea)")
-    parser.add_argument("--use-cache", action="store_true", help="Load/save combined result from cache")
-    parser.add_argument("--force-download", action="store_true", help="Force fresh fetch/parse of sources")
+    parser.add_argument(
+        "--use-cache",
+        action="store_true",
+        help="Load/save combined result from cache",
+    )
+    parser.add_argument(
+        "--force-download",
+        action="store_true",
+        help="Force fresh fetch/parse of sources",
+    )
     parser.add_argument("--quiet", action="store_true", help="Suppress verbose output")
-    parser.add_argument("--save", action="store_true", help="Also write Parquet files to .data/processed/")
+    parser.add_argument(
+        "--save",
+        action="store_true",
+        help="Also write Parquet files to .data/processed/",
+    )
     args = parser.parse_args()
 
     verbose = not args.quiet
-    res = build_lipinet_data(verbose=verbose, use_cache=args.use_cache, force_download=args.force_download)
+    res = build_lipinet_data(
+        verbose=verbose,
+        use_cache=args.use_cache,
+        force_download=args.force_download,
+    )
 
     if args.save:
         nodes_path = DATA_PROCESSED / "lipinet_nodes.parquet"
@@ -207,6 +255,7 @@ def main():
         if verbose:
             print(f"Wrote: {nodes_path}")
             print(f"Wrote: {edges_path}")
+
 
 if __name__ == "__main__":
     main()

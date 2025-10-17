@@ -11,7 +11,12 @@ def test_package_version_fallback(monkeypatch):
     except Exception:
         import importlib_metadata as im  # type: ignore
 
-    monkeypatch.setattr(im, "version", lambda name: (_ for _ in ()).throw(im.PackageNotFoundError()), raising=False)
+    monkeypatch.setattr(
+        im,
+        "version",
+        lambda name: (_ for _ in ()).throw(im.PackageNotFoundError()),
+        raising=False,
+    )
     # Remove module to hit import-time branch
     sys.modules.pop("lipinet", None)
     mod = importlib.import_module("lipinet")
