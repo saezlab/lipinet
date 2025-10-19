@@ -191,9 +191,7 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False, filena
             0: 'parent_stableid',
             1: 'child_stableid',
         }
-        print(f'CLEANING REACTOME!, filename: {filename}')
         if filename in ['ChEBI2Reactome_PE_All_Levels.tsv', 'ChEBI2Reactome_PE_Reactions.tsv']:
-            print(df)
             df = df.rename(columns=pe_dict)
         elif filename in ['ReactomePathways.tsv']:
             df = df.rename(columns=path_dict)
@@ -201,7 +199,6 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False, filena
             df = df.rename(columns=path_dict_rel)
         else:
             pass
-        print(df)
         return df
 
     # fallback: no resource-specific rules, return copy with optional notice
