@@ -2,13 +2,12 @@
 
 ```{toctree}
 ---
-maxdepth: 2
-caption: Main:
+maxdepth: 1
+caption: About
 ---
 
 introduction
 installation
-quickstart
 modules
 ```
 
