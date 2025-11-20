@@ -132,31 +132,26 @@ def parse_reactome_data(
     # Edges (exactly as NB)
     # =======================
 
-    # ontology child -> parent
+    # pathway hierarchy (ontology child -> parent *within* reactome_pathway)
     df_edges_ontpathway_to_ontpathway = df_path_rel.copy()
     df_edges_ontpathway_to_ontpathway.columns = ["source_id", "target_id"]
-    df_edges_ontpathway_to_ontpathway["source_layer"] = "reactome_pathway_ontology"
-    df_edges_ontpathway_to_ontpathway["target_layer"] = "reactome_pathway_ontology"
+    df_edges_ontpathway_to_ontpathway["source_layer"] = "reactome_pathway"
+    df_edges_ontpathway_to_ontpathway["target_layer"] = "reactome_pathway"
     df_edges_ontpathway_to_ontpathway["interlayer"] = False
 
-    # ontology nodes (we’ll reuse later)
+    # pathway nodes (from ReactomePathways table)
     df_nodes_ontpathway = df_pathways.copy()
     df_nodes_ontpathway.columns = ["node_id", "name", "species"]
     df_nodes_ontpathway = (
-        df_nodes_ontpathway.assign(layer="reactome_pathway_ontology")
+        df_nodes_ontpathway.assign(layer="reactome_pathway")
         [["layer", "node_id", "name", "species"]]
     )
 
-    # pathwayID -> ontology
-    df_edges_pathwayid_to_ontpathway = pd.merge(
-        df_nodes_ontpathway.drop(columns=["layer", "species"]).assign(target_layer="reactome_ontology_pathways"),
-        df_pe_all.assign(source_layer="reactome_pathway"),
-        left_on="node_id",
-        right_on="reactome_pathway_stableid",
-        how="outer",
-    ).rename(columns={"node_id": "target_id", "reactome_pathway_stableid": "source_id"}).drop(
-        columns=["reactome_pe_stableid", "reactome_pe_name", "pe_name", "pe_location", "source_db_identifier"]
-    ).drop_duplicates()
+    # pathwayID -> ontology edges no longer needed:
+    # ontology is represented as intra-layer pathway hierarchy above.
+    df_edges_pathwayid_to_ontpathway = pd.DataFrame(
+        columns=["source_layer", "source_id", "target_layer", "target_id"]
+    )
 
     # ChEBI -> PE
     df_edges_chebi_to_physicalent = (
@@ -237,10 +232,8 @@ def parse_reactome_data(
         columns=["target_layer", "target_id"]
     ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
 
-    # pathwayid
-    df_nodes_pathwayid = df_edges_pathwayid_to_ontpathway.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
+    # pathwayid (same objects as df_nodes_ontpathway; add human flag)
+    df_nodes_pathwayid = df_nodes_ontpathway.copy()
     df_nodes_pathwayid["human"] = df_nodes_pathwayid["species"].eq("Homo sapiens")
 
     # physicalent
@@ -279,8 +272,7 @@ def parse_reactome_data(
             df_nodes_chebi,
             df_nodes_physicalent,
             df_nodes_reactionid,
-            df_nodes_pathwayid,
-            df_nodes_ontpathway,
+            df_nodes_pathwayid,  # already includes pathway nodes
             df_nodes_penameloc,
             df_nodes_pename,
             df_nodes_peloc,
