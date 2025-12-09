@@ -93,7 +93,9 @@ def test_parse_reactome_data_basic(monkeypatch):
 
 def test_parse_reactome_human_filter(monkeypatch):
     monkeypatch.setattr(pr, "get_prior_knowledge", lambda *_a, **_k: _reactome_minimal_dfs())
-    out = pr.parse_reactome_data(verbose=False, use_cache=False, force_download=False, human_only=True)
+    out = pr.parse_reactome_data(
+        verbose=False, use_cache=False, force_download=False, human_only=True
+    )
     edges = out["df_edges"]
 
     # Reaction edges should only include the human one (R1), mouse (R2) filtered out
@@ -128,4 +130,3 @@ def test_parse_reactome_main_quiet(monkeypatch):
         pr.main()
     finally:
         sys.argv = argv
-

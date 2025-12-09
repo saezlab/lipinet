@@ -30,6 +30,7 @@ Returns (dict):
       'df_nodes_unfiltered': DataFrame,   # convenience extra (not cached)
     }
 """
+
 from __future__ import annotations
 
 import argparse
@@ -155,10 +156,9 @@ def parse_reactome_data(
     # pathway nodes (from ReactomePathways table)
     df_nodes_ontpathway = df_pathways.copy()
     df_nodes_ontpathway.columns = ["node_id", "name", "species"]
-    df_nodes_ontpathway = (
-        df_nodes_ontpathway.assign(layer="reactome_pathway")
-        [["layer", "node_id", "name", "species"]]
-    )
+    df_nodes_ontpathway = df_nodes_ontpathway.assign(layer="reactome_pathway")[
+        ["layer", "node_id", "name", "species"]
+    ]
 
     # pathwayID -> ontology edges no longer needed:
     # ontology is represented as intra-layer pathway hierarchy above.
@@ -178,48 +178,74 @@ def parse_reactome_data(
     df_edges_phyiscalent_to_pathwayid = df_pe_all.assign(
         source_layer="reactome_physicalent",
         target_layer="reactome_pathway",
-    ).rename(columns={
-        "reactome_pe_stableid": "source_id",
-        "reactome_pathway_stableid": "target_id",
-    })
-    df_edges_phyiscalent_to_pathwayid["human"] = df_edges_phyiscalent_to_pathwayid["species"].eq("Homo sapiens")
+    ).rename(
+        columns={
+            "reactome_pe_stableid": "source_id",
+            "reactome_pathway_stableid": "target_id",
+        }
+    )
+    df_edges_phyiscalent_to_pathwayid["human"] = df_edges_phyiscalent_to_pathwayid["species"].eq(
+        "Homo sapiens"
+    )
 
     # PE -> reaction
     df_edges_phyiscalent_to_reactionid = df_pe_reac.assign(
         source_layer="reactome_physicalent",
         target_layer="reactome_reactions",
-    ).rename(columns={
-        "reactome_pe_stableid": "source_id",
-        "reactome_pathway_stableid": "target_id",
-    })
-    df_edges_phyiscalent_to_reactionid["human"] = df_edges_phyiscalent_to_reactionid["species"].eq("Homo sapiens")
+    ).rename(
+        columns={
+            "reactome_pe_stableid": "source_id",
+            "reactome_pathway_stableid": "target_id",
+        }
+    )
+    df_edges_phyiscalent_to_reactionid["human"] = df_edges_phyiscalent_to_reactionid["species"].eq(
+        "Homo sapiens"
+    )
 
     # (PE name x loc) -> PE
-    df_edges_penameloc_to_phyiscalent = df_pe_all.assign(
-        source_layer="reactome_physicalent_nameloc",
-        target_layer="reactome_physicalent",
-    ).rename(columns={
-        "reactome_pe_name": "source_id",
-        "reactome_pe_stableid": "target_id",
-    })[["source_layer", "source_id", "target_layer", "target_id", "pe_name", "pe_location"]].drop_duplicates()
+    df_edges_penameloc_to_phyiscalent = (
+        df_pe_all.assign(
+            source_layer="reactome_physicalent_nameloc",
+            target_layer="reactome_physicalent",
+        )
+        .rename(
+            columns={
+                "reactome_pe_name": "source_id",
+                "reactome_pe_stableid": "target_id",
+            }
+        )[["source_layer", "source_id", "target_layer", "target_id", "pe_name", "pe_location"]]
+        .drop_duplicates()
+    )
 
     # PE name -> (PE name x loc)
-    df_edges_pename_to_penameloc = df_pe_all.assign(
-        source_layer="reactome_physicalent_name",
-        target_layer="reactome_physicalent_nameloc",
-    ).rename(columns={
-        "pe_name": "source_id",
-        "reactome_pe_name": "target_id",
-    })[["source_layer", "source_id", "target_layer", "target_id"]].drop_duplicates()
+    df_edges_pename_to_penameloc = (
+        df_pe_all.assign(
+            source_layer="reactome_physicalent_name",
+            target_layer="reactome_physicalent_nameloc",
+        )
+        .rename(
+            columns={
+                "pe_name": "source_id",
+                "reactome_pe_name": "target_id",
+            }
+        )[["source_layer", "source_id", "target_layer", "target_id"]]
+        .drop_duplicates()
+    )
 
     # PE loc -> (PE name x loc)
-    df_edges_peloc_to_penameloc = df_pe_all.assign(
-        source_layer="reactome_physicalent_loc",
-        target_layer="reactome_physicalent_nameloc",
-    ).rename(columns={
-        "pe_location": "source_id",
-        "reactome_pe_name": "target_id",
-    })[["source_layer", "source_id", "target_layer", "target_id"]].drop_duplicates()
+    df_edges_peloc_to_penameloc = (
+        df_pe_all.assign(
+            source_layer="reactome_physicalent_loc",
+            target_layer="reactome_physicalent_nameloc",
+        )
+        .rename(
+            columns={
+                "pe_location": "source_id",
+                "reactome_pe_name": "target_id",
+            }
+        )[["source_layer", "source_id", "target_layer", "target_id"]]
+        .drop_duplicates()
+    )
 
     # concat edges (same order as notebook; includes ontology edges)
     df_edges_unfiltered = pd.concat(
@@ -241,43 +267,53 @@ def parse_reactome_data(
     # =======================
 
     # chebi
-    df_nodes_chebi = df_edges_chebi_to_physicalent.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
+    df_nodes_chebi = (
+        df_edges_chebi_to_physicalent.drop(columns=["target_layer", "target_id"])
+        .rename(columns={"source_id": "node_id", "source_layer": "layer"})
+        .drop_duplicates()
+    )
 
     # pathwayid (same objects as df_nodes_ontpathway; add human flag)
     df_nodes_pathwayid = df_nodes_ontpathway.copy()
     df_nodes_pathwayid["human"] = df_nodes_pathwayid["species"].eq("Homo sapiens")
 
     # physicalent
-    df_nodes_physicalent = df_edges_phyiscalent_to_pathwayid.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}) \
-     .drop(columns=["event_name_pathway_or_reaction", "url", "evidence_code"], errors="ignore") \
-     .drop_duplicates()
+    df_nodes_physicalent = (
+        df_edges_phyiscalent_to_pathwayid.drop(columns=["target_layer", "target_id"])
+        .rename(columns={"source_id": "node_id", "source_layer": "layer"})
+        .drop(columns=["event_name_pathway_or_reaction", "url", "evidence_code"], errors="ignore")
+        .drop_duplicates()
+    )
     df_nodes_physicalent["human"] = df_nodes_physicalent["species"].eq("Homo sapiens")
 
     # reactionid
-    df_nodes_reactionid = df_edges_phyiscalent_to_reactionid.drop(
-        columns=["source_layer", "source_id"]
-    ).rename(columns={"target_id": "node_id", "target_layer": "layer"}) \
-     .drop(columns=["source_db_identifier", "reactome_pe_name"], errors="ignore") \
-     .drop_duplicates()
+    df_nodes_reactionid = (
+        df_edges_phyiscalent_to_reactionid.drop(columns=["source_layer", "source_id"])
+        .rename(columns={"target_id": "node_id", "target_layer": "layer"})
+        .drop(columns=["source_db_identifier", "reactome_pe_name"], errors="ignore")
+        .drop_duplicates()
+    )
 
     # penameloc
-    df_nodes_penameloc = df_edges_penameloc_to_phyiscalent.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
+    df_nodes_penameloc = (
+        df_edges_penameloc_to_phyiscalent.drop(columns=["target_layer", "target_id"])
+        .rename(columns={"source_id": "node_id", "source_layer": "layer"})
+        .drop_duplicates()
+    )
 
     # pename
-    df_nodes_pename = df_edges_pename_to_penameloc.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
+    df_nodes_pename = (
+        df_edges_pename_to_penameloc.drop(columns=["target_layer", "target_id"])
+        .rename(columns={"source_id": "node_id", "source_layer": "layer"})
+        .drop_duplicates()
+    )
 
     # peloc
-    df_nodes_peloc = df_edges_peloc_to_penameloc.drop(
-        columns=["target_layer", "target_id"]
-    ).rename(columns={"source_id": "node_id", "source_layer": "layer"}).drop_duplicates()
+    df_nodes_peloc = (
+        df_edges_peloc_to_penameloc.drop(columns=["target_layer", "target_id"])
+        .rename(columns={"source_id": "node_id", "source_layer": "layer"})
+        .drop_duplicates()
+    )
 
     # concat nodes (same order as notebook)
     df_nodes_unfiltered = pd.concat(
@@ -318,7 +354,9 @@ def main():
     p.add_argument("--quiet", action="store_true", help="suppress prints")
     p.add_argument("--use-cache", action="store_true", help="load/save processed cache")
     p.add_argument("--force-download", action="store_true", help="force fresh raw download")
-    p.add_argument("--all-species", action="store_true", help="keep all species (no human-only filter)")
+    p.add_argument(
+        "--all-species", action="store_true", help="keep all species (no human-only filter)"
+    )
     args = p.parse_args()
 
     out = parse_reactome_data(

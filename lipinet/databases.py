@@ -23,7 +23,17 @@ import requests
 from lipinet.utils import clean_columns
 
 
-def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', header='infer', verbose=False, force_download=False):
+def download_and_load_data(
+    filename,
+    url,
+    file_format="csv",
+    compressed=False,
+    sep=",",
+    encoding="utf-8",
+    header="infer",
+    verbose=False,
+    force_download=False,
+):
     """
     Check if a file exists locally and optionally download it.
 
@@ -84,8 +94,8 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
 
         if compressed:
             # Decompress in-memory and load
-            with gzip.open(io.BytesIO(response.content), 'rt', encoding=encoding) as f:
-                if file_format in ('csv', 'tsv'):
+            with gzip.open(io.BytesIO(response.content), "rt", encoding=encoding) as f:
+                if file_format in ("csv", "tsv"):
                     data = pd.read_csv(f, sep=sep, low_memory=False, header=header)
                 else:
                     raise ValueError(
@@ -125,7 +135,6 @@ def download_and_load_data(filename, url, file_format='csv', compressed=False, s
             )
 
     return data
-
 
 
 def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, squeeze=True):
@@ -196,59 +205,64 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
     try:
         fetched_data = {}
         for file in resources[name_of_resource]:
-            local_filename = file['filename']
-            data_url = file['data_url']
+            local_filename = file["filename"]
+            data_url = file["data_url"]
             if verbose:
-                print(f'Fetching {local_filename}')
-            if name_of_resource=='swisslipids':
+                print(f"Fetching {local_filename}")
+            if name_of_resource == "swisslipids":
                 fetched_data_intermediate = download_and_load_data(
                     local_filename,
                     data_url,
-                    file_format='tsv',
+                    file_format="tsv",
                     compressed=True,
-                    sep='\t',
-                    encoding='latin-1',
+                    sep="\t",
+                    encoding="latin-1",
                     verbose=verbose,
-                    force_download=force_download
+                    force_download=force_download,
                 )
-                fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose)
+                fetched_data_intermediate = clean(
+                    fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose
+                )
 
-            elif name_of_resource=='reactome':
+            elif name_of_resource == "reactome":
                 fetched_data_intermediate = download_and_load_data(
                     local_filename,
                     data_url,
-                    file_format='tsv',
-                    sep='\t',
+                    file_format="tsv",
+                    sep="\t",
                     header=None,
                     verbose=verbose,
-                    force_download=force_download
+                    force_download=force_download,
                 )
-                fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose, filename=local_filename)
+                fetched_data_intermediate = clean(
+                    fetched_data_intermediate,
+                    name_of_resource=name_of_resource,
+                    verbose=verbose,
+                    filename=local_filename,
+                )
 
             else:
                 fetched_data_intermediate = download_and_load_data(
                     local_filename,
                     data_url,
-                    file_format='tsv',
-                    sep='\t',
+                    file_format="tsv",
+                    sep="\t",
                     verbose=verbose,
-                    force_download=force_download
+                    force_download=force_download,
                 )
             fetched_data[local_filename] = fetched_data_intermediate
 
         # if only 1 df in fetched data and squeeze==True, will return just that df, else will return a dictonary with all dfs
-        if squeeze and len(fetched_data)==1:
-            (key, value), = fetched_data.items()
+        if squeeze and len(fetched_data) == 1:
+            ((key, value),) = fetched_data.items()
             if verbose:
-                print(f'Returning {key} as a single df')
+                print(f"Returning {key} as a single df")
             return value
         if verbose:
             print(f"Returning {list(fetched_data)} as a dict of dfs")
         return fetched_data
     except KeyError as e:
-        raise KeyError(
-            f"Resource {name_of_resource!r} is not yet supported."
-        ) from e
+        raise KeyError(f"Resource {name_of_resource!r} is not yet supported.") from e
 
 
 def clean(
@@ -312,32 +326,28 @@ def clean(
             )
 
         return df
-    if name_of_resource == 'reactome':
+    if name_of_resource == "reactome":
         # Reactome does not currently include header column names for the files we downloaded. So we will add this annotation ourselves.
         pe_dict = {
-            0: 'source_db_identifier',
-            1: 'reactome_pe_stableid',
-            2: 'reactome_pe_name',
-            3: 'reactome_pathway_stableid',
-            4: 'url',
-            5: 'event_name_pathway_or_reaction',
-            6: 'evidence_code',
-            7: 'species'
+            0: "source_db_identifier",
+            1: "reactome_pe_stableid",
+            2: "reactome_pe_name",
+            3: "reactome_pathway_stableid",
+            4: "url",
+            5: "event_name_pathway_or_reaction",
+            6: "evidence_code",
+            7: "species",
         }
-        path_dict = {
-            0: 'reactome_pathway_stableid',
-            1: 'reactome_pathway_name',
-            2: 'species'
-        }
+        path_dict = {0: "reactome_pathway_stableid", 1: "reactome_pathway_name", 2: "species"}
         path_dict_rel = {
-            0: 'parent_stableid',
-            1: 'child_stableid',
+            0: "parent_stableid",
+            1: "child_stableid",
         }
-        if filename in ['ChEBI2Reactome_PE_All_Levels.tsv', 'ChEBI2Reactome_PE_Reactions.tsv']:
+        if filename in ["ChEBI2Reactome_PE_All_Levels.tsv", "ChEBI2Reactome_PE_Reactions.tsv"]:
             df = df.rename(columns=pe_dict)
-        elif filename in ['ReactomePathways.tsv']:
+        elif filename in ["ReactomePathways.tsv"]:
             df = df.rename(columns=path_dict)
-        elif filename in ['ReactomePathwaysRelation.tsv']:
+        elif filename in ["ReactomePathwaysRelation.tsv"]:
             df = df.rename(columns=path_dict_rel)
         else:
             pass
