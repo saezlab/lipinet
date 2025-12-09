@@ -102,11 +102,24 @@ def parse_reactome_data(
     human_only: bool = True,
 ):
     """
-    Parse Reactome exactly like the notebook.
+    Parse Reactome raw tables into LipiNet nodes and edges.
+
+    Parameters
+    ----------
+    verbose : bool, optional
+        If True, print progress messages (default False).
+    use_cache : bool, optional
+        If True, load/save the processed cache keyed by species scope (default False).
+    force_download : bool, optional
+        If True, refetch raw tables even if present locally (default False).
+    human_only : bool, optional
+        If True, keep only rows where the computed 'human' flag is not False
+        (rows with missing 'human' are kept), matching the notebook logic (default True).
 
     Returns
     -------
-    dict: {'df_edges': DataFrame, 'df_nodes': DataFrame}
+    dict
+        Dictionary with keys 'df_edges' and 'df_nodes' containing filtered DataFrames.
     """
     cache_key = f"reactome_{'human' if human_only else 'all'}_nb"
     if use_cache and not force_download and cache_exists(cache_key):
