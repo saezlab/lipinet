@@ -157,24 +157,40 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
     """
     # note these will be added to the data dir (.data/databases)
     resources = {
-        "swisslipids": {
-            ["filename": "swisslipids_lipids.tsv",
-              "data_url": "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv",
-        }],
-        "rhea": {
-            ["filename": "rhea.tsv",
-              "data_url": "https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000",
-        },],
-        'reactome':
-            [{'filename': 'ChEBI2Reactome_PE_All_Levels.tsv',
-              'data_url': 'https://reactome.org/download/current/ChEBI2Reactome_PE_All_Levels.txt'},
-            {'filename': 'ChEBI2Reactome_PE_Reactions.tsv',
-              'data_url': 'https://reactome.org/download/current/ChEBI2Reactome_PE_Reactions.txt'},
-            {'filename': 'ReactomePathways.tsv',
-              'data_url': 'https://reactome.org/download/current/ReactomePathways.txt'},
-            {'filename': 'ReactomePathwaysRelation.tsv',
-              'data_url': 'https://reactome.org/download/current/ReactomePathwaysRelation.txt'},
-            ]
+        "swisslipids": [
+            {
+                "filename": "swisslipids_lipids.tsv",
+                "data_url": (
+                    "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv"
+                ),
+            }
+        ],
+        "rhea": [
+            {
+                "filename": "rhea.tsv",
+                "data_url": (
+                    "https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000"
+                ),
+            }
+        ],
+        "reactome": [
+            {
+                "filename": "ChEBI2Reactome_PE_All_Levels.tsv",
+                "data_url": "https://reactome.org/download/current/ChEBI2Reactome_PE_All_Levels.txt",
+            },
+            {
+                "filename": "ChEBI2Reactome_PE_Reactions.tsv",
+                "data_url": "https://reactome.org/download/current/ChEBI2Reactome_PE_Reactions.txt",
+            },
+            {
+                "filename": "ReactomePathways.tsv",
+                "data_url": "https://reactome.org/download/current/ReactomePathways.txt",
+            },
+            {
+                "filename": "ReactomePathwaysRelation.tsv",
+                "data_url": "https://reactome.org/download/current/ReactomePathwaysRelation.txt",
+            },
+        ],
     }
 
     try:
@@ -232,7 +248,7 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
             return fetched_data
     except KeyError as e:
         raise KeyError(
-            f"Unknown resource {name_of_resource!r} or malformed resource entry."
+            f"Resource {name_of_resource!r} is unknown or malformed."
         ) from e
     
 

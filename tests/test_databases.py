@@ -1,3 +1,4 @@
+from pathlib import Path
 import gzip
 import io
 import json
@@ -5,7 +6,7 @@ import json
 import pandas as pd
 
 import lipinet.databases as db
-from lipinet.databases import download_and_load_data
+from lipinet.databases import download_and_load_data, clean
 
 
 class DummyResp:
@@ -134,7 +135,7 @@ def test_get_prior_knowledge_unsupported_resource():
     try:
         db.get_prior_knowledge("unknown_resource")
     except KeyError as e:
-        assert "not yet supported" in str(e)
+        assert "unknown or malformed" in str(e)
     else:
         raise AssertionError("Expected KeyError for unsupported resource")
 
@@ -201,3 +202,74 @@ def test_download_and_load_data_verbose_and_errors(monkeypatch, _tmp_path=None):
         file_format="csv",
         verbose=True,
     )
+
+
+def test_download_json_local_verbose(tmp_path, monkeypatch):
+    # Prepare a JSON file directly in the module's download location
+    data_dir = Path(db.__file__).resolve().parent / ".data" / "downloaded"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    p = data_dir / "unit_exists.json"
+    payload = {"k": [1, 2, 3]}
+    p.write_text(json.dumps(payload), encoding="utf-8")
+
+    # Should take the local path (no network) and the JSON code path
+    out = download_and_load_data(
+        "unit_exists.json",
+        url="http://example/json",
+        file_format="json",
+        verbose=True,
+        force_download=False,
+    )
+    assert out == payload
+
+
+def test_get_prior_knowledge_reactome_cleans_and_renames(monkeypatch):
+    # Create minimal TSV payloads matching expected column counts and values
+    pe_line = "CHEBI:1\tPE1\tGlucose [cytosol]\tP1\tu\tname\tECO\tHomo sapiens\n"
+    # For the reactions file, provide 8 tab-separated columns so the reactome
+    # cleaner can rename index 3 -> 'reactome_pathway_stableid'.
+    # Cols: 0 src_db_id, 1 pe_stable, 2 pe_name, 3 reaction_id, 4 url, 5 name, 6 evidence, 7 species
+    pe_reac_line = "CHEBI:1\tPE1\tGlucose [cytosol]\tR1\tu\tname\tECO\tHomo sapiens\n"
+    path_line = "P1\tPathway1\tHomo sapiens\n"
+    rel_line = "P0\tP1\n"
+
+    def fake_get(url: str):
+        if "All_Levels" in url:
+            return DummyResp(pe_line.encode("utf-8"))
+        if "Reactions" in url:
+            return DummyResp(pe_reac_line.encode("utf-8"))
+        if url.endswith("ReactomePathways.txt"):
+            return DummyResp(path_line.encode("utf-8"))
+        if url.endswith("ReactomePathwaysRelation.txt"):
+            return DummyResp(rel_line.encode("utf-8"))
+        raise AssertionError(f"Unexpected URL {url}")
+
+    monkeypatch.setattr(db, "requests", type("R", (), {"get": staticmethod(fake_get)}))
+
+    out = db.get_prior_knowledge("reactome", verbose=True, force_download=True, squeeze=False)
+    assert isinstance(out, dict)
+    # Verify per-file renaming occurred
+    df_pe_all = out["ChEBI2Reactome_PE_All_Levels.tsv"]
+    assert {"source_db_identifier", "reactome_pe_stableid", "reactome_pe_name", "species"}.issubset(
+        set(df_pe_all.columns)
+    )
+
+    df_pe_reac = out["ChEBI2Reactome_PE_Reactions.tsv"]
+    assert {"reactome_pe_stableid", "reactome_pathway_stableid", "species"}.issubset(
+        set(df_pe_reac.columns)
+    )
+
+    df_path = out["ReactomePathways.tsv"]
+    assert {"reactome_pathway_stableid", "reactome_pathway_name", "species"}.issubset(
+        set(df_path.columns)
+    )
+
+    df_rel = out["ReactomePathwaysRelation.tsv"]
+    assert {"parent_stableid", "child_stableid"}.issubset(set(df_rel.columns))
+
+
+def test_clean_fallback_other_verbose():
+    df = pd.DataFrame({"x": [1]})
+    out = clean(df, name_of_resource="other", verbose=True)
+    # Unchanged content
+    assert list(out.columns) == ["x"]
