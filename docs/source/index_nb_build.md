@@ -10,6 +10,7 @@ titlesonly: true
 notebooks/build_lipinet.ipynb
 notebooks/parsing_swisslipids.ipynb
 notebooks/parsing_rhea.ipynb
+notebooks/parsing_reactome.ipynb
 ```
 
 ![Overview of building LipiNet](./_static/Slide3.png)

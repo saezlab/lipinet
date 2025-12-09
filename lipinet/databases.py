@@ -23,16 +23,7 @@ import requests
 from lipinet.utils import clean_columns
 
 
-def download_and_load_data(
-    filename,
-    url,
-    file_format="csv",
-    compressed=False,
-    sep=",",
-    encoding="utf-8",
-    verbose=False,
-    force_download=False,
-):
+def download_and_load_data(filename, url, file_format='csv', compressed=False, sep=',', encoding='utf-8', header='infer', verbose=False, force_download=False):
     """
     Check if a file exists locally and optionally download it.
 
@@ -58,6 +49,9 @@ def download_and_load_data(
         Defaults to False.
     force_download : bool, optional
         If True, download even if the file exists locally. Defaults to False.
+    header : int, list of int, None, or 'infer', optional
+        Row number(s) to use as the column names when loading CSV/TSV files.
+        Defaults to 'infer'.
 
     Returns
     -------
@@ -90,9 +84,9 @@ def download_and_load_data(
 
         if compressed:
             # Decompress in-memory and load
-            with gzip.open(io.BytesIO(response.content), "rt", encoding=encoding) as f:
-                if file_format in ("csv", "tsv"):
-                    data = pd.read_csv(f, sep=sep, low_memory=False)
+            with gzip.open(io.BytesIO(response.content), 'rt', encoding=encoding) as f:
+                if file_format in ('csv', 'tsv'):
+                    data = pd.read_csv(f, sep=sep, low_memory=False, header=header)
                 else:
                     raise ValueError(
                         "Unsupported file format with gzip compression. Only 'csv'/'tsv' are supported.",
@@ -106,7 +100,7 @@ def download_and_load_data(
 
             # Load it
             if file_format in ("csv", "tsv"):
-                data = pd.read_csv(filepath, sep=sep, low_memory=False)
+                data = pd.read_csv(filepath, sep=sep, low_memory=False, header=header)
             elif file_format == "json":
                 with filepath.open(encoding=encoding) as f:
                     data = json.load(f)
@@ -121,7 +115,7 @@ def download_and_load_data(
         if verbose:
             print(f"File found locally at {filepath}. Loading data...")
         if file_format in ("csv", "tsv"):
-            data = pd.read_csv(filepath, sep=sep, low_memory=False)
+            data = pd.read_csv(filepath, sep=sep, low_memory=False, header=header)
         elif file_format == "json":
             with filepath.open(encoding=encoding) as f:
                 data = json.load(f)
@@ -133,7 +127,8 @@ def download_and_load_data(
     return data
 
 
-def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
+
+def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, squeeze=True):
     """
     Return a DataFrame for a known resource, downloading if needed.
 
@@ -146,7 +141,10 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
     force_download : bool, optional
         If True, re-download resources even if they exist locally.
         Defaults to False.
-
+    squeeze : bool, optional
+        If True and only one DataFrame is fetched, return that DataFrame
+        directly instead of a dictionary. Defaults to True.
+        
     Returns
     -------
     pandas.DataFrame
@@ -160,47 +158,85 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False):
     # note these will be added to the data dir (.data/databases)
     resources = {
         "swisslipids": {
-            "filename": "swisslipids_lipids.tsv",
-            "data_url": "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv",
-        },
+            ["filename": "swisslipids_lipids.tsv",
+              "data_url": "https://www.swisslipids.org/api/file.php?cas=download_files&file=lipids.tsv",
+        }],
         "rhea": {
-            "filename": "rhea.tsv",
-            "data_url": "https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000",
-        },
+            ["filename": "rhea.tsv",
+              "data_url": "https://www.rhea-db.org/rhea/?query=&columns=rhea-id,equation,chebi,chebi-id,ec,uniprot,go,pubmed,reaction-xref(EcoCyc),reaction-xref(MetaCyc),reaction-xref(KEGG),reaction-xref(Reactome),reaction-xref(M-CSA)&format=tsv&limit=1000000",
+        },],
+        'reactome':
+            [{'filename': 'ChEBI2Reactome_PE_All_Levels.tsv',
+              'data_url': 'https://reactome.org/download/current/ChEBI2Reactome_PE_All_Levels.txt'},
+            {'filename': 'ChEBI2Reactome_PE_Reactions.tsv',
+              'data_url': 'https://reactome.org/download/current/ChEBI2Reactome_PE_Reactions.txt'},
+            {'filename': 'ReactomePathways.tsv',
+              'data_url': 'https://reactome.org/download/current/ReactomePathways.txt'},
+            {'filename': 'ReactomePathwaysRelation.tsv',
+              'data_url': 'https://reactome.org/download/current/ReactomePathwaysRelation.txt'},
+            ]
     }
 
     try:
-        local_filename = resources[name_of_resource]["filename"]
-        data_url = resources[name_of_resource]["data_url"]
-        if name_of_resource == "swisslipids":
-            fetched_data = download_and_load_data(
-                local_filename,
-                data_url,
-                file_format="tsv",
-                compressed=True,
-                sep="\t",
-                encoding="latin-1",
-                verbose=verbose,
-                force_download=force_download,
-            )
-            fetched_data = clean(fetched_data, name_of_resource=name_of_resource, verbose=verbose)
-        else:
-            fetched_data = download_and_load_data(
-                local_filename,
-                data_url,
-                file_format="tsv",
-                sep="\t",
-                verbose=verbose,
-                force_download=force_download,
-            )
-        return fetched_data
+        fetched_data = {}
+        for file in resources[name_of_resource]: 
+            local_filename = file['filename']
+            data_url = file['data_url']
+            if verbose: 
+                print(f'Fetching {local_filename}')
+            if name_of_resource=='swisslipids':
+                fetched_data_intermediate = download_and_load_data(
+                    local_filename,
+                    data_url,
+                    file_format='tsv',
+                    compressed=True,
+                    sep='\t',
+                    encoding='latin-1',
+                    verbose=verbose,
+                    force_download=force_download
+                )
+                fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose)
+            
+            elif name_of_resource=='reactome':
+                fetched_data_intermediate = download_and_load_data(
+                    local_filename,
+                    data_url,
+                    file_format='tsv',
+                    sep='\t',
+                    header=None,
+                    verbose=verbose,
+                    force_download=force_download
+                )
+                fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose, filename=local_filename)
+            
+            else:
+                fetched_data_intermediate = download_and_load_data(
+                    local_filename,
+                    data_url,
+                    file_format='tsv',
+                    sep='\t',
+                    verbose=verbose,
+                    force_download=force_download
+                )
+            fetched_data[local_filename] = fetched_data_intermediate
+        
+        # if only 1 df in fetched data and squeeze==True, will return just that df, else will return a dictonary with all dfs
+        if squeeze and len(fetched_data)==1:
+            (key, value), = fetched_data.items()
+            if verbose: 
+                print(f'Returning {key} as a single df')
+            return value
+        else: 
+            if verbose: 
+                print(f'Returning {[key for key in fetched_data.keys()]} as a dict of dfs')
+            return fetched_data
     except KeyError as e:
         raise KeyError(
-            "KeyError encountered, probably because the resource you requested is not yet supported.",
+            f"Unknown resource {name_of_resource!r} or malformed resource entry."
         ) from e
+    
 
-
-def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.DataFrame:
+def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False, filename: str = None) -> pd.DataFrame:
     """
     Dispatch per-resource specialized cleaning.
 
@@ -255,6 +291,36 @@ def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False) -> pd.
                 trailing_after.to_dict(),
             )
 
+        return df
+    if name_of_resource == 'reactome':
+        # Reactome does not currently include header column names for the files we downloaded. So we will add this annotation ourselves.
+        pe_dict = {
+            0: 'source_db_identifier',
+            1: 'reactome_pe_stableid',
+            2: 'reactome_pe_name',
+            3: 'reactome_pathway_stableid',
+            4: 'url',
+            5: 'event_name_pathway_or_reaction',
+            6: 'evidence_code',
+            7: 'species'
+        }
+        path_dict = {
+            0: 'reactome_pathway_stableid',
+            1: 'reactome_pathway_name',
+            2: 'species'
+        }
+        path_dict_rel = {
+            0: 'parent_stableid',
+            1: 'child_stableid',
+        }
+        if filename in ['ChEBI2Reactome_PE_All_Levels.tsv', 'ChEBI2Reactome_PE_Reactions.tsv']:
+            df = df.rename(columns=pe_dict)
+        elif filename in ['ReactomePathways.tsv']:
+            df = df.rename(columns=path_dict)
+        elif filename in ['ReactomePathwaysRelation.tsv']:
+            df = df.rename(columns=path_dict_rel)
+        else:
+            pass
         return df
 
     # fallback: no resource-specific rules, return copy with optional notice
