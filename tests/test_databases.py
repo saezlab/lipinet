@@ -1,12 +1,12 @@
-from pathlib import Path
 import gzip
 import io
 import json
+from pathlib import Path
 
 import pandas as pd
 
 import lipinet.databases as db
-from lipinet.databases import download_and_load_data, clean
+from lipinet.databases import clean, download_and_load_data
 
 
 class DummyResp:
@@ -135,7 +135,7 @@ def test_get_prior_knowledge_unsupported_resource():
     try:
         db.get_prior_knowledge("unknown_resource")
     except KeyError as e:
-        assert "unknown or malformed" in str(e)
+        assert "not yet supported" in str(e)
     else:
         raise AssertionError("Expected KeyError for unsupported resource")
 
@@ -204,7 +204,7 @@ def test_download_and_load_data_verbose_and_errors(monkeypatch, _tmp_path=None):
     )
 
 
-def test_download_json_local_verbose(tmp_path, monkeypatch):
+def test_download_json_local_verbose():
     # Prepare a JSON file directly in the module's download location
     data_dir = Path(db.__file__).resolve().parent / ".data" / "downloaded"
     data_dir.mkdir(parents=True, exist_ok=True)

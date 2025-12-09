@@ -144,7 +144,7 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
     squeeze : bool, optional
         If True and only one DataFrame is fetched, return that DataFrame
         directly instead of a dictionary. Defaults to True.
-        
+
     Returns
     -------
     pandas.DataFrame
@@ -195,10 +195,10 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
 
     try:
         fetched_data = {}
-        for file in resources[name_of_resource]: 
+        for file in resources[name_of_resource]:
             local_filename = file['filename']
             data_url = file['data_url']
-            if verbose: 
+            if verbose:
                 print(f'Fetching {local_filename}')
             if name_of_resource=='swisslipids':
                 fetched_data_intermediate = download_and_load_data(
@@ -212,7 +212,7 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
                     force_download=force_download
                 )
                 fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose)
-            
+
             elif name_of_resource=='reactome':
                 fetched_data_intermediate = download_and_load_data(
                     local_filename,
@@ -224,7 +224,7 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
                     force_download=force_download
                 )
                 fetched_data_intermediate = clean(fetched_data_intermediate, name_of_resource=name_of_resource, verbose=verbose, filename=local_filename)
-            
+
             else:
                 fetched_data_intermediate = download_and_load_data(
                     local_filename,
@@ -235,24 +235,28 @@ def get_prior_knowledge(name_of_resource, verbose=False, force_download=False, s
                     force_download=force_download
                 )
             fetched_data[local_filename] = fetched_data_intermediate
-        
+
         # if only 1 df in fetched data and squeeze==True, will return just that df, else will return a dictonary with all dfs
         if squeeze and len(fetched_data)==1:
             (key, value), = fetched_data.items()
-            if verbose: 
+            if verbose:
                 print(f'Returning {key} as a single df')
             return value
-        else: 
-            if verbose: 
-                print(f'Returning {[key for key in fetched_data.keys()]} as a dict of dfs')
-            return fetched_data
+        if verbose:
+            print(f"Returning {list(fetched_data)} as a dict of dfs")
+        return fetched_data
     except KeyError as e:
         raise KeyError(
-            f"Resource {name_of_resource!r} is unknown or malformed."
+            f"Resource {name_of_resource!r} is not yet supported."
         ) from e
-    
 
-def clean(df: pd.DataFrame, name_of_resource: str, verbose: bool = False, filename: str = None) -> pd.DataFrame:
+
+def clean(
+    df: pd.DataFrame,
+    name_of_resource: str,
+    verbose: bool = False,
+    filename: str | None = None,
+) -> pd.DataFrame:
     """
     Dispatch per-resource specialized cleaning.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-lipinet.parse_reactome
+lipinet.parse_reactome.
 
 A standalone module that loads and processes Reactome data into node and edge
 DataFrames for LipiNet. Provides a helper function `parse_reactome_data`
@@ -14,9 +14,9 @@ Features:
     * ChEBI → Physical Entity
     * Physical Entity → Pathway
     * Physical Entity → Reaction
-    * (PE name×loc) → Physical Entity
-    * PE name → (PE name×loc)
-    * PE loc  → (PE name×loc)
+    * (PE name x loc) → Physical Entity
+    * PE name → (PE name x loc)
+    * PE loc  → (PE name x loc)
 - Node sets for each layer, including ontology nodes
 - Optional human-only filtering that preserves rows with unknown species
 - Processed caching via lipinet.utils.{cache_exists,load_cache,save_cache}
@@ -34,17 +34,16 @@ from __future__ import annotations
 
 import argparse
 import importlib
-from typing import Dict
+
 import pandas as pd
 
 import lipinet
 import lipinet.databases as db
 from lipinet.databases import get_prior_knowledge
 from lipinet.utils import (
-    save_cache,
-    load_cache,
     cache_exists,
-    clean_missing_strings,
+    load_cache,
+    save_cache,
 )
 
 # Ensure local edits are picked up (mirrors the notebook behavior)
@@ -63,8 +62,10 @@ def _safe_drop(df: pd.DataFrame, cols) -> pd.DataFrame:
 
 def _filter_human(df: pd.DataFrame, human_only: bool) -> pd.DataFrame:
     """
-    Keep rows where 'human' is not False. This preserves rows with NaN in 'human'
-    (e.g., ChEBI, PE-name/location). If column absent, return as-is.
+    Keep rows where 'human' is not False.
+
+    This preserves rows with NaN in 'human' (e.g., ChEBI, PE name/location).
+    If the column is absent, return the DataFrame unchanged.
     """
     if not human_only or "human" not in df.columns:
         return df
@@ -86,13 +87,12 @@ def _split_pe_name_location_notebook(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _filter_reactome(df: pd.DataFrame, human_only: bool = True) -> pd.DataFrame:
-    """Match the notebook’s filter: keep rows where 'human' != False (NaN kept)."""
+    """Match the notebook's filter: keep rows where 'human' != False (NaN kept)."""
     if not human_only:
         return df
     if "human" not in df.columns:
         return df
-    filtered = df[df["human"].ne(False)]
-    return filtered
+    return df[df["human"].ne(False)]
 
 
 def parse_reactome_data(
@@ -194,7 +194,7 @@ def parse_reactome_data(
     })
     df_edges_phyiscalent_to_reactionid["human"] = df_edges_phyiscalent_to_reactionid["species"].eq("Homo sapiens")
 
-    # (PE name×loc) -> PE
+    # (PE name x loc) -> PE
     df_edges_penameloc_to_phyiscalent = df_pe_all.assign(
         source_layer="reactome_physicalent_nameloc",
         target_layer="reactome_physicalent",
@@ -203,7 +203,7 @@ def parse_reactome_data(
         "reactome_pe_stableid": "target_id",
     })[["source_layer", "source_id", "target_layer", "target_id", "pe_name", "pe_location"]].drop_duplicates()
 
-    # PE name -> (PE name×loc)
+    # PE name -> (PE name x loc)
     df_edges_pename_to_penameloc = df_pe_all.assign(
         source_layer="reactome_physicalent_name",
         target_layer="reactome_physicalent_nameloc",
@@ -212,7 +212,7 @@ def parse_reactome_data(
         "reactome_pe_name": "target_id",
     })[["source_layer", "source_id", "target_layer", "target_id"]].drop_duplicates()
 
-    # PE loc -> (PE name×loc)
+    # PE loc -> (PE name x loc)
     df_edges_peloc_to_penameloc = df_pe_all.assign(
         source_layer="reactome_physicalent_loc",
         target_layer="reactome_physicalent_nameloc",
@@ -313,6 +313,7 @@ def parse_reactome_data(
 
 
 def main():
+    """CLI entry point for parsing Reactome data."""
     p = argparse.ArgumentParser(description="Parse Reactome exactly like the exploration notebook.")
     p.add_argument("--quiet", action="store_true", help="suppress prints")
     p.add_argument("--use-cache", action="store_true", help="load/save processed cache")
