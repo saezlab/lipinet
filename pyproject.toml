@@ -28,6 +28,9 @@ dependencies = [
 # graph-tool is typically installed via conda; leave as optional
 graph = ["graph-tool"]
 
+docs = ["sphinx>=8", "myst-nb", "nbsphinx", "sphinx-book-theme", "sphinx-copybutton", "sphinx-autodoc-typehints", "sphinx-tabs",
+        "sphinx-design", "sphinxcontrib-bibtex", "ipython", "plotly", "kaleido", "seaborn", "missingno"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["lipinet"]
 

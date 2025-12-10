@@ -9,6 +9,10 @@ dependencies:
   - numpy
   - pandas
   - matplotlib
+  - plotly
+  - python-kaleido
+  - seaborn
+  - missingno
 
   # Sphinx + theme + core extensions
   - sphinx>=4.0
