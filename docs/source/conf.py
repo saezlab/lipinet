@@ -10,7 +10,7 @@
 project = "LipiNet"
 author = "Macabe Daley et al."
 copyright = "2025, Macabe Daley et al."
-release = "1.1.0"
+release = "1.4.0"
 
 # -- General configuration ---------------------------------------------------
 
