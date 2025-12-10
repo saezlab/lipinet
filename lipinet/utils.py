@@ -1,10 +1,17 @@
+"""Utility functions for LipiNet data processing.
+
+This module provides helpers for dataframe manipulation, string cleaning,
+and simple caching of node/edge dataframes.
+"""
+
+from collections.abc import Iterable
+from pathlib import Path
+import re
+
+from IPython.display import display
 import numpy as np
 import pandas as pd
-from IPython.display import display
-import re
-from typing import Iterable, Optional, Dict
 import pandas.api.types as ptypes
-from pathlib import Path
 
 CACHE_ROOT = Path(__file__).parent / ".data" / "processed"
 CACHE_ROOT.mkdir(parents=True, exist_ok=True)
@@ -12,82 +19,172 @@ CACHE_ROOT.mkdir(parents=True, exist_ok=True)
 
 def split_and_expand_large(df, split_col, delimiter, expand_cols):
     """
-    Splits a column by a delimiter and expands specified columns for large DataFrames, handling None/NaN values.
+    Split a column by a delimiter and expand specified columns.
 
-    Parameters:
-    df (pd.DataFrame): The original DataFrame.
-    split_col (str): The name of the column to split.
-    delimiter (str): The delimiter to split the column by.
-    expand_cols (list): List of column names to be expanded with the split column.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The original DataFrame.
+    split_col : str
+        The name of the column to split.
+    delimiter : str
+        The delimiter to split the column by.
+    expand_cols : list of str
+        List of column names to be expanded with the split column.
 
-    Returns:
-    pd.DataFrame: A new DataFrame with the split and expanded rows.
+    Returns
+    -------
+    pandas.DataFrame
+        A new DataFrame with the split and expanded rows.
     """
+    # Edge case: empty input
+    if df is None or len(df) == 0:
+        # Return an empty frame with expected columns
+        return pd.DataFrame(
+            {
+                **{
+                    c: pd.Series(dtype=df[c].dtype if c in df.columns else object)
+                    for c in expand_cols
+                },
+                split_col: pd.Series(dtype=object),
+            },
+        )
+
     # Step 1: Split the split_col into lists, handling None/NaN as empty lists
-    split_data = df[split_col].apply(lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan])
-    
+    split_data = df[split_col].apply(
+        lambda x: str(x).split(delimiter) if pd.notnull(x) else [np.nan],
+    )
+
     # Step 2: Calculate the number of splits for each row to repeat other columns
     repeat_counts = split_data.apply(len)
-    
+
     # Step 3: Create a DataFrame with repeated values for expand_cols
     expanded_data = {col: np.repeat(df[col].values, repeat_counts) for col in expand_cols}
-    
+
     # Step 4: Flatten the split_data and assign to the expanded split_col
+    # If there are no splits (shouldn't happen due to early return), guard
+    if len(split_data.values) == 0:
+        return pd.DataFrame(
+            {
+                **{
+                    c: pd.Series(dtype=df[c].dtype if c in df.columns else object)
+                    for c in expand_cols
+                },
+                split_col: pd.Series(dtype=object),
+            },
+        )
     expanded_data[split_col] = np.concatenate(split_data.values)
-    
-    # Step 5: Create the expanded DataFrame
-    expanded_df = pd.DataFrame(expanded_data)
-    
-    return expanded_df
 
-    # # Example usage for large DataFrames with None or NaN values
-    # data = {'col1': ['word|smith', None, 'apple|banana|cherry', np.nan], 'col2': ['john', 'doe', 'alice', 'bob']}
-    # df = pd.DataFrame(data)
-    # result = split_and_expand_large(df, split_col='col1', delimiter='|', expand_cols=['col2'])
-    # print(result)
+    # Step 5: Create and return the expanded DataFrame
+    return pd.DataFrame(expanded_data)
 
-def create_nodedf_from_edgedf(edge_df, props=['layer', 'id'], cols=['layer', 'node_id']):
-    dfs = []
-    for prop in props:
-        df = pd.melt(edge_df, 
-                    value_vars=[f'source_{prop}',f'target_{prop}'], 
-                    var_name='type', value_name='value')
-        dfs.append(df)
-    node_df = pd.concat(dfs, axis=1)
-    node_df = node_df['value']
-    node_df.columns = cols
-    return node_df
 
-def check_for_split_characters(df, delimiter='|'):
+def create_nodedf_from_edgedf(edge_df, props=None, cols=None):
+    """
+    Create a node DataFrame from an edge DataFrame by stacking source/target.
+
+    Parameters
+    ----------
+    edge_df : pandas.DataFrame
+        Edge dataframe with columns like 'source_layer','source_id',
+        'target_layer','target_id'.
+    props : list of str, optional
+        Two-element list specifying the property suffixes to pull from
+        the edge dataframe (default is ['layer', 'id']).
+    cols : list of str, optional
+        Output column names for the resulting node dataframe
+        (default is ['layer', 'node_id']).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Unique nodes with columns named per ``cols``.
+
+    Raises
+    ------
+    ValueError
+        If ``props`` or ``cols`` are not length-2 lists.
+    """
+    if props is None:
+        props = ["layer", "id"]
+    if cols is None:
+        cols = ["layer", "node_id"]
+
+    if len(props) != 2 or len(cols) != 2:
+        raise ValueError("props and cols must be length-2 lists")
+
+    src = edge_df[[f"source_{props[0]}", f"source_{props[1]}"]].rename(
+        columns={f"source_{props[0]}": cols[0], f"source_{props[1]}": cols[1]},
+    )
+    tgt = edge_df[[f"target_{props[0]}", f"target_{props[1]}"]].rename(
+        columns={f"target_{props[0]}": cols[0], f"target_{props[1]}": cols[1]},
+    )
+    # Combine source and target DataFrames and drop duplicates
+    return pd.concat([src, tgt], ignore_index=True).drop_duplicates()
+
+
+def check_for_split_characters(df, delimiter="|"):
+    """
+    Print columns that contain the delimiter and return their names.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame to scan.
+    delimiter : str, optional
+        Delimiter character to search for (default is "|").
+
+    Returns
+    -------
+    list of str
+        List of column names that contain the delimiter in at least one row.
+    """
     cols_with_split_chars = []
     for col in df.columns:
-        print(f'Checking split characters ({delimiter}) in ' + col)
+        print(f"Checking split characters ({delimiter}) in " + col)
         try:
             temp = df[df[col].str.contains(delimiter, regex=False, na=False)]
             if len(temp) > 0:
-                print(f'Found {len(temp)} rows with split characters')
+                print(f"Found {len(temp)} rows with split characters")
                 display(temp)
                 cols_with_split_chars.append(col)
             else:
-                print('No rows found\n')
+                print("No rows found\n")
         except AttributeError:
-            print('Not a string column\n')
+            print("Not a string column\n")
     return cols_with_split_chars
 
 
-def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold=0.9) -> pd.DataFrame:
+def clean_missing_strings(
+    df: pd.DataFrame,
+    cols=None,
+    string_fraction_threshold=0.9,
+) -> pd.DataFrame:
     """
-    Strip whitespace from stringy values and normalize common placeholder "missing" strings
-    into real pandas NA. Operates on specified columns or all object/string columns by default.
-    
-    Args:
-        df: input DataFrame (modified in-place).
-        cols: list of columns to process; if None, uses all object/string dtype columns.
-        string_fraction_threshold: for object dtype columns, if >= this fraction of non-null
-            values are str, coerce to StringDtype and vectorize the strip; otherwise do per-element.
+    Strip whitespace and normalize placeholder strings to missing values.
+
+    Operate on specified columns or all object/string columns by default.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame (modified in-place).
+    cols : list, optional
+        List of columns to process; if None, uses all object/string dtype columns.
+    string_fraction_threshold : float, optional
+        For object dtype columns, if >= this fraction of non-null values are str,
+        coerce to StringDtype and vectorize the strip (default 0.9).
+
+    Returns
+    -------
+    pandas.DataFrame
+        The processed DataFrame (same object mutated and returned).
     """
     if cols is None:
         cols = df.select_dtypes(include=["object", "string"]).columns.tolist()
+
+    # Preserve original values for non-string entries so we never coerce them away
+    _orig = {c: df[c].copy() for c in cols if c in df.columns}
     for c in cols:
         if c not in df.columns:
             continue  # or warn
@@ -117,25 +214,44 @@ def clean_missing_strings(df: pd.DataFrame, cols=None, string_fraction_threshold
             # non-string column: leave alone
             continue
 
-    # Global placeholder normalization (works across dtypes; only affects matching string representations)
-    df = df.replace({
-        r'^(?i:nan|none|null)$': pd.NA,
-        r'^\s*$': pd.NA
-    }, regex=True)
+    # Global placeholder normalization on string-like columns only.
+    # Use pandas StringDtype and .str.replace to avoid numpy vectorize issues
+    # on empty object blocks.
+    for col in df.columns:
+        s = df[col]
+        if ptypes.is_string_dtype(s.dtype) or ptypes.is_object_dtype(s.dtype):
+            # Only consider original string entries for normalization
+            is_str = s.map(lambda x: isinstance(x, str))
+            if is_str.any():
+                s_str = s.astype("string")
+                mask_placeholder = s_str.str.match(r"(?i)^(nan|none|null)$", na=False)
+                mask_empty = s_str.str.fullmatch(r"\s*", na=False)
+                apply_mask = is_str & (mask_placeholder | mask_empty)
+                res = s.copy()
+                # Use Python None to avoid coercing non-strings; tests treat None as missing
+                res.loc[apply_mask] = None
+                df[col] = res
+
+    # Restore any non-string entries from the original to ensure they remain unchanged
+    for c, orig in _orig.items():
+        if c in df.columns:
+            non_str_mask = orig.map(lambda x: not isinstance(x, str))
+            if non_str_mask.any():
+                df.loc[non_str_mask, c] = orig.loc[non_str_mask]
     return df
 
 
 def clean_columns(
     df: pd.DataFrame,
-    cols: Optional[Iterable[str]] = None,
-    strip_chars: Optional[str] = None,
-    trim_substrings: Optional[Iterable[str]] = None,
+    cols: Iterable[str] | None = None,
+    strip_chars: str | None = None,
+    trim_substrings: Iterable[str] | None = None,
     lowercase: bool = False,
     uppercase: bool = False,
     collapse_whitespace: bool = False,
     unicode_normalize: bool = False,
     verbose: bool = False,
-    ignore_missing: bool = True
+    ignore_missing: bool = True,
 ) -> pd.DataFrame:
     """
     Clean specified string columns in a dataframe.
@@ -148,26 +264,36 @@ def clean_columns(
       * Optionally collapse internal multiple whitespace to single space.
       * (Future) Optionally normalize unicode.
 
-    Args:
-        df: pandas DataFrame to clean (not modified in-place; a copy is returned).
-        cols: columns to clean; if None or empty, all columns are considered.
-        strip_chars: characters to strip from ends (None means default whitespace).
-        trim_substrings: substrings to strip from start/end (literal, case-sensitive).
-        lowercase: whether to lowercase the result.
-        uppercase: whether to uppercae the result.
-        collapse_whitespace: collapse internal runs of whitespace to a single space.
-        unicode_normalize: if True, apply Unicode normalization (NFC).
-        verbose: print before/after for samples.
-        ignore_missing: if False, raise if a listed column is missing; if True, skip it.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        pandas DataFrame to clean (not modified in-place; a copy is returned).
+    cols : Iterable of str or None, optional
+        Columns to clean; if None or empty, all columns are considered.
+    strip_chars : str or None, optional
+        Characters to strip from ends (None means default whitespace).
+    trim_substrings : Iterable of str or None, optional
+        Substrings to strip from start/end (literal, case-sensitive).
+    lowercase : bool, optional
+        Whether to lowercase the result.
+    uppercase : bool, optional
+        Whether to uppercase the result.
+    collapse_whitespace : bool, optional
+        Collapse internal runs of whitespace to a single space.
+    unicode_normalize : bool, optional
+        If True, apply Unicode normalization (NFC).
+    verbose : bool, optional
+        Print before/after for samples.
+    ignore_missing : bool, optional
+        If False, raise if a listed column is missing; if True, skip it.
 
-    Returns:
+    Returns
+    -------
+    pandas.DataFrame
         A cleaned copy of the dataframe.
     """
     df = df.copy()
-    if not cols:
-        cols_to_process = list(df.columns)
-    else:
-        cols_to_process = list(cols)
+    cols_to_process = list(df.columns) if not cols else list(cols)
 
     # prepare trim substrings, filtering out empties
     trim_list = []
@@ -183,8 +309,7 @@ def clean_columns(
                 if verbose:
                     print(f"Warning: column '{col}' not in dataframe; skipping.")
                 continue
-            else:
-                raise KeyError(f"Column '{col}' not found in dataframe.")
+            raise KeyError(f"Column '{col}' not found in dataframe.")
 
         if verbose:
             print(f"\n>> Cleaning column '{col}':")
@@ -195,15 +320,12 @@ def clean_columns(
         s = df[col].astype("string")  # pandas StringDtype, so <NA> stays as <NA>
 
         # Strip ends
-        if strip_chars is not None:
-            s = s.str.strip(strip_chars)
-        else:
-            s = s.str.strip()
+        s = s.str.strip(strip_chars) if strip_chars is not None else s.str.strip()
 
         # Trim specified substrings from ends
         if trim_list:
             escaped = [re.escape(x) for x in trim_list]
-            pattern = rf'^(?:{"|".join(escaped)})+|(?:{"|".join(escaped)})+$'
+            pattern = rf"^(?:{'|'.join(escaped)})+|(?:{'|'.join(escaped)})+$"
             s = s.str.replace(pattern, "", regex=True)
 
         # Lowercase or uppercase if requested
@@ -215,11 +337,12 @@ def clean_columns(
 
         # Collapse internal whitespace
         if collapse_whitespace:
-            s = s.str.replace(r'\s+', ' ', regex=True)
+            s = s.str.replace(r"\s+", " ", regex=True)
 
         # (Optional) Unicode normalization
         if unicode_normalize:
             import unicodedata
+
             # apply only to non-missing
             s = s.apply(lambda x: unicodedata.normalize("NFC", x) if pd.notna(x) else x)
 
@@ -232,29 +355,83 @@ def clean_columns(
     return df
 
 
-def _cache_paths(source: str) -> Dict[str, Path]:
-    """Return paths for nodes & edges cache for a given source name."""
+def _cache_paths(source: str) -> dict[str, Path]:
+    """
+    Return paths for nodes & edges cache for a given source name.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to name cache files.
+
+    Returns
+    -------
+    dict of (str, Path)
+        Dictionary with keys 'nodes' and 'edges' pointing to Path objects.
+    """
     base = CACHE_ROOT / source
     return {
         "nodes": base.with_name(f"{source}_nodes.pkl"),
         "edges": base.with_name(f"{source}_edges.pkl"),
     }
 
+
 def save_cache(source: str, df_nodes: pd.DataFrame, df_edges: pd.DataFrame) -> None:
-    """Pickle out nodes & edges DataFrames for this source."""
+    """
+    Pickle out nodes & edges DataFrames for this source.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to name cache files.
+    df_nodes : pandas.DataFrame
+        Node dataframe to save.
+    df_edges : pandas.DataFrame
+        Edge dataframe to save.
+
+    Returns
+    -------
+    None
+    """
     paths = _cache_paths(source)
     df_nodes.to_pickle(paths["nodes"])
     df_edges.to_pickle(paths["edges"])
 
-def load_cache(source: str) -> Dict[str, pd.DataFrame]:
-    """Load pickled nodes & edges; KeyError if missing."""
+
+def load_cache(source: str) -> dict[str, pd.DataFrame]:
+    """
+    Load pickled nodes & edges; KeyError if missing.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to locate cache files.
+
+    Returns
+    -------
+    dict of (str, pandas.DataFrame)
+        Dictionary with keys 'df_nodes' and 'df_edges' containing the loaded dataframes.
+    """
     paths = _cache_paths(source)
     return {
         "df_nodes": pd.read_pickle(paths["nodes"]),
         "df_edges": pd.read_pickle(paths["edges"]),
     }
 
+
 def cache_exists(source: str) -> bool:
-    """True if both cache files exist for this source."""
+    """
+    Return whether both cache files exist for this source.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier used to locate cache files.
+
+    Returns
+    -------
+    bool
+        True if both node and edge cache files exist, False otherwise.
+    """
     paths = _cache_paths(source)
     return paths["nodes"].exists() and paths["edges"].exists()

@@ -1,0 +1,106 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lipinet"
+version = "1.4.0"
+description = "Lipidomics multi-layered network construction and analysis."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Macabe Daley" }]
+keywords = ["lipidomics", "graph-tool", "networks", "multilayer", "analysis"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dependencies = [
+  "numpy",
+  "pandas",
+  "requests",
+  "ipython",
+  "onionnet>=1.1.0",
+]
+
+[project.optional-dependencies]
+# graph-tool is typically installed via conda; leave as optional
+graph = ["graph-tool"]
+
+docs = ["sphinx>=8", "myst-nb", "nbsphinx", "sphinx-book-theme", "sphinx-copybutton", "sphinx-autodoc-typehints", "sphinx-tabs",
+        "sphinx-design", "sphinxcontrib-bibtex", "ipython", "plotly", "kaleido", "seaborn", "missingno"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["lipinet"]
+
+[tool.hatch.build.targets.sdist]
+include = ["lipinet", "readme.md", "LICENSE"]
+
+# -------------------------
+# Ruff: formatter + linter
+# -------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+  ".git",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  "__pycache__",
+  "docs/_build",
+  "node_modules",
+  "docs/**.ipynb",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "W",
+  "F",
+  "I",
+  "UP",
+  "B",
+  "C4",
+  "SIM",
+  "PERF",
+  "RUF",
+  "TCH",
+  "FA",
+  "COM",
+]
+extend-select = [
+  "N",
+  "ARG",
+  "RET",
+  "PTH",
+  "G",
+  "ERA",
+  "D",
+]
+ignore = [
+  "E501",
+  "D203",
+  "D213",
+  "COM812",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lipinet"]
+force-sort-within-sections = true
+combine-as-imports = true
+
+[tool.ruff.lint.per-file-ignores]
+"docs/source/conf.py" = ["E402", "D"]
+"lipinet/**/__init__.py" = ["F401","I001", "D"]
+"tests/**" = ["S101","PT011","PT012","RET504", "D", "N", "N802", "N803"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

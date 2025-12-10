@@ -9,6 +9,10 @@ dependencies:
   - numpy
   - pandas
   - matplotlib
+  - plotly
+  - python-kaleido
+  - seaborn
+  - missingno
 
   # Sphinx + theme + core extensions
   - sphinx>=4.0
@@ -24,4 +28,5 @@ dependencies:
 
   - pip:
       - -e .
-      - git+https://github.com/saezlab/onionnet.git#egg:onionnet
+      - -e ../onionnet/. 
+      #- git+https://github.com/saezlab/onionnet.git#egg:onionnet

@@ -1,0 +1,43 @@
+{% set name = "lipinet" %}
+{% set version = "1.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  number: 1
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python
+    - pip
+    - hatchling >=1.18
+  run:
+    - python >=3.10
+    - numpy
+    - pandas
+    - requests
+    - ipython
+    #- onionnet >=1.1.0 # only when available in conda-forge :)
+    - graph-tool
+
+test:
+  imports:
+    - lipinet
+  commands:
+    - python -c "import lipinet; print(lipinet.__version__)"
+
+about:
+  home: https://github.com/saezlab/lipinet
+  license: GPL-3.0-only
+  license_file: LICENSE
+  summary: Lipidomics multi-layered network construction and analysis.
+
+extra:
+  recipe-maintainers:
+    - your-github-handle
